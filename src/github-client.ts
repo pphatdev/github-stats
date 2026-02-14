@@ -1,5 +1,6 @@
 import { Octokit } from '@octokit/rest';
 import { GitHubStats } from './types.js';
+import fetch from 'node-fetch';
 
 export class GitHubClient {
     private octokit: Octokit;
@@ -69,9 +70,20 @@ export class GitHubClient {
             // Calculate rank
             const rank = this.calculateRank(totalStars, totalCommits, totalPRs, totalIssues);
 
+            // Fetch and convert avatar to base64
+            let avatarBase64 = '';
+            try {
+                const avatarResponse = await fetch(user.avatar_url);
+                const avatarBuffer = await avatarResponse.arrayBuffer();
+                avatarBase64 = `data:image/png;base64,${Buffer.from(avatarBuffer).toString('base64')}`;
+            } catch (error) {
+                console.warn('Could not fetch avatar:', error);
+                avatarBase64 = user.avatar_url; // Fallback to URL if fetch fails
+            }
+
             return {
                 name: user.name || username,
-                avatarUrl: user.avatar_url,
+                avatarUrl: avatarBase64,
                 totalStars,
                 totalCommits,
                 totalPRs,
