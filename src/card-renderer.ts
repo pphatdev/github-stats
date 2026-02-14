@@ -28,7 +28,7 @@ export class CardRenderer {
         }
 
         // Generate starfield with animations (reduced count for smaller SVG)
-        const stars = Array.from({ length: 50 }, (_, i) => {
+        const stars = Array.from({ length: 25 }, (_, i) => {
             const x = (Math.random() * width).toFixed(0);
             const y = (Math.random() * height).toFixed(0);
             const r = (Math.random() * 1.5 + 0.5).toFixed(1);
@@ -40,7 +40,7 @@ export class CardRenderer {
         }).join('');
 
         // Generate shooting stars (simplified)
-        const shootingStars = Array.from({ length: 2 }, (_, i) => {
+        const shootingStars = Array.from({ length: 1 }, (_, i) => {
             const startX = (Math.random() * width).toFixed(0);
             const startY = (Math.random() * (height / 2)).toFixed(0);
             const endX = (parseFloat(startX) + 250).toFixed(0);
@@ -54,7 +54,7 @@ export class CardRenderer {
         }).join('');
 
         // Generate orbital rings
-        const orbitRings = [120, 160, 200, 240].map((r, i) =>
+        const orbitRings = [120, 180, 240].map((r, i) =>
             `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="rgba(0,200,255,${(0.15 - i * 0.03).toFixed(2)})" stroke-width="1" stroke-dasharray="10,8"/>`
         ).join('');
 
@@ -216,12 +216,12 @@ export class CardRenderer {
 
             <!-- Grid lines (subtle) -->
             <g opacity="0.1">
-                ${Array.from({ length: 20 }, (_, i) => {
-                    const x = (i + 1) * (width / 20);
+                ${Array.from({ length: 12 }, (_, i) => {
+                    const x = (i + 1) * (width / 12);
                     return `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="#00c8ff" stroke-width="0.5"/>`;
                 }).join('')}
-                ${Array.from({ length: 10 }, (_, i) => {
-                    const y = (i + 1) * (height / 10);
+                ${Array.from({ length: 6 }, (_, i) => {
+                    const y = (i + 1) * (height / 6);
                     return `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="#00c8ff" stroke-width="0.5"/>`;
                 }).join('')}
             </g>
@@ -244,8 +244,6 @@ export class CardRenderer {
 
                 <!-- Ping animation rings -->
                 <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" begin="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" begin="1s" repeatCount="indefinite"/></circle>
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" begin="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" begin="2s" repeatCount="indefinite"/></circle>
             </g>
 
             <!-- Top left panel - User info -->
