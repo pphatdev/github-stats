@@ -27,48 +27,35 @@ export class CardRenderer {
             return num.toString();
         }
 
-        // Generate starfield with animations
-        const stars = Array.from({ length: 100 }, (_, i) => {
-            const x = Math.random() * width;
-            const y = Math.random() * height;
-            const r = Math.random() * 1.5 + 0.5;
-            const opacity = +(Math.random() * 0.7 + 0.3).toFixed(2);
-            const opacityLow = +(opacity * 0.3).toFixed(2);
-            const twinkleDur = (Math.random() * 3 + 2).toFixed(1); // 2-5 seconds
-            const moveX = (Math.random() * 4 - 2).toFixed(1); // -2 to +2
-            const moveY = (Math.random() * 4 - 2).toFixed(1); // -2 to +2
-            const delay = (Math.random() * 3).toFixed(1);
-            return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#fff" opacity="${opacity}">
-                <animate attributeName="opacity" values="${opacity};${opacityLow};${opacity}" dur="${twinkleDur}s" begin="${delay}s" repeatCount="indefinite" />
-                <animateTransform attributeName="transform" type="translate" values="0,0; ${moveX},${moveY}; 0,0" dur="${parseFloat(twinkleDur) * 2}s" begin="${delay}s" repeatCount="indefinite" />
-            </circle>`;
+        // Generate starfield with animations (reduced count for smaller SVG)
+        const stars = Array.from({ length: 50 }, (_, i) => {
+            const x = (Math.random() * width).toFixed(0);
+            const y = (Math.random() * height).toFixed(0);
+            const r = (Math.random() * 1.5 + 0.5).toFixed(1);
+            const opacity = (Math.random() * 0.7 + 0.3).toFixed(1);
+            const opacityLow = (parseFloat(opacity) * 0.3).toFixed(1);
+            const twinkleDur = (Math.random() * 3 + 2).toFixed(0);
+            const delay = (Math.random() * 3).toFixed(0);
+            return `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity="${opacity}"><animate attributeName="opacity" values="${opacity};${opacityLow};${opacity}" dur="${twinkleDur}s" begin="${delay}s" repeatCount="indefinite"/></circle>`;
         }).join('');
 
-        // Generate shooting stars
-        const shootingStars = Array.from({ length: 3 }, (_, i) => {
-            const startX = (Math.random() * width).toFixed(1);
-            const startY = (Math.random() * (height / 2)).toFixed(1);
-            const endX = (parseFloat(startX) + 200 + Math.random() * 100).toFixed(1);
-            const endY = (parseFloat(startY) + 150 + Math.random() * 50).toFixed(1);
-            const startX2 = (parseFloat(startX) + 30).toFixed(1);
-            const startY2 = (parseFloat(startY) + 20).toFixed(1);
-            const endX2 = (parseFloat(endX) + 30).toFixed(1);
-            const endY2 = (parseFloat(endY) + 20).toFixed(1);
-            const delay = (i * 8 + Math.random() * 4).toFixed(1);
-            return `
-                <line x1="${startX}" y1="${startY}" x2="${startX2}" y2="${startY2}" stroke="url(#shootingStarGradient)" stroke-width="2" opacity="0" stroke-linecap="round">
-                    <animate attributeName="x1" values="${startX};${endX}" dur="1.5s" begin="${delay}s" repeatCount="indefinite" />
-                    <animate attributeName="y1" values="${startY};${endY}" dur="1.5s" begin="${delay}s" repeatCount="indefinite" />
-                    <animate attributeName="x2" values="${startX2};${endX2}" dur="1.5s" begin="${delay}s" repeatCount="indefinite" />
-                    <animate attributeName="y2" values="${startY2};${endY2}" dur="1.5s" begin="${delay}s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="${delay}s" repeatCount="indefinite" />
-                </line>
-            `;
+        // Generate shooting stars (simplified)
+        const shootingStars = Array.from({ length: 2 }, (_, i) => {
+            const startX = (Math.random() * width).toFixed(0);
+            const startY = (Math.random() * (height / 2)).toFixed(0);
+            const endX = (parseFloat(startX) + 250).toFixed(0);
+            const endY = (parseFloat(startY) + 170).toFixed(0);
+            const startX2 = (parseFloat(startX) + 30).toFixed(0);
+            const startY2 = (parseFloat(startY) + 20).toFixed(0);
+            const endX2 = (parseFloat(endX) + 30).toFixed(0);
+            const endY2 = (parseFloat(endY) + 20).toFixed(0);
+            const delay = (i * 10).toString();
+            return `<line x1="${startX}" y1="${startY}" x2="${startX2}" y2="${startY2}" stroke="url(#shootingStarGradient)" stroke-width="2" opacity="0" stroke-linecap="round"><animate attributeName="x1" values="${startX};${endX}" dur="2s" begin="${delay}s" repeatCount="indefinite"/><animate attributeName="y1" values="${startY};${endY}" dur="2s" begin="${delay}s" repeatCount="indefinite"/><animate attributeName="x2" values="${startX2};${endX2}" dur="2s" begin="${delay}s" repeatCount="indefinite"/><animate attributeName="y2" values="${startY2};${endY2}" dur="2s" begin="${delay}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.8;0" dur="2s" begin="${delay}s" repeatCount="indefinite"/></line>`;
         }).join('');
 
         // Generate orbital rings
         const orbitRings = [120, 160, 200, 240].map((r, i) =>
-            `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="rgba(0, 200, 255, ${(0.15 - i * 0.03).toFixed(2)})" stroke-width="1" stroke-dasharray="10,8" />`
+            `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="rgba(0,200,255,${(0.15 - i * 0.03).toFixed(2)})" stroke-width="1" stroke-dasharray="10,8"/>`
         ).join('');
 
         // Generate data beams radiating from center
@@ -96,29 +83,10 @@ export class CardRenderer {
             // Label position (further out)
             const labelX = (centerX + Math.cos(angle) * (beamLength + 60)).toFixed(1);
             const labelY = centerY + Math.sin(angle) * (beamLength + 60);
-            const labelYTop = (labelY - 12).toFixed(1);
-            const labelYBottom = (labelY + 6).toFixed(1);
+            const labelYTop = (labelY - 12).toFixed(0);
+            const labelYBottom = (labelY + 6).toFixed(0);
 
-            return `
-                <!-- Beam line -->
-                <line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="url(#beamGradient${i})" stroke-width="2" opacity="0.6" />
-
-                <!-- Glow effect beam -->
-                <line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="rgba(0, 200, 255, 0.3)" stroke-width="6" filter="url(#glow)" />
-
-                <!-- Data point -->
-                <circle cx="${dotX}" cy="${dotY}" r="6" fill="#00c8ff" filter="url(#glow)">
-                    <animate attributeName="r" values="6;8;6" dur="2s" repeatCount="indefinite" />
-                </circle>
-                <circle cx="${dotX}" cy="${dotY}" r="12" fill="none" stroke="#00c8ff" stroke-width="1" opacity="0.4">
-                    <animate attributeName="r" values="12;16;12" dur="2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2s" repeatCount="indefinite" />
-                </circle>
-
-                <!-- Stat label -->
-                <text x="${labelX}" y="${labelYTop}" text-anchor="middle" fill="#00c8ff" font-size="11" font-weight="600" filter="url(#glow)">${stat.label}</text>
-                <text x="${labelX}" y="${labelYBottom}" text-anchor="middle" fill="#fff" font-size="20" font-weight="700" class="number" filter="url(#glow)">${formatNumber(stat.value)}</text>
-            `;
+            return `<line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="url(#beamGradient${i})" stroke-width="2" opacity="0.6"/><line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="rgba(0,200,255,0.3)" stroke-width="6" filter="url(#glow)"/><circle cx="${dotX}" cy="${dotY}" r="6" fill="#00c8ff" filter="url(#glow)"><animate attributeName="r" values="6;8;6" dur="2s" repeatCount="indefinite"/></circle><circle cx="${dotX}" cy="${dotY}" r="12" fill="none" stroke="#00c8ff" stroke-width="1" opacity="0.4"><animate attributeName="r" values="12;16;12" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0.1;0.4" dur="2s" repeatCount="indefinite"/></circle><text x="${labelX}" y="${labelYTop}" text-anchor="middle" fill="#00c8ff" font-size="11" font-weight="600" filter="url(#glow)">${stat.label}</text><text x="${labelX}" y="${labelYBottom}" text-anchor="middle" fill="#fff" font-size="20" font-weight="700" class="number" filter="url(#glow)">${formatNumber(stat.value)}</text>`;
         }).join('');
 
         // Corner info panels
@@ -267,7 +235,7 @@ export class CardRenderer {
             <g filter="url(#strongGlow)">
                 <!-- Avatar image -->
                 <image href="${stats.avatarUrl}" x="${centerX - 65}" y="${centerY - 65}" width="130" height="130" clip-path="url(#avatarClip)" opacity="0.9" />
-                
+
                 <!-- Avatar border and effects -->
                 <circle cx="${centerX}" cy="${centerY}" r="65" fill="none" stroke="#00c8ff" stroke-width="3" opacity="0.8" />
                 <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="#00c8ff" stroke-width="1" opacity="0.5" />
@@ -275,18 +243,9 @@ export class CardRenderer {
                 <circle cx="${centerX}" cy="${centerY}" r="75" fill="none" stroke="#00c8ff" stroke-width="1" opacity="0.4" stroke-dasharray="4,4" />
 
                 <!-- Ping animation rings -->
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0">
-                    <animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite" />
-                </circle>
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0">
-                    <animate attributeName="r" values="80;150;220" dur="5s" begin="1s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.7;0.3;0" dur="5s" begin="1s" repeatCount="indefinite" />
-                </circle>
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0">
-                    <animate attributeName="r" values="80;150;220" dur="5s" begin="2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.7;0.3;0" dur="5s" begin="2s" repeatCount="indefinite" />
-                </circle>
+                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
+                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" begin="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" begin="1s" repeatCount="indefinite"/></circle>
+                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" begin="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" begin="2s" repeatCount="indefinite"/></circle>
             </g>
 
             <!-- Top left panel - User info -->
