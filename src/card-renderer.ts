@@ -58,7 +58,7 @@ export class CardRenderer {
 
         // Generate orbital rings
         const orbitRings = [120, 160, 200, 240].map((r, i) =>
-            `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="rgba(0, 200, 255, ${0.15 - i * 0.03})" stroke-width="1" stroke-dasharray="4,8"/>`
+            `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="rgba(0, 200, 255, ${0.15 - i * 0.03})" stroke-width="1" stroke-dasharray="10,8"/>`
         ).join('');
 
         // Generate data beams radiating from center
@@ -105,7 +105,7 @@ export class CardRenderer {
 
                 <!-- Stat label -->
                 <text x="${labelX}" y="${labelY - 12}" text-anchor="middle" fill="#00c8ff" font-size="11" font-weight="600" filter="url(#glow)">${stat.label}</text>
-                <text x="${labelX}" y="${labelY + 6}" text-anchor="middle" fill="#fff" font-size="20" font-weight="700" filter="url(#glow)">${formatNumber(stat.value)}</text>
+                <text x="${labelX}" y="${labelY + 6}" text-anchor="middle" fill="#fff" font-size="20" font-weight="700" class="number" filter="url(#glow)">${formatNumber(stat.value)}</text>
             `;
         }).join('');
 
@@ -171,9 +171,23 @@ export class CardRenderer {
                     <stop offset="0%" style="stop-color:#00c8ff;stop-opacity:0" />
                     <stop offset="100%" style="stop-color:#ffffff;stop-opacity:1" />
                 </linearGradient>
+
+                <!-- Circular mask for avatar -->
+                <clipPath id="avatarClip">
+                    <circle cx="${centerX}" cy="${centerY}" r="65"/>
+                </clipPath>
             </defs>
 
             <style>
+                @import url('https://fonts.googleapis.com/css2?family=Bungee&amp;family=Cascadia+Code:ital,wght@0,200..700;1,200..700&amp;family=Orbitron:wght@400..900&amp;family=Ubuntu+Sans+Mono:ital,wght@0,400..700;1,400..700&amp;display=swap');
+
+                text {
+                    font-family: "Orbitron", sans-serif;
+                    font-optical-sizing: auto;
+                    font-style: normal;
+                    font-weight: 700;
+                }
+
                 @keyframes rotate {
                     from { transform: rotate(0deg); }
                     to { transform: rotate(360deg); }
@@ -238,26 +252,27 @@ export class CardRenderer {
 
             <!-- Center sphere (Earth-like) -->
             <g filter="url(#strongGlow)">
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="url(#sphereGradient)" opacity="0.95"/>
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff" stroke-width="2" opacity="0.4"/>
-                <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="#00c8ff" stroke-width="1" opacity="0.3" stroke-dasharray="4,4"/>
-
-                <!-- Inner core glow -->
-                <circle cx="${centerX}" cy="${centerY}" r="30" fill="#00d4ff" opacity="0.6" class="pulsing"/>
-                <circle cx="${centerX}" cy="${centerY}" r="20" fill="#fff" opacity="0.8"/>
+                <!-- Avatar image -->
+                <image href="${stats.avatarUrl}" x="${centerX - 65}" y="${centerY - 65}" width="130" height="130" clip-path="url(#avatarClip)" opacity="0.9"/>
+                
+                <!-- Avatar border and effects -->
+                <circle cx="${centerX}" cy="${centerY}" r="65" fill="none" stroke="#00c8ff" stroke-width="3" opacity="0.8"/>
+                <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="#00c8ff" stroke-width="1" opacity="0.5"/>
+                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff" stroke-width="2" opacity="0.3"/>
+                <circle cx="${centerX}" cy="${centerY}" r="75" fill="none" stroke="#00c8ff" stroke-width="1" opacity="0.4" stroke-dasharray="4,4"/>
 
                 <!-- Ping animation rings -->
                 <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0">
                     <animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" values="0.5;0.3;0" dur="5s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/>
                 </circle>
                 <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0">
                     <animate attributeName="r" values="80;150;220" dur="5s" begin="1s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" values="0.5;0.3;0" dur="5s" begin="1s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.7;0.3;0" dur="5s" begin="1s" repeatCount="indefinite"/>
                 </circle>
                 <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0">
                     <animate attributeName="r" values="80;150;220" dur="5s" begin="2s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" values="0.5;0.3;0" dur="5s" begin="2s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.7;0.3;0" dur="5s" begin="2s" repeatCount="indefinite"/>
                 </circle>
             </g>
 
@@ -268,8 +283,8 @@ export class CardRenderer {
                 <line x1="0" y1="35" x2="280" y2="35" stroke="#00c8ff" stroke-width="1" opacity="0.3"/>
 
                 <text x="15" y="25" fill="#00c8ff" font-size="14" font-weight="600" letter-spacing="1">${customTitle}</text>
-                <text x="15" y="60" fill="#888" font-size="11" font-weight="500">TOTAL CONTRIBUTIONS</text>
-                <text x="15" y="85" fill="#fff" font-size="32" font-weight="700" filter="url(#glow)">${formatNumber(totalContributions)}</text>
+                <text x="15" y="55" fill="#888" font-size="11" font-weight="500">TOTAL CONTRIBUTIONS</text>
+                <text x="15" y="85" fill="#fff" font-size="32" font-weight="700"  class="number" filter="url(#glow)">${formatNumber(totalContributions)}</text>
                 <text x="15" y="108" fill="#00c8ff" font-size="10" opacity="0.7">Last synchronized: ${new Date().toLocaleTimeString()}</text>
             </g>
             ` : ''}
@@ -282,9 +297,9 @@ export class CardRenderer {
 
                 <text x="15" y="25" fill="#00c8ff" font-size="14" font-weight="600" letter-spacing="1">DEVELOPER RANK</text>
 
-                <text x="15" y="85" fill="#fff" font-size="48" font-weight="700" filter="url(#glow)">${stats.rank.level}</text>
-                <text x="120" y="70" fill="#888" font-size="11" font-weight="500">SCORE</text>
-                <text x="120" y="90" fill="#00c8ff" font-size="24" font-weight="600">${stats.rank.score.toFixed(1)}</text>
+                <text x="15" y="85" fill="#fff" font-size="48" font-weight="700" filter="url(#glow)" class="number">${stats.rank.level}</text>
+                <text x="85" y="60" fill="#888" font-size="11" font-weight="500">SCORE</text>
+                <text x="85" y="85" fill="#00c8ff" font-size="24" font-weight="600" class="number" opacity="0.8">${stats.rank.score.toFixed(1)}</text>
                 <text x="15" y="108" fill="#888" font-size="10">Based on contribution metrics</text>
             </g>
             ` : ''}
@@ -297,11 +312,11 @@ export class CardRenderer {
                 <text x="15" y="25" fill="#00c8ff" font-size="14" font-weight="600" letter-spacing="1">REPOSITORY ACTIVITY</text>
 
                 <text x="15" y="60" fill="#888" font-size="10">Pull Requests</text>
-                <text x="200" y="60" fill="#fff" font-size="16" font-weight="600" text-anchor="end">${formatNumber(stats.totalPRs)}</text>
+                <text x="200" y="60" fill="#fff" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.totalPRs)}</text>
                 <text x="15" y="82" fill="#888" font-size="10">Issues</text>
-                <text x="200" y="82" fill="#fff" font-size="16" font-weight="600" text-anchor="end">${formatNumber(stats.totalIssues)}</text>
+                <text x="200" y="82" fill="#fff" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.totalIssues)}</text>
                 <text x="15" y="104" fill="#888" font-size="10">Contributed To</text>
-                <text x="200" y="104" fill="#00c8ff" font-size="16" font-weight="600" text-anchor="end">${formatNumber(stats.contributedTo)}</text>
+                <text x="200" y="104" fill="#00c8ff" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.contributedTo)}</text>
             </g>
 
             <!-- Bottom right panel - Terminal style data stream -->
@@ -310,10 +325,10 @@ export class CardRenderer {
                 <line x1="0" y1="35" x2="280" y2="35" stroke="#00c8ff" stroke-width="1" opacity="0.3"/>
 
                 <text x="15" y="25" fill="#00c8ff" font-size="14" font-weight="600" letter-spacing="1">DATA STREAM</text>
-                <text x="15" y="55" fill="#0f0" font-size="9" font-family="monospace" opacity="0.8">> Analyzing contribution patterns...</text>
-                <text x="15" y="72" fill="#0f0" font-size="9" font-family="monospace" opacity="0.7">> Processing ${stats.totalCommits} commits</text>
-                <text x="15" y="89" fill="#0f0" font-size="9" font-family="monospace" opacity="0.6">> Stars collected: ${stats.totalStars}</text>
-                <text x="15" y="106" fill="#00c8ff" font-size="9" font-family="monospace" opacity="0.5">> Status: ACTIVE_</text>
+                <text x="15" y="55" fill="#0f0" font-size="9" opacity="0.8">> Analyzing contribution patterns...</text>
+                <text x="15" y="72" fill="#0f0" font-size="9" opacity="0.7">> Processing ${stats.totalCommits} commits</text>
+                <text x="15" y="89" fill="#0f0" font-size="9" opacity="0.6">> Stars collected: ${stats.totalStars}</text>
+                <text x="15" y="106" fill="#00c8ff" font-size="9" opacity="0.5">> Status: ACTIVE_</text>
             </g>
 
             <!-- Corner accents -->

@@ -71,6 +71,7 @@ export class GitHubClient {
 
             return {
                 name: user.name || username,
+                avatarUrl: user.avatar_url,
                 totalStars,
                 totalCommits,
                 totalPRs,

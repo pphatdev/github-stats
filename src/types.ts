@@ -1,5 +1,6 @@
 export interface GitHubStats {
     name: string;
+    avatarUrl: string;
     totalStars: number;
     totalCommits: number;
     totalPRs: number;

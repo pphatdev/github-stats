@@ -30,7 +30,7 @@ app.get('/', (req: Request, res: Response) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>GitHub Stats Dashboard</title>
         <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Cascadia+Code:wght@400;600;700&display=swap" rel="stylesheet"/>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
         <script>
             tailwind.config = {
@@ -45,7 +45,8 @@ app.get('/', (req: Request, res: Response) => {
                             "card-dark": "#1E293B",
                         },
                         fontFamily: {
-                            display: ["Inter", "sans-serif"],
+                            display: ["Ubuntu", "sans-serif"],
+                            mono: ["Cascadia Code", "Consolas", "monospace"],
                         },
                         borderRadius: {
                             DEFAULT: "0.75rem",
@@ -219,7 +220,7 @@ app.get('/stats', async (req: Request, res: Response) => {
         if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
             res.setHeader('Content-Type', 'image/svg+xml');
             res.setHeader('Cache-Control', 'public, max-age=600');
-            return res.send(cached.data);
+            // return res.send(cached.data);
         }
 
         // Fetch stats
