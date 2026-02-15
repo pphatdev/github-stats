@@ -65,9 +65,9 @@ export class CardRenderer {
 
             // Label position (further out)
             const labelX = (centerX + Math.cos(angle) * (beamLength + 60)).toFixed(1);
-            const labelY = centerY + Math.sin(angle) * (beamLength + 60);
-            const labelYTop = (labelY - 12).toFixed(0);
-            const labelYBottom = (labelY + 6).toFixed(0);
+            const labelY = (centerY + Math.sin(angle) * (beamLength + 60)).toFixed(1);
+            const labelYTop = (Number(labelY) - 12).toFixed(1);
+            const labelYBottom = (Number(labelY) + 6).toFixed(1);
 
             return `<line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="url(#beamGradient${i})" stroke-width="2" opacity="0.6"/><circle cx="${dotX}" cy="${dotY}" r="6" fill="#00c8ff" filter="url(#glow)"/><text x="${labelX}" y="${labelYTop}" text-anchor="middle" fill="#00c8ff" font-size="11" font-weight="600">${stat.label}</text><text x="${labelX}" y="${labelYBottom}" text-anchor="middle" fill="#fff" font-size="20" font-weight="700" class="number">${formatNumber(stat.value)}</text>`;
         }).join('');
@@ -76,7 +76,7 @@ export class CardRenderer {
         const totalContributions = stats.totalStars + stats.totalCommits + stats.totalPRs + stats.totalIssues;
 
         return `
-        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="https://www.w3.org/2000/svg">
+        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <!-- Radial gradient for background -->
                 <radialGradient id="spaceGradient" cx="50%" cy="50%">
