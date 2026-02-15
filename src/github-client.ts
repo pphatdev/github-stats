@@ -1,6 +1,7 @@
 import { Octokit } from '@octokit/rest';
 import { GitHubStats } from './types.js';
 import fetch from 'node-fetch';
+import sharp from 'sharp';
 
 export class GitHubClient {
     private octokit: Octokit;
@@ -70,16 +71,23 @@ export class GitHubClient {
             // Calculate rank
             const rank = this.calculateRank(totalStars, totalCommits, totalPRs, totalIssues);
 
-            // Fetch and convert avatar to base64 (using smaller size to reduce SVG size)
+            // Fetch and convert avatar to WebP, then base64 for smaller size
             let avatarBase64 = '';
             try {
-                // Request 100x100 avatar to keep base64 size small (~2-3KB) to avoid GitHub camo proxy truncation
-                const smallAvatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=100`;
-                const avatarResponse = await fetch(smallAvatarUrl);
-                const avatarBuffer = await avatarResponse.arrayBuffer();
-                avatarBase64 = `data:image/png;base64,${Buffer.from(avatarBuffer).toString('base64')}`;
+                // Fetch avatar at reasonable size
+                const avatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=220`;
+                const avatarResponse = await fetch(avatarUrl);
+                const avatarBuffer = Buffer.from(await avatarResponse.arrayBuffer());
+
+                // Compress to WebP format (much smaller than PNG)
+                const webpBuffer = await sharp(avatarBuffer)
+                    .resize(120, 120) // Resize to 120x120
+                    .webp({ quality: 80 }) // Convert to WebP with 80% quality
+                    .toBuffer();
+
+                avatarBase64 = `data:image/webp;base64,${webpBuffer.toString('base64')}`;
             } catch (error) {
-                console.warn('Could not fetch avatar:', error);
+                console.warn('Could not fetch/compress avatar:', error);
                 avatarBase64 = user.avatar_url; // Fallback to URL if fetch fails
             }
 
