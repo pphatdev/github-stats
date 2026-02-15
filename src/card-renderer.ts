@@ -147,7 +147,7 @@ export class CardRenderer {
             <style>
                 @font-face {
                     font-family: 'Orbitron';
-                    src: url('data:font/woff2;base64,${fontBase64.join('')}') format('woff2');
+                    src: url(data:font/woff2;base64,${fontBase64.join('')}) format('woff2');
                 }
 
                 text {
