@@ -27,31 +27,17 @@ export class CardRenderer {
             return num.toString();
         }
 
-        // Generate starfield with animations (reduced count for smaller SVG)
-        const stars = Array.from({ length: 25 }, (_, i) => {
+        // Generate starfield (static to reduce size)
+        const stars = Array.from({ length: 30 }, (_, i) => {
             const x = (Math.random() * width).toFixed(0);
             const y = (Math.random() * height).toFixed(0);
             const r = (Math.random() * 1.5 + 0.5).toFixed(1);
             const opacity = (Math.random() * 0.7 + 0.3).toFixed(1);
-            const opacityLow = (parseFloat(opacity) * 0.3).toFixed(1);
-            const twinkleDur = (Math.random() * 3 + 2).toFixed(0);
-            const delay = (Math.random() * 3).toFixed(0);
-            return `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity="${opacity}"><animate attributeName="opacity" values="${opacity};${opacityLow};${opacity}" dur="${twinkleDur}s" begin="${delay}s" repeatCount="indefinite"/></circle>`;
+            return `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity="${opacity}"/>`;
         }).join('');
 
-        // Generate shooting stars (simplified)
-        const shootingStars = Array.from({ length: 1 }, (_, i) => {
-            const startX = (Math.random() * width).toFixed(0);
-            const startY = (Math.random() * (height / 2)).toFixed(0);
-            const endX = (parseFloat(startX) + 250).toFixed(0);
-            const endY = (parseFloat(startY) + 170).toFixed(0);
-            const startX2 = (parseFloat(startX) + 30).toFixed(0);
-            const startY2 = (parseFloat(startY) + 20).toFixed(0);
-            const endX2 = (parseFloat(endX) + 30).toFixed(0);
-            const endY2 = (parseFloat(endY) + 20).toFixed(0);
-            const delay = (i * 10).toString();
-            return `<line x1="${startX}" y1="${startY}" x2="${startX2}" y2="${startY2}" stroke="url(#shootingStarGradient)" stroke-width="2" opacity="0" stroke-linecap="round"><animate attributeName="x1" values="${startX};${endX}" dur="2s" begin="${delay}s" repeatCount="indefinite"/><animate attributeName="y1" values="${startY};${endY}" dur="2s" begin="${delay}s" repeatCount="indefinite"/><animate attributeName="x2" values="${startX2};${endX2}" dur="2s" begin="${delay}s" repeatCount="indefinite"/><animate attributeName="y2" values="${startY2};${endY2}" dur="2s" begin="${delay}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.8;0" dur="2s" begin="${delay}s" repeatCount="indefinite"/></line>`;
-        }).join('');
+        // Removed shooting stars to reduce size
+        const shootingStars = '';
 
         // Generate orbital rings
         const orbitRings = [120, 180, 240].map((r, i) =>
@@ -86,7 +72,7 @@ export class CardRenderer {
             const labelYTop = (labelY - 12).toFixed(0);
             const labelYBottom = (labelY + 6).toFixed(0);
 
-            return `<line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="url(#beamGradient${i})" stroke-width="2" opacity="0.6"/><line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="rgba(0,200,255,0.3)" stroke-width="6" filter="url(#glow)"/><circle cx="${dotX}" cy="${dotY}" r="6" fill="#00c8ff" filter="url(#glow)"><animate attributeName="r" values="6;8;6" dur="2s" repeatCount="indefinite"/></circle><circle cx="${dotX}" cy="${dotY}" r="12" fill="none" stroke="#00c8ff" stroke-width="1" opacity="0.4"><animate attributeName="r" values="12;16;12" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0.1;0.4" dur="2s" repeatCount="indefinite"/></circle><text x="${labelX}" y="${labelYTop}" text-anchor="middle" fill="#00c8ff" font-size="11" font-weight="600" filter="url(#glow)">${stat.label}</text><text x="${labelX}" y="${labelYBottom}" text-anchor="middle" fill="#fff" font-size="20" font-weight="700" class="number" filter="url(#glow)">${formatNumber(stat.value)}</text>`;
+            return `<line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="url(#beamGradient${i})" stroke-width="2" opacity="0.6"/><circle cx="${dotX}" cy="${dotY}" r="6" fill="#00c8ff" filter="url(#glow)"/><text x="${labelX}" y="${labelYTop}" text-anchor="middle" fill="#00c8ff" font-size="11" font-weight="600">${stat.label}</text><text x="${labelX}" y="${labelYBottom}" text-anchor="middle" fill="#fff" font-size="20" font-weight="700" class="number">${formatNumber(stat.value)}</text>`;
         }).join('');
 
         // Corner info panels
