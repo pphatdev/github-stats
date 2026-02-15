@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import { GitHubClient } from '../github-client.js';
 import { CardRenderer } from '../card-renderer.js';
+import { themes } from '../themes.js';
+import { Controller } from './controller.js';
 
-export class StatsController {
+export class StatsController extends Controller {
     private static githubClient: GitHubClient;
     private static cache: Map<string, { data: string; timestamp: number }>;
     private static CACHE_DURATION: number;
@@ -96,7 +98,12 @@ export class StatsController {
             const svgUrl = `/stats?${params.toString()}`;
             const fullUrl = `${protocol}://${host}${svgUrl}`;
 
-            res.render('stats', {
+            const payloads = {
+                ...Controller.defaultConfig,
+                title: `${username}'s GitHub Stats - StackDev`,
+                description: `View ${username}'s GitHub statistics with customizable themes and options. Generate dynamic SVG cards for your README or profile.`,
+                keywords: `github stats, github readme, github card, github statistics, readme stats, github api, svg card, github profile, developer stats, contribution tracker, ${username} stats`,
+                page: 'stats',
                 username,
                 theme,
                 hideTitle: hide_title === 'true',
@@ -105,8 +112,11 @@ export class StatsController {
                 showIcons: show_icons === 'true',
                 customTitle: custom_title || '',
                 svgUrl,
-                fullUrl
-            });
+                fullUrl,
+                themes: Object.keys(themes)
+            }
+
+            res.render('layouts/main', payloads);
         } catch (error) {
             console.error('Error rendering stats view:', error);
             res.status(500).send(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
