@@ -30,7 +30,7 @@ export class CardRenderer {
             const y = (Math.random() * height).toFixed(0);
             const r = (Math.random() * 1.5 + 0.5).toFixed(1);
             const opacity = (Math.random() * 0.7 + 0.3).toFixed(1);
-            return `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity="${opacity}"/>`;
+            return `<circle cx="${x}" cy="${y}" r="${r}" fill="${theme.textColor}" opacity="${opacity}"/>`;
         }).join('');
 
         // Removed shooting stars to reduce size
@@ -38,7 +38,7 @@ export class CardRenderer {
 
         // Generate orbital rings
         const orbitRings = [120, 180, 240].map((r, i) =>
-            `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="rgba(0,200,255,${(0.15 - i * 0.03).toFixed(2)})" stroke-width="1" stroke-dasharray="10,8"/>`
+            `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="${theme.iconColor}" stroke-width="1" stroke-dasharray="10,8" opacity="${(0.15 - i * 0.03).toFixed(2)}"/>`
         ).join('');
 
         // Generate data beams radiating from center
@@ -69,7 +69,7 @@ export class CardRenderer {
             const labelYTop = (Number(labelY) - 12).toFixed(1);
             const labelYBottom = (Number(labelY) + 6).toFixed(1);
 
-            return `<line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="url(#beamGradient${i})" stroke-width="2" opacity="0.6"/><circle cx="${dotX}" cy="${dotY}" r="6" fill="#00c8ff" filter="url(#glow)"/><text x="${labelX}" y="${labelYTop}" text-anchor="middle" fill="#00c8ff" font-size="11" font-weight="600">${stat.label}</text><text x="${labelX}" y="${labelYBottom}" text-anchor="middle" fill="#fff" font-size="20" font-weight="700" class="number">${formatNumber(stat.value)}</text>`;
+            return `<line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="url(#beamGradient${i})" stroke-width="2" opacity="0.6"/><circle cx="${dotX}" cy="${dotY}" r="6" fill="${theme.iconColor}" filter="url(#glow)"/><text x="${labelX}" y="${labelYTop}" text-anchor="middle" fill="${theme.iconColor}" font-size="11" font-weight="600">${stat.label}</text><text x="${labelX}" y="${labelYBottom}" text-anchor="middle" fill="${theme.textColor}" font-size="20" font-weight="700" class="number">${formatNumber(stat.value)}</text>`;
         }).join('');
 
         // Corner info panels
@@ -80,7 +80,7 @@ export class CardRenderer {
             <defs>
                 <!-- Radial gradient for background -->
                 <radialGradient id="spaceGradient" cx="50%" cy="50%">
-                    <stop offset="0%" style="stop-color:#0a0e27;stop-opacity:1" />
+                    <stop offset="0%" style="stop-color:${theme.bgColor};stop-opacity:1" />
                     <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
                 </radialGradient>
 
@@ -106,33 +106,33 @@ export class CardRenderer {
                 <!-- Beam gradients -->
                 ${statValues.map((_, i) => `
                 <linearGradient id="beamGradient${i}" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#00c8ff;stop-opacity:0.1" />
-                    <stop offset="100%" style="stop-color:#00c8ff;stop-opacity:0.8" />
+                    <stop offset="0%" style="stop-color:${theme.iconColor};stop-opacity:0.1" />
+                    <stop offset="100%" style="stop-color:${theme.iconColor};stop-opacity:0.8" />
                 </linearGradient>
                 `).join('')}
 
                 <!-- Circular gradient for center sphere -->
                 <radialGradient id="sphereGradient" cx="40%" cy="40%">
-                    <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:0.8" />
-                    <stop offset="50%" style="stop-color:#0088cc;stop-opacity:0.6" />
-                    <stop offset="100%" style="stop-color:#004466;stop-opacity:0.9" />
+                    <stop offset="0%" style="stop-color:${theme.iconColor};stop-opacity:0.8" />
+                    <stop offset="50%" style="stop-color:${theme.titleColor};stop-opacity:0.6" />
+                    <stop offset="100%" style="stop-color:${theme.borderColor};stop-opacity:0.9" />
                 </radialGradient>
 
                 <!-- Panel gradient -->
                 <linearGradient id="panelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:rgba(0, 200, 255, 0.1);stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:rgba(0, 100, 200, 0.05);stop-opacity:1" />
+                    <stop offset="0%" style="stop-color:${theme.borderColor};stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:${theme.bgColor};stop-opacity:0.5" />
                 </linearGradient>
 
                 <!-- Scan line pattern -->
                 <pattern id="scanlines" x="0" y="0" width="100%" height="4" patternUnits="userSpaceOnUse">
-                    <line x1="0" y1="0" x2="100%" y2="0" stroke="rgba(0, 200, 255, 0.05)" stroke-width="1"/>
+                    <line x1="0" y1="0" x2="100%" y2="0" stroke="${theme.iconColor}" stroke-width="1" opacity="0.05"/>
                 </pattern>
 
                 <!-- Shooting star gradient -->
                 <linearGradient id="shootingStarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#00c8ff;stop-opacity:0" />
-                    <stop offset="100%" style="stop-color:#ffffff;stop-opacity:1" />
+                    <stop offset="0%" style="stop-color:${theme.iconColor};stop-opacity:0" />
+                    <stop offset="100%" style="stop-color:${theme.textColor};stop-opacity:1" />
                 </linearGradient>
 
                 <!-- Circular mask for avatar -->
@@ -205,11 +205,11 @@ export class CardRenderer {
             <g opacity="0.1">
                 ${Array.from({ length: 12 }, (_, i) => {
                     const x = (i + 1) * (width / 12);
-                    return `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="#00c8ff" stroke-width="0.5"/>`;
+                    return `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
                 }).join('')}
                 ${Array.from({ length: 6 }, (_, i) => {
                     const y = (i + 1) * (height / 6);
-                    return `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="#00c8ff" stroke-width="0.5"/>`;
+                    return `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
                 }).join('')}
             </g>
 
@@ -224,72 +224,72 @@ export class CardRenderer {
                 <image href="${stats.avatarUrl}" x="${centerX - 65}" y="${centerY - 65}" width="130" height="130" clip-path="url(#avatarClip)" opacity="0.9" />
 
                 <!-- Avatar border and effects -->
-                <circle cx="${centerX}" cy="${centerY}" r="65" fill="none" stroke="#00c8ff" stroke-width="3" opacity="0.8" />
-                <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="#00c8ff" stroke-width="1" opacity="0.5" />
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff" stroke-width="2" opacity="0.3" />
-                <circle cx="${centerX}" cy="${centerY}" r="75" fill="none" stroke="#00c8ff" stroke-width="1" opacity="0.4" stroke-dasharray="4,4" />
+                <circle cx="${centerX}" cy="${centerY}" r="65" fill="none" stroke="${theme.iconColor}" stroke-width="3" opacity="0.8" />
+                <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="${theme.iconColor}" stroke-width="1" opacity="0.5" />
+                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0.3" />
+                <circle cx="${centerX}" cy="${centerY}" r="75" fill="none" stroke="${theme.iconColor}" stroke-width="1" opacity="0.4" stroke-dasharray="4,4" />
 
                 <!-- Ping animation rings -->
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="#00c8ff54" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
+                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
             </g>
 
             <!-- Top left panel - User info -->
             ${!hideTitle ? `
             <g transform="translate(40, 40)">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="#00c8ff" stroke-width="1" opacity="0.8" />
-                <line x1="0" y1="35" x2="280" y2="35" stroke="#00c8ff" stroke-width="1" opacity="0.3" />
+                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${theme.iconColor}" stroke-width="1" opacity="0.8" />
+                <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
 
-                <text x="15" y="25" fill="#00c8ff" font-size="14" font-weight="600" letter-spacing="1">${customTitle}</text>
-                <text x="15" y="55" fill="#888" font-size="11" font-weight="500">TOTAL CONTRIBUTIONS</text>
-                <text x="15" y="85" fill="#fff" font-size="32" font-weight="700"  class="number" filter="url(#glow)">${formatNumber(totalContributions)}</text>
-                <text x="15" y="108" fill="#00c8ff" font-size="10" opacity="0.7">Last synchronized: ${new Date().toLocaleTimeString()}</text>
+                <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">${customTitle}</text>
+                <text x="15" y="55" fill="${theme.borderColor}" font-size="11" font-weight="500">TOTAL CONTRIBUTIONS</text>
+                <text x="15" y="85" fill="${theme.textColor}" font-size="32" font-weight="700"  class="number" filter="url(#glow)">${formatNumber(totalContributions)}</text>
+                <text x="15" y="108" fill="${theme.iconColor}" font-size="10" opacity="0.7">Last synchronized: ${new Date().toLocaleTimeString()}</text>
             </g>
             ` : ''}
 
             <!-- Top right panel - Rank -->
             ${!hideRank && stats.rank ? `
             <g transform="translate(${width - 320}, 40)">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="#00c8ff" stroke-width="1" opacity="0.8"/>
-                <line x1="0" y1="35" x2="280" y2="35" stroke="#00c8ff" stroke-width="1" opacity="0.3"/>
+                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${theme.iconColor}" stroke-width="1" opacity="0.8"/>
+                <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3"/>
 
-                <text x="15" y="25" fill="#00c8ff" font-size="14" font-weight="600" letter-spacing="1">DEVELOPER RANK</text>
+                <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">DEVELOPER RANK</text>
 
-                <text x="15" y="85" fill="#fff" font-size="48" font-weight="700" filter="url(#glow)" class="number">${stats.rank.level}</text>
-                <text x="85" y="60" fill="#888" font-size="11" font-weight="500">SCORE</text>
-                <text x="85" y="85" fill="#00c8ff" font-size="24" font-weight="600" class="number" opacity="0.8">${stats.rank.score.toFixed(1)}</text>
-                <text x="15" y="108" fill="#888" font-size="10">Based on contribution metrics</text>
+                <text x="15" y="85" fill="${theme.textColor}" font-size="48" font-weight="700" filter="url(#glow)" class="number">${stats.rank.level}</text>
+                <text x="85" y="60" fill="${theme.borderColor}" font-size="11" font-weight="500">SCORE</text>
+                <text x="85" y="85" fill="${theme.iconColor}" font-size="24" font-weight="600" class="number" opacity="0.8">${stats.rank.score.toFixed(1)}</text>
+                <text x="15" y="108" fill="${theme.borderColor}" font-size="10">Based on contribution metrics</text>
             </g>
             ` : ''}
 
             <!-- Bottom left panel - Activity -->
             <g transform="translate(40, ${height - 160})">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="#00c8ff" stroke-width="1" opacity="0.8" />
-                <line x1="0" y1="35" x2="280" y2="35" stroke="#00c8ff" stroke-width="1" opacity="0.3" />
+                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${theme.iconColor}" stroke-width="1" opacity="0.8" />
+                <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
 
-                <text x="15" y="25" fill="#00c8ff" font-size="14" font-weight="600" letter-spacing="1">REPOSITORY ACTIVITY</text>
+                <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">REPOSITORY ACTIVITY</text>
 
-                <text x="15" y="60" fill="#888" font-size="10">Pull Requests</text>
-                <text x="200" y="60" fill="#fff" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.totalPRs)}</text>
-                <text x="15" y="82" fill="#888" font-size="10">Issues</text>
-                <text x="200" y="82" fill="#fff" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.totalIssues)}</text>
-                <text x="15" y="104" fill="#888" font-size="10">Contributed To</text>
-                <text x="200" y="104" fill="#00c8ff" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.contributedTo)}</text>
+                <text x="15" y="60" fill="${theme.borderColor}" font-size="10">Pull Requests</text>
+                <text x="200" y="60" fill="${theme.textColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.totalPRs)}</text>
+                <text x="15" y="82" fill="${theme.borderColor}" font-size="10">Issues</text>
+                <text x="200" y="82" fill="${theme.textColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.totalIssues)}</text>
+                <text x="15" y="104" fill="${theme.borderColor}" font-size="10">Contributed To</text>
+                <text x="200" y="104" fill="${theme.iconColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.contributedTo)}</text>
             </g>
 
             <!-- Bottom right panel - Terminal style data stream -->
             <g transform="translate(${width - 320}, ${height - 160})">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="#00c8ff" stroke-width="1" opacity="0.8" />
-                <line x1="0" y1="35" x2="280" y2="35" stroke="#00c8ff" stroke-width="1" opacity="0.3" />
+                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${theme.iconColor}" stroke-width="1" opacity="0.8" />
+                <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
 
-                <text x="15" y="25" fill="#00c8ff" font-size="14" font-weight="600" letter-spacing="1">DATA STREAM</text>
-                <text x="15" y="55" fill="#0f0" font-size="9" opacity="0.8">> Analyzing contribution patterns...</text>
-                <text x="15" y="72" fill="#0f0" font-size="9" opacity="0.7">> Processing ${stats.totalCommits} commits</text>
-                <text x="15" y="89" fill="#0f0" font-size="9" opacity="0.6">> Stars collected: ${stats.totalStars}</text>
-                <text x="15" y="106" fill="#00c8ff" font-size="9" opacity="0.5">> Status: ACTIVE_</text>
+                <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">DATA STREAM</text>
+                <text x="15" y="55" fill="${theme.iconColor}" font-size="9" opacity="0.8">> Analyzing contribution patterns...</text>
+                <text x="15" y="72" fill="${theme.iconColor}" font-size="9" opacity="0.7">> Processing ${stats.totalCommits} commits</text>
+                <text x="15" y="89" fill="${theme.iconColor}" font-size="9" opacity="0.6">> Stars collected: ${stats.totalStars}</text>
+                <text x="15" y="106" fill="${theme.titleColor}" font-size="9" opacity="0.5">> Status: ACTIVE_</text>
             </g>
 
             <!-- Corner accents -->
-            <g stroke="#00c8ff" stroke-width="2" fill="none" opacity="0.6">
+            <g stroke="${theme.iconColor}" stroke-width="2" fill="none" opacity="0.6">
                 <path d="M 20 20 L 20 50 M 20 20 L 50 20"/>
                 <path d="M ${width - 20} 20 L ${width - 20} 50 M ${width - 20} 20 L ${width - 50} 20"/>
                 <path d="M 20 ${height - 20} L 20 ${height - 50} M 20 ${height - 20} L 50 ${height - 20}"/>
