@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title><%= title %></title>
+    <meta name="title" content="<%= title %>">
+    <meta name="description" content="<%= description %>">
+    <meta name="keywords" content="<%= keywords %>">
+    <meta name="author" content="<%= author %>">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://stats.sophat.top/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://stats.sophat.top/">
+    <meta property="og:title" content="<%= title %>">
+    <meta property="og:description" content="<%= description %>">
+    <meta property="og:image" content="https://stats.sophat.top/stats?username=pphatdev">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:site_name" content="<%= title %>">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://stats.sophat.top/">
+    <meta property="twitter:title" content="<%= title %>">
+    <meta property="twitter:description" content="<%= description %>">
+    <meta property="twitter:image" content="https://stats.sophat.top/stats?username=pphatdev">
+    <meta property="twitter:creator" content="@<%= author %>">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://pphat.top/assets/logo/logo-transparent-dark-mode.png">
+
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="/css/app.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Cascadia+Code:wght@400;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "<%= title %>",
+        "description": "<%= description %>",
+        "url": "https://stats.sophat.top/<%= page %>",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "creator": {
+            "@type": "Person",
+            "name": "<%= author %>",
+            "url": "https://pphat.top"
+        },
+        "featureList": <%= JSON.stringify(features) %>,
+        "screenshot": "https://stats.sophat.top/stats?username=pphatdev"
+    }
+    </script>
+</head>
+<body class="bg-background-dark  font-display min-h-screen transition-colors duration-300">
+
+    <!-- Main Content Area -->
+    <%- include('../pages/' + (typeof page !== 'undefined' ? page : 'index')); %>
+
+</body>
+</html>

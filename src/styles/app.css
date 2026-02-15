@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+
+@custom-variant dark (&:is(.dark *));
+
+@property --tw-gradient-from {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #0000;
+}
+
+
+@theme inline {
+
+    --font-display: 'Ubuntu', sans-serif;
+    --font-mono: 'Cascadia Code', monospace;
+
+    --color-background-dark: hsl(var(--background));
+    --color-card-dark: hsl(var(--card));
+    --color-primary: hsl(var(--primary));
+
+    --rounded: 0.75rem;
+    --rounded-4xl: 2.5rem;
+}
+
+@layer base {
+    :root {
+        --background: 222 47% 11%;
+        --card: 217 33% 17%;
+        --primary: 150 79% 38%;
+    }
+}
