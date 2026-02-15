@@ -73,8 +73,8 @@ export class GitHubClient {
             // Fetch and convert avatar to base64 (using smaller size to reduce SVG size)
             let avatarBase64 = '';
             try {
-                // Request 200x200 avatar to keep base64 size manageable
-                const smallAvatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=200`;
+                // Request 100x100 avatar to keep base64 size small (~2-3KB) to avoid GitHub camo proxy truncation
+                const smallAvatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=100`;
                 const avatarResponse = await fetch(smallAvatarUrl);
                 const avatarBuffer = await avatarResponse.arrayBuffer();
                 avatarBase64 = `data:image/png;base64,${Buffer.from(avatarBuffer).toString('base64')}`;
