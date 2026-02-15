@@ -75,7 +75,7 @@ export class GitHubClient {
             let avatarBase64 = '';
             try {
                 // Fetch avatar at reasonable size
-                const avatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=220`;
+                const avatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=130`;
                 const avatarResponse = await fetch(avatarUrl);
                 const avatarBuffer = Buffer.from(await avatarResponse.arrayBuffer());
 
