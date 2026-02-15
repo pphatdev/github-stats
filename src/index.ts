@@ -16,6 +16,8 @@ if (!GITHUB_TOKEN) {
     console.warn('⚠️  Get a token at: https://github.com/settings/tokens');
 }
 
+app.use(express.static('dist'));
+
 const githubClient = new GitHubClient(GITHUB_TOKEN);
 
 // Cache to reduce API calls
