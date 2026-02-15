@@ -2,11 +2,11 @@ import { Theme } from './types.js';
 
 export const themes: { [key: string]: Theme } = {
     default: {
-        titleColor: '#41b883',
-        textColor: '#41b883',
-        iconColor: '#41b883',
-        bgColor: '#273849',
-        borderColor: '#415367',
+        titleColor: '#00c8ff',
+        textColor: '#ffffff',
+        iconColor: '#00c8ff',
+        bgColor: '#0a0e27',
+        borderColor: '#888888',
     },
     dark: {
         titleColor: '#70a5fd',
