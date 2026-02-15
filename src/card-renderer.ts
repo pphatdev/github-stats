@@ -76,7 +76,7 @@ export class CardRenderer {
         const totalContributions = stats.totalStars + stats.totalCommits + stats.totalPRs + stats.totalIssues;
 
         return `
-        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="https://www.w3.org/2000/svg">
             <defs>
                 <!-- Radial gradient for background -->
                 <radialGradient id="spaceGradient" cx="50%" cy="50%">

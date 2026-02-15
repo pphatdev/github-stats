@@ -44,6 +44,6 @@ app.get('/stats', StatsController.get);
 app.get('/stats/view', StatsController.view);
 
 app.listen(PORT, () => {
-    console.log(`🚀 GitHub Stats server running on http://localhost:${PORT}`);
-    console.log(`📊 Example: http://localhost:${PORT}/stats?username=pphatdev&theme=dark`);
+    console.log(`🚀 GitHub Stats server running on https://localhost:${PORT}`);
+    console.log(`📊 Example: https://localhost:${PORT}/stats?username=pphatdev&theme=dark`);
 });
