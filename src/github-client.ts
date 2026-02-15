@@ -70,10 +70,12 @@ export class GitHubClient {
             // Calculate rank
             const rank = this.calculateRank(totalStars, totalCommits, totalPRs, totalIssues);
 
-            // Fetch and convert avatar to base64
+            // Fetch and convert avatar to base64 (using smaller size to reduce SVG size)
             let avatarBase64 = '';
             try {
-                const avatarResponse = await fetch(user.avatar_url);
+                // Request 200x200 avatar to keep base64 size manageable
+                const smallAvatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=200`;
+                const avatarResponse = await fetch(smallAvatarUrl);
                 const avatarBuffer = await avatarResponse.arrayBuffer();
                 avatarBase64 = `data:image/png;base64,${Buffer.from(avatarBuffer).toString('base64')}`;
             } catch (error) {
@@ -99,7 +101,7 @@ export class GitHubClient {
                     `Get a token at: https://github.com/settings/tokens (requires 'repo' and 'user' scopes)`
                 );
             }
-            
+
             // Check if token is invalid
             if (error.status === 401) {
                 throw new Error(
@@ -107,7 +109,7 @@ export class GitHubClient {
                     `Please update your token in the .env file. Get a new token at: https://github.com/settings/tokens`
                 );
             }
-            
+
             throw new Error(`Failed to fetch stats for user ${username}: ${error.message || error}`);
         }
     }
