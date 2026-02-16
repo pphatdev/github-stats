@@ -16,7 +16,7 @@ export class CardRenderer {
         const hideBorder = options.hideBorder || false;
         const hideTitle = options.hideTitle || false;
         const hideRank = options.hideRank || false;
-        const avatarMode = options.avatarMode || 'none';
+        const avatarMode = options.avatarMode || 'radar';
         const customTitle = options.customTitle || `${stats.name}'s GitHub Stats`;
 
         const width = 1200;
@@ -221,13 +221,13 @@ export class CardRenderer {
             <!-- Grid lines (subtle) -->
             <g opacity="0.1">
                 ${Array.from({ length: 12 }, (_, i) => {
-                    const x = (i + 1) * (width / 12);
-                    return `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
-                }).join('')}
+            const x = (i + 1) * (width / 12);
+            return `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
+        }).join('')}
                 ${Array.from({ length: 6 }, (_, i) => {
-                    const y = (i + 1) * (height / 6);
-                    return `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
-                }).join('')}
+            const y = (i + 1) * (height / 6);
+            return `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
+        }).join('')}
             </g>
 
             <!-- Data beams -->
@@ -249,29 +249,72 @@ export class CardRenderer {
 
                 <!-- Ping animation rings -->
                 <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
-                ` : avatarMode === 'planet' ? `
-                <!-- Planet visualization -->
+                ` : avatarMode === 'radar' ? `
+                <!-- RADAR Visualization -->
                 <defs>
-                    <ellipse id="planetShadow" cx="${centerX}" cy="${centerY}" rx="65" ry="65"/>
+                    <!-- Radar glow filter -->
+                    <filter id="radarGlow">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+                        <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    
+                    <!-- Radial gradient for radar -->
+                    <radialGradient id="radarBg" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" style="stop-color:#0a1929;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#051a2a;stop-opacity:1" />
+                    </radialGradient>
                 </defs>
-                <circle cx="${centerX}" cy="${centerY}" r="65" fill="url(#planetGradient)" filter="url(#planetGlow)" />
+                
+                <!-- Radar background circle -->
+                <circle cx="${centerX}" cy="${centerY}" r="65" fill="url(#radarBg)" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.8" filter="url(#radarGlow)" />
+                
+                <!-- Radar grid - concentric circles -->
+                <circle cx="${centerX}" cy="${centerY}" r="52" fill="none" stroke="${theme.iconColor}" stroke-width="0.6" opacity="0.4" />
+                <circle cx="${centerX}" cy="${centerY}" r="39" fill="none" stroke="${theme.iconColor}" stroke-width="0.6" opacity="0.4" />
+                <circle cx="${centerX}" cy="${centerY}" r="26" fill="none" stroke="${theme.iconColor}" stroke-width="0.6" opacity="0.4" />
+                <circle cx="${centerX}" cy="${centerY}" r="13" fill="none" stroke="${theme.iconColor}" stroke-width="0.6" opacity="0.4" />
+                
+                <!-- Radar grid - radial lines -->
+                <line x1="${centerX}" y1="${centerY - 65}" x2="${centerX}" y2="${centerY + 65}" stroke="${theme.iconColor}" stroke-width="0.5" opacity="0.3" />
+                <line x1="${centerX - 65}" y1="${centerY}" x2="${centerX + 65}" y2="${centerY}" stroke="${theme.iconColor}" stroke-width="0.5" opacity="0.3" />
+                <line x1="${centerX - 46}" y1="${centerY - 46}" x2="${centerX + 46}" y2="${centerY + 46}" stroke="${theme.iconColor}" stroke-width="0.4" opacity="0.2" />
+                <line x1="${centerX + 46}" y1="${centerY - 46}" x2="${centerX - 46}" y2="${centerY + 46}" stroke="${theme.iconColor}" stroke-width="0.4" opacity="0.2" />
+                
+                <!-- Rotating radar sweep line -->
+                <g style="animation: rotate 4s linear infinite; transform-origin: ${centerX}px ${centerY}px;">
+                    <path d="M ${centerX} ${centerY} L ${centerX} ${centerY - 65}" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.8" filter="url(#radarGlow)" />
+                    <!-- Sweep gradient tail -->
+                    <path d="M ${centerX} ${centerY} L ${centerX - 15} ${centerY - 62}" stroke="${theme.iconColor}" stroke-width="1" opacity="0.4" />
+                    <path d="M ${centerX} ${centerY} L ${centerX + 15} ${centerY - 62}" stroke="${theme.iconColor}" stroke-width="1" opacity="0.4" />
+                </g>
+                
+                <!-- Radar blips (data points) -->
+                <g fill="${theme.iconColor}" filter="url(#radarGlow)">
+                    <circle cx="${centerX - 20}" cy="${centerY - 30}" r="1.8" opacity="0.9" />
+                    <circle cx="${centerX + 25}" cy="${centerY - 15}" r="1.5" opacity="0.8" />
+                    <circle cx="${centerX + 15}" cy="${centerY + 35}" r="2" opacity="0.85" />
+                    <circle cx="${centerX - 35}" cy="${centerY + 10}" r="1.6" opacity="0.8" />
+                    <circle cx="${centerX - 10}" cy="${centerY - 50}" r="1.9" opacity="0.9" />
+                    <circle cx="${centerX + 35}" cy="${centerY + 20}" r="1.7" opacity="0.85" />
+                </g>
 
-                <!-- Planet rings -->
-                <ellipse cx="${centerX}" cy="${centerY}" rx="95" ry="25" fill="none" stroke="#66bb6a" stroke-width="4" opacity="0.4" />
-                <ellipse cx="${centerX}" cy="${centerY}" rx="95" ry="25" fill="none" stroke="#4da6ff" stroke-width="2" opacity="0.2" />
+                <!-- Pulsing center dot -->
+                <circle cx="${centerX}" cy="${centerY}" r="2.5" fill="${theme.iconColor}" filter="url(#radarGlow)">
+                    <animate attributeName="r" values="2.5;3.5;2.5" dur="1.5s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="1;0.6;1" dur="1.5s" repeatCount="indefinite"/>
+                </circle>
 
                 <!-- Atmospheric glow -->
-                <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="#4da6ff" stroke-width="2" opacity="0.3" />
-
-                <!-- Planet shine highlight -->
-                <ellipse cx="${centerX - 20}" cy="${centerY - 30}" rx="30" ry="35" fill="#80deea" opacity="0.15" />
-
-                <!-- Outer glow rings -->
-                <circle cx="${centerX}" cy="${centerY}" r="75" fill="none" stroke="#4da6ff" stroke-width="1" opacity="0.2" stroke-dasharray="6,3" />
-                <circle cx="${centerX}" cy="${centerY}" r="85" fill="none" stroke="#66bb6a" stroke-width="1" opacity="0.15" stroke-dasharray="8,4" />
+                <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="${theme.iconColor}" stroke-width="1" opacity="0.2" />
+                <circle cx="${centerX}" cy="${centerY}" r="75" fill="none" stroke="${theme.iconColor}" stroke-width="0.8" opacity="0.1" stroke-dasharray="3,3" />
 
                 <!-- Ping animation rings -->
                 <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
+                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite" begin="1.67s"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite" begin="1.67s"/></circle>
+                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite" begin="3.33s"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite" begin="3.33s"/></circle>
                 ` : `
                 <!-- Solid sphere with background -->
                     <circle cx="${centerX}" cy="${centerY}" r="65" fill="none" stroke="${theme.iconColor}" stroke-width="3" opacity="0.8" />

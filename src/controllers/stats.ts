@@ -59,7 +59,7 @@ export class StatsController extends Controller {
                 hideBorder: hide_border === 'true',
                 hideRank: hide_rank === 'true',
                 showIcons: show_icons !== 'false',
-                avatarMode: finalAvatarMode as 'none' | 'avatar' | 'planet',
+                avatarMode: finalAvatarMode as 'none' | 'avatar' | 'radar',
                 customTitle: custom_title as string | undefined,
             });
 

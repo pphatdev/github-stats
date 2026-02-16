@@ -40,5 +40,5 @@ export interface CardOptions {
     listLength?: number;
     variant?: 'bubbles' | 'pie';
     type?: 'card' | 'pie';
-    avatarMode?: 'none' | 'avatar' | 'planet';
+    avatarMode?: 'none' | 'avatar' | 'radar';
 }
