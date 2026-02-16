@@ -30,29 +30,6 @@ Generate dynamic, futuristic SVG cards displaying GitHub user statistics for you
 - 📱 Responsive SVG design (1200x600)
 - 🔤 Custom fonts (Ubuntu, Orbitron, Cascadia Code)
 - ⚡ Smooth loading animations with spinner indicators
-- 🎨 Tailwind CSS v4 with custom theme configuration
-
-### 🛠️ Functionality
-- 📊 Dynamic GitHub stats generation via REST API
-- 🌐 Interactive web UI with live preview and customization
-- 🎨 **56+ built-in themes** with full customization support
-- 🔧 Real-time preview updates with loading states
-- ⚡ Fast API with 10-minute caching system
-- 💾 In-memory cache to reduce API rate limit usage
-- 🔒 Secure GitHub API integration with token support
-- 🖼️ Visual theme gallery with live previews
-- 📐 Feature stats grid with performance metrics
-
-### 💻 Technical
-- 💯 Full TypeScript support with strict typing
-- 🏗️ MVC architecture (controllers, views, services)
-- 🎨 EJS templating with reusable partials (head, header)
-- 📦 Express.js backend with CORS support
-- 🌐 Easy to deploy (Vercel, Heroku, Railway)
-- 🔄 RESTful API endpoints
-- 🔍 Comprehensive SEO optimization (Open Graph, Twitter Cards, JSON-LD)
-- ♿ Full accessibility support (ARIA labels, semantic HTML)
-- 🎯 Modern CSS with Tailwind v4 and custom properties
 
 ## 🌐 API Endpoints
 
@@ -67,14 +44,6 @@ Generate SVG stats card.
 **Example:**
 ```
 GET https://stats.sophat.top/stats?username=pphatdev&theme=dark
-```
-
-#### `GET /stats/view`
-Web interface for customizing and previewing stats cards with real-time updates.
-
-**Example:**
-```
-GET https://stats.sophat.top/stats/view?username=pphatdev&theme=dark
 ```
 
 ## 📦 Installation
@@ -131,27 +100,6 @@ npm run dev
 - API endpoint: `http://localhost:3000/stats?username=YOUR_USERNAME`
 
 ## 🚀 Usage
-
-### Web Interface
-
-The application includes a fully-featured web interface for easy stats generation:
-
-1. **Home Page** (`/`)
-   - Live demo with real-time preview and loading states
-   - Interactive form to generate stats for any GitHub user
-   - **Theme gallery** with 12 featured themes and visual previews
-   - **Feature showcase** with performance metrics (56+ themes, <1s response, 10min cache, 100% TypeScript)
-   - Quick start guide with copy-ready code examples
-   - Loading indicators during image generation
-   - SEO optimized with Open Graph and Twitter Cards
-
-2. **Stats Preview Page** (`/stats/view`)
-   - Full customization interface with live preview
-   - Options for themes, title, rank, icons, etc.
-   - Copy-ready Markdown and HTML embed codes with one-click copy
-   - All changes update the preview in real-time
-   - Loading overlays during preview generation
-   - Direct link to user's GitHub profile
 
 ### API Endpoint
 
@@ -257,116 +205,12 @@ The card features a stunning space-themed design with:
 - Developer rank (S+, S, A+, A, B+, B, C) based on activity
 - Last synchronized timestamp
 
-## 🏗️ Project Structure
-
-```
-stats.sophat.top/      # Main Express server setup
-│   ├── github-client.ts            # GitHub API client (Octokit)
-│   ├── card-renderer.ts            # SVG card generator with animations
-│   ├── themes.ts                   # Theme definitions (56 themes)
-│   ├── types.ts                    # TypeScript interfaces
-│   ├── controllers/
-│   │   ├── controller.ts           # Base controller class
-│   │   ├── home.ts                 # Home page controller
-│   │   └── stats.ts                # Stats API & view controller
-│   ├── views/
-│   │   ├── layouts/
-│   │   │   └── main.ejs            # Main layout with SEO meta tags
-│   │   ├── pages/
-│   │   │   ├── index.ejs           # Home page with demo, theme gallery
-│   │   │   └── stats.ejs           # Stats customization page
-│   │   └── partials/
-│   │       └── header.ejs          # Reusable header navigation
-│   ├── styles/
-│   │   └── app.css                 # Tailwind CSS v4 configuration
-│   └── fonts/                      # Custom font files
-├── dist/                           # Compiled JavaScript & assets
-│   ├── css/                        # Compiled Tailwind CSS
-│   ├── fonts/                      # Copied font files
-│   └── views/                      # Copied EJS templates
-├── .env.example                    # Environment variables template
-├── package.json                    # Dependencies and scripts
-├── tsconfig.json                   # TypeScript configuration
-├── CODE_OF_CONDUCT.md
-├── CONTRIBUTING.md
-├── LICENSE
-└── README.md
-```
-
-### Key Components
-
-- **Controllers**: Handle HTTP requests and responses (MVC pattern)
-- **Views**: 
-  - **Layouts**: Main layout with SEO optimization and meta tags
-  - **Pages**: Individual page templates (index, stats)
-  - **Partials**: Reusable components (header with star button)
-- **Services**: GitHub API client and card rendering logic
-- **Cache System**: In-memory caching for API responses
-- **Styles**: Tailwind CSS v4 with custom theme configuration
-- **Services**: GitHub API client and card rendering logic
-- **Cache System**: In-memory caching for API responses
-
-## 🎨 Design Features
-
 ### Typography
 - **Ubuntu** - Main UI font for clarity and readability
 - **Orbitron** - Futuristic font for numbers and stats
 - **Cascadia Code** - Monospace font for terminal displays
 
-### Visual Effects
-- 🌟 Animated starfield background (30+ stars with varying opacity)
-- 🌀 Multiple rotating orbital rings around center sphere
-- 📡 Radial beam visualization based on stat intensity
-- ✨ Pulsing glow effects on data points and profile image
-- 🎯 Dynamic gradient backgrounds with Tailwind CSS v4
-- 📊 Real-time data visualization
-- 🖼️ Smooth loading animations with spinner indicators
-- 🎨 Theme gallery with 12 featured themes and visual previews
-- ⭐ GitHub star button in navigation header
-
-### Performance
-- 📦 Optimized SVG output for smaller file sizes
-- 💾 In-memory caching system (10-minute duration)
-- ⚡ Fast response times with GitHub API rate limit management
-- 🔄 Automatic cache invalidation
-- 🚀 Optimized CSS with Tailwind v4 compilation
-- 📱 Responsive design with mobile-first approach
-
-### SEO & Accessibility
-- 🔍 Comprehensive meta tags (title, description, keywords)
-- 📱 Open Graph tags for social media sharing
-- 🐦 Twitter Card optimization
-- 📊 JSON-LD structured data for search engines
-- ♿ ARIA labels and semantic HTML throughout
-- 🔗 Proper canonical URLs and robots meta tags
-- 📦 Optimized SVG output for smaller file sizes
-- 💾 In-memory caching system (configurable duration)
-- ⚡ Fast response times with GitHub API rate limit management
-- 🔄 Automatic cache invalidation
-
 ## 🔧 Development
-
-### Available Scripts
-
-| Command | Description |
-|---------|-------------| v4.18, TypeScript v5.3
-- **GitHub API**: Octokit REST v20.0
-- **Templating**: EJS v3.1 with reusable partials (layouts, pages, partials)
-- **Styling**: Tailwind CSS v4.1 with custom configuration
-- **Build Tools**: 
-  - TypeScript Compiler (tsc)
-  - Tailwind CLI for CSS compilation
-  - Custom build scripts for asset copying
-- **Fonts**: Google Fonts (Ubuntu, Orbitron, Cascadia Code)
-- **Icons**: Material Icons Outlined
-- **SEO**: Open Graph, Twitter Cards, JSON-LD structured data
-- **Accessibility**: ARIA labels, semantic HTML, proper roles
-### Development Workflow
-
-1. Make changes to files in `src/`
-2. Run `npm run dev` for auto-reload during development
-3. Test your changes at `http://localhost:3000`
-4. Build for production with `npm run build`
 
 ### Project Technologies
 
@@ -376,78 +220,6 @@ stats.sophat.top/      # Main Express server setup
 - **Styling**: Tailwind CSS (via CDN)
 - **Fonts**: Google Fonts (Ubuntu, Orbitron, Cascadia Code)
 - **Icons**: Material Icons Outlined
-
-## 🚢 Deployment
-
-### Build Requirements
-
-Before deploying, ensure your build process includes:
-1. TypeScript compilation: `tsc`
-2. Font copying: `npm run copy:font`
-3. View copying: `npm run copy:view`
-4. CSS compilation: `npm run build:css`
-
-Or simply run: `npm run build` (handles all of the above)
-
-### Environment Variables
-
-Required for all deployments:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `GITHUB_TOKEN` | GitHub Personal Access Token | `ghp_xxxxxxxxxxxx` |
-| `PORT` | Server port (optional) | `3000` |
-
-### Deploy to Vercel
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
-
-1. Install Vercel CLI:
-```bash
-npm i -g vercel
-```
-
-2. Deploy:
-```bash
-vercel
-```
-
-3. Add environment variables in Vercel dashboard or CLI:
-```bash
-vercel env add GITHUB_TOKEN
-```
-
-### Deploy to Heroku
-
-1. Create a Heroku app:
-```bash
-heroku create your-app-name
-```
-
-2. Set environment variables:
-```bash
-heroku config:set GITHUB_TOKEN=your_token_here
-```
-
-3. Deploy:
-```bash
-git push heroku main
-```
-
-### Deploy to Railway
-
-1. Connect your GitHub repository to [Railway](https://railway.app)
-2. Add environment variable `GITHUB_TOKEN` in the Railway dashboard
-3. Railway will automatically deploy on every push to main branch
-
-### Other Platforms
-
-This is a standard Node.js/Express application and can be deployed to any platform that supports Node.js v16+, including:
-- DigitalOcean App Platform
-- AWS Elastic Beanstalk
-- Google Cloud Run
-- Render
-- Fly.io
 
 ## 🤝 Contributing
 
