@@ -35,6 +35,11 @@ export class LanguageCardRenderer {
             return Math.abs(hash);
         };
 
+        const spacingJitter = (seed: number, min: number, max: number): number => {
+            const range = max - min;
+            return min + (seed % (range + 1));
+        };
+
         const bubbles = sortedLanguages.map((lang, index) => {
             const hash = hashString(lang.name);
             const baseAngle = (index / Math.max(sortedLanguages.length, 1)) * Math.PI * 2;
@@ -47,9 +52,13 @@ export class LanguageCardRenderer {
             const hue = hash % 360;
             const accent = `hsl(${hue}, 70%, 60%)`;
             const accentSoft = `hsla(${hue}, 70%, 60%, 0.45)`;
+            const jitterX = spacingJitter(hash + index * 13, -22, 22);
+            const jitterY = spacingJitter(hash + index * 29, -18, 18);
 
             let x = centerX + Math.cos(angle) * ringRadius;
             let y = centerY + Math.sin(angle) * ringRadius;
+            x += jitterX;
+            y += jitterY;
             x = Math.min(width - padding - radius, Math.max(padding + radius, x));
             y = Math.min(height - padding - radius, Math.max(padding + radius, y));
 
@@ -127,8 +136,11 @@ export class LanguageCardRenderer {
             const cornerSize = 10;
             const frameStroke = 2;
             const cardHeight = headerHeight + (items.length * rowHeight) + 14 + listOffset;
-            const cardX = width - padding - cardWidth;
-            const cardY = height - padding - cardHeight;
+            const infoSeed = hashString(`info-${sortedLanguages[0]?.name ?? 'default'}`);
+            const infoOffsetX = spacingJitter(infoSeed, -18, 18);
+            const infoOffsetY = spacingJitter(infoSeed + 17, -14, 14);
+            const cardX = width - padding - cardWidth + infoOffsetX;
+            const cardY = height - padding - cardHeight + infoOffsetY;
             const cardAccent = bubbles[0]?.accent || theme.iconColor;
             const frameX = cardX + frameInset;
             const frameY = cardY + frameInset;
