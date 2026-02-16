@@ -4,6 +4,10 @@ import { getTheme } from '../utils/themes.js';
 export class LanguageCardRenderer {
     static generateLanguagesCard(languages: LanguageCount[], options: CardOptions): string {
         const theme = getTheme(options.theme);
+        const dataBorderStyle = options.dataBorderStyle || 'solid';
+        const dataBorderFramePosition = options.dataBorderFramePosition || 'out';
+        const showDataBorderStroke = dataBorderStyle === 'solid';
+        const showDataBorderFrame = dataBorderStyle === 'frame';
         const fontName = theme.fontName || 'Orbitron';
         const fontFamily = theme.fontFamily || `'${fontName}', 'Ubuntu', 'sans-serif'`;
         const fontUrl = theme.fontUrl || '/fonts/orbitron.woff2';
@@ -132,7 +136,7 @@ export class LanguageCardRenderer {
             const headerHeight = 28;
             const rowHeight = 18;
             const listOffset = 24;
-            const frameInset = 6;
+            const frameInset = dataBorderFramePosition === 'out' ? -6 : 6;
             const cornerSize = 10;
             const frameStroke = 2;
             const cardHeight = headerHeight + (items.length * rowHeight) + 14 + listOffset;
@@ -160,11 +164,11 @@ export class LanguageCardRenderer {
 
             return `
                 <g class="info-card">
-                    <rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="12" fill="${theme.bgColor}" opacity="0.5"/>
-                    <path d="M ${frameX} ${frameY + cornerSize} V ${frameY} H ${frameX + cornerSize}" fill="none" stroke="${cardAccent}" stroke-width="${frameStroke}" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M ${frameX + frameW - cornerSize} ${frameY} H ${frameX + frameW} V ${frameY + cornerSize}" fill="none" stroke="${cardAccent}" stroke-width="${frameStroke}" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M ${frameX} ${frameY + frameH - cornerSize} V ${frameY + frameH} H ${frameX + cornerSize}" fill="none" stroke="${cardAccent}" stroke-width="${frameStroke}" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M ${frameX + frameW - cornerSize} ${frameY + frameH} H ${frameX + frameW} V ${frameY + frameH - cornerSize}" fill="none" stroke="${cardAccent}" stroke-width="${frameStroke}" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="12" fill="${theme.bgColor}" opacity="0.5" stroke="${showDataBorderStroke ? cardAccent : 'none'}" stroke-width="1"/>
+                    <path d="M ${frameX} ${frameY + cornerSize} V ${frameY} H ${frameX + cornerSize}" fill="none" stroke="${showDataBorderFrame ? cardAccent : 'none'}" stroke-width="${frameStroke}" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M ${frameX + frameW - cornerSize} ${frameY} H ${frameX + frameW} V ${frameY + cornerSize}" fill="none" stroke="${showDataBorderFrame ? cardAccent : 'none'}" stroke-width="${frameStroke}" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M ${frameX} ${frameY + frameH - cornerSize} V ${frameY + frameH} H ${frameX + cornerSize}" fill="none" stroke="${showDataBorderFrame ? cardAccent : 'none'}" stroke-width="${frameStroke}" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M ${frameX + frameW - cornerSize} ${frameY + frameH} H ${frameX + frameW} V ${frameY + frameH - cornerSize}" fill="none" stroke="${showDataBorderFrame ? cardAccent : 'none'}" stroke-width="${frameStroke}" stroke-linecap="round" stroke-linejoin="round"/>
                     <text x="${cardX + 16}" y="${cardY + 25}" fill="${theme.textColor}" font-size="12" letter-spacing="1" opacity="0.8">TOP ${topLanguagesCount} LANGUAGES</text>
                     <rect x="${cardX + 12}" y="${cardY + 30}" width="${cardWidth - 24}" height="5" rx="3" fill="url(#titleBarGradient)" opacity="0.95"/>
                     ${rows}
