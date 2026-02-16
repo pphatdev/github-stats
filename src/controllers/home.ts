@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { themes } from '../themes.js';
+import { themes } from '../utils/themes.js';
 import { Controller } from './controller.js';
 
 export class HomeController extends Controller {

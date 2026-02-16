@@ -1,4 +1,4 @@
-import { themes } from "../themes.js";
+import { themes } from "../utils/themes.js";
 
 export class Controller {
     static defaultConfig = {

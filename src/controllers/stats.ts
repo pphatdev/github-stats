@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { GitHubClient } from '../github-client.js';
-import { CardRenderer } from '../card-renderer.js';
-import { themes } from '../themes.js';
+import { GitHubClient } from '../utils/github-client.js';
+import { CardRenderer } from '../components/card-renderer.js';
+import { themes } from '../utils/themes.js';
 import { Controller } from './controller.js';
 
 export class StatsController extends Controller {

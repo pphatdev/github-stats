@@ -1,5 +1,5 @@
-import { GitHubStats, CardOptions } from './types.js';
-import { getTheme } from './themes.js';
+import { GitHubStats, CardOptions } from '../types.js';
+import { getTheme } from '../utils/themes.js';
 
 
 

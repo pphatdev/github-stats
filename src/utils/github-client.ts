@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/rest';
-import { GitHubStats } from './types.js';
+import { GitHubStats } from '../types.js';
 import fetch from 'node-fetch';
 import sharp from 'sharp';
 

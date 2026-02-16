@@ -1,4 +1,4 @@
-import { Theme } from './types.js';
+import { Theme } from '../types.js';
 
 export const themes: { [key: string]: Theme } = {
     default: {

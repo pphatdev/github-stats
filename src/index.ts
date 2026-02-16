@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { GitHubClient } from './github-client.js';
+import { GitHubClient } from './utils/github-client.js';
 import { HomeController } from './controllers/home.js';
 import { StatsController } from './controllers/stats.js';
 import path from 'path';
@@ -28,6 +28,7 @@ if (!GITHUB_TOKEN) {
 }
 
 app.use(express.static('dist'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const githubClient = new GitHubClient(GITHUB_TOKEN);
 
