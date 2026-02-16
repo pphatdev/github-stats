@@ -16,6 +16,10 @@ export class CardRenderer {
         const hideBorder = options.hideBorder || false;
         const hideTitle = options.hideTitle || false;
         const hideRank = options.hideRank || false;
+        const dataBorderStyle = options.dataBorderStyle || 'solid';
+        const dataBorderFramePosition = options.dataBorderFramePosition || 'out';
+        const showDataBorderStroke = dataBorderStyle === 'solid';
+        const showDataBorderFrame = dataBorderStyle === 'frame';
         const avatarMode = options.avatarMode || 'radar';
         const customTitle = options.customTitle || `${stats.name}'s GitHub Stats`;
 
@@ -29,6 +33,23 @@ export class CardRenderer {
             if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
             if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
             return num.toString();
+        }
+
+        function renderPanelFrame(width: number, height: number): string {
+            const offset = dataBorderFramePosition === 'out' ? -6 : 6;
+            const corner = 14;
+            const x1 = offset;
+            const y1 = offset;
+            const x2 = width - offset;
+            const y2 = height - offset;
+            return `
+                <g stroke="${theme.iconColor}" stroke-width="2" fill="none" opacity="0.7">
+                    <path d="M ${x1} ${y1 + corner} V ${y1} H ${x1 + corner}" />
+                    <path d="M ${x2 - corner} ${y1} H ${x2} V ${y1 + corner}" />
+                    <path d="M ${x1} ${y2 - corner} V ${y2} H ${x1 + corner}" />
+                    <path d="M ${x2 - corner} ${y2} H ${x2} V ${y2 - corner}" />
+                </g>
+            `;
         }
 
         // Generate starfield (static to reduce size)
@@ -331,7 +352,8 @@ export class CardRenderer {
             <!-- Top left panel - User info -->
             ${!hideTitle ? `
             <g transform="translate(40, 40)">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${theme.iconColor}" stroke-width="1" opacity="0.8" />
+                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8" />
+                ${showDataBorderFrame ? renderPanelFrame(280, 120) : ''}
                 <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
 
                 <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">${customTitle}</text>
@@ -344,7 +366,8 @@ export class CardRenderer {
             <!-- Top right panel - Rank -->
             ${!hideRank && stats.rank ? `
             <g transform="translate(${width - 320}, 40)">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${theme.iconColor}" stroke-width="1" opacity="0.8"/>
+                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8"/>
+                ${showDataBorderFrame ? renderPanelFrame(280, 120) : ''}
                 <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3"/>
 
                 <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">DEVELOPER RANK</text>
@@ -358,7 +381,8 @@ export class CardRenderer {
 
             <!-- Bottom left panel - Activity -->
             <g transform="translate(40, ${height - 160})">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${theme.iconColor}" stroke-width="1" opacity="0.8" />
+                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8" />
+                ${showDataBorderFrame ? renderPanelFrame(280, 120) : ''}
                 <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
 
                 <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">REPOSITORY ACTIVITY</text>
@@ -373,7 +397,8 @@ export class CardRenderer {
 
             <!-- Bottom right panel - Terminal style data stream -->
             <g transform="translate(${width - 320}, ${height - 160})">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${theme.iconColor}" stroke-width="1" opacity="0.8" />
+                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8" />
+                ${showDataBorderFrame ? renderPanelFrame(280, 120) : ''}
                 <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
 
                 <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">DATA STREAM</text>
