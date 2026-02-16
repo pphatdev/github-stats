@@ -21,6 +21,23 @@
                     <span class="text-sm text-slate-300">Hide Rank</span>
                 </label>
             </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-3">Avatar Mode</label>
+                <div class="flex gap-6 flex-wrap">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="avatar_mode" value="none" class="rounded border-slate-600" <%= avatarMode === 'none' ? 'checked' : '' %>>
+                        <span class="text-sm text-slate-300">None</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="avatar_mode" value="avatar" class="rounded border-slate-600" <%= avatarMode === 'avatar' ? 'checked' : '' %>>
+                        <span class="text-sm text-slate-300">Show Avatar</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="avatar_mode" value="planet" class="rounded border-slate-600" <%= avatarMode === 'planet' ? 'checked' : '' %>>
+                        <span class="text-sm text-slate-300">Show Planet</span>
+                    </label>
+                </div>
+            </div>
             <div class="grid md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-semibold text-slate-300 mb-2">Theme</label>

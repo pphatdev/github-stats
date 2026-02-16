@@ -38,4 +38,7 @@ export interface CardOptions {
     customTitle?: string;
     showInfo?: boolean;
     listLength?: number;
+    variant?: 'bubbles' | 'pie';
+    type?: 'card' | 'pie';
+    avatarMode?: 'none' | 'avatar' | 'planet';
 }
