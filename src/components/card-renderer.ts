@@ -16,6 +16,7 @@ export class CardRenderer {
         const hideBorder = options.hideBorder || false;
         const hideTitle = options.hideTitle || false;
         const hideRank = options.hideRank || false;
+        const avatarMode = options.avatarMode || 'none';
         const customTitle = options.customTitle || `${stats.name}'s GitHub Stats`;
 
         const width = 1200;
@@ -125,6 +126,21 @@ export class CardRenderer {
                     <stop offset="100%" style="stop-color:${theme.borderColor};stop-opacity:0.9" />
                 </radialGradient>
 
+                <!-- Planet gradients -->
+                <radialGradient id="planetGradient" cx="35%" cy="35%">
+                    <stop offset="0%" style="stop-color:#4da6ff;stop-opacity:1" />
+                    <stop offset="40%" style="stop-color:#0d47a1;stop-opacity:1" />
+                    <stop offset="70%" style="stop-color:#00796b;stop-opacity:0.9" />
+                    <stop offset="100%" style="stop-color:#1a237e;stop-opacity:1" />
+                </radialGradient>
+                <filter id="planetGlow" x="-100%" y="-100%" width="300%" height="300%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+
                 <!-- Panel gradient -->
                 <linearGradient id="panelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" style="stop-color:${theme.borderColor};stop-opacity:0.3" />
@@ -221,6 +237,7 @@ export class CardRenderer {
 
             <!-- Center sphere (Earth-like) -->
             <g filter="url(#strongGlow)">
+                ${avatarMode === 'avatar' ? `
                 <!-- Avatar image -->
                 <image href="${stats.avatarUrl}" x="${centerX - 65}" y="${centerY - 65}" width="130" height="130" clip-path="url(#avatarClip)" opacity="0.9" />
 
@@ -232,6 +249,40 @@ export class CardRenderer {
 
                 <!-- Ping animation rings -->
                 <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
+                ` : avatarMode === 'planet' ? `
+                <!-- Planet visualization -->
+                <defs>
+                    <ellipse id="planetShadow" cx="${centerX}" cy="${centerY}" rx="65" ry="65"/>
+                </defs>
+                <circle cx="${centerX}" cy="${centerY}" r="65" fill="url(#planetGradient)" filter="url(#planetGlow)" />
+
+                <!-- Planet rings -->
+                <ellipse cx="${centerX}" cy="${centerY}" rx="95" ry="25" fill="none" stroke="#66bb6a" stroke-width="4" opacity="0.4" />
+                <ellipse cx="${centerX}" cy="${centerY}" rx="95" ry="25" fill="none" stroke="#4da6ff" stroke-width="2" opacity="0.2" />
+
+                <!-- Atmospheric glow -->
+                <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="#4da6ff" stroke-width="2" opacity="0.3" />
+
+                <!-- Planet shine highlight -->
+                <ellipse cx="${centerX - 20}" cy="${centerY - 30}" rx="30" ry="35" fill="#80deea" opacity="0.15" />
+
+                <!-- Outer glow rings -->
+                <circle cx="${centerX}" cy="${centerY}" r="75" fill="none" stroke="#4da6ff" stroke-width="1" opacity="0.2" stroke-dasharray="6,3" />
+                <circle cx="${centerX}" cy="${centerY}" r="85" fill="none" stroke="#66bb6a" stroke-width="1" opacity="0.15" stroke-dasharray="8,4" />
+
+                <!-- Ping animation rings -->
+                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
+                ` : `
+                <!-- Solid sphere with background -->
+                    <circle cx="${centerX}" cy="${centerY}" r="65" fill="none" stroke="${theme.iconColor}" stroke-width="3" opacity="0.8" />
+                    <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="${theme.iconColor}" stroke-width="1" opacity="0.5" stroke-dasharray="4,2" />
+                    <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0.3" />
+                    <circle cx="${centerX}" cy="${centerY}" r="60" fill="${theme.iconColor}" opacity="0.3" />
+                    <circle cx="${centerX}" cy="${centerY}" r="65" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0.1" />
+
+                    <!-- Ping animation rings -->
+                    <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
+                `}
             </g>
 
             <!-- Top left panel - User info -->
