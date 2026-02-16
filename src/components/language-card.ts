@@ -3,7 +3,18 @@ import { getTheme } from '../utils/themes.js';
 
 export class LanguageCardRenderer {
     static generateLanguagesCard(languages: LanguageCount[], options: CardOptions): string {
-        const theme = getTheme(options.theme);
+        const baseTheme = getTheme(options.theme);
+
+        // Apply custom colors if provided
+        const theme = {
+            ...baseTheme,
+            titleColor: options.titleColor || baseTheme.titleColor,
+            textColor: options.textColor || baseTheme.textColor,
+            iconColor: options.iconColor || baseTheme.iconColor,
+            bgColor: options.bgColor || baseTheme.bgColor,
+            borderColor: options.borderColor || baseTheme.borderColor,
+        };
+
         const dataBorderStyle = options.dataBorderStyle || 'solid';
         const dataBorderFramePosition = options.dataBorderFramePosition || 'out';
         const showDataBorderStroke = dataBorderStyle === 'solid';
@@ -325,13 +336,13 @@ export class LanguageCardRenderer {
             <rect width="${width}" height="${height}" fill="url(#gridPattern)" opacity="0.18" />
             <g opacity="0.1">
                 ${Array.from({ length: 24 }, (_, i) => {
-                    const x = (i + 1) * (width / 24);
-                    return `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
-                }).join('')}
+            const x = (i + 1) * (width / 24);
+            return `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
+        }).join('')}
                 ${Array.from({ length: 12 }, (_, i) => {
-                    const y = (i + 1) * (height / 12);
-                    return `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
-                }).join('')}
+            const y = (i + 1) * (height / 12);
+            return `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
+        }).join('')}
             </g>
             <g>${starField}</g>
 

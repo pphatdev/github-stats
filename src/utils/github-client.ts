@@ -3,16 +3,104 @@ import { GitHubStats, LanguageCount } from '../types.js';
 import fetch from 'node-fetch';
 import sharp from 'sharp';
 
+interface CacheEntry<T> {
+    data: T;
+    timestamp: number;
+    expiresAt: number;
+}
+
 export class GitHubClient {
     private octokit: Octokit;
+    private cache: Map<string, CacheEntry<any>>;
+    private cacheDuration: number;
 
-    constructor(token?: string) {
+    constructor(token?: string, cacheDuration: number = 600000) { // Default 10 minutes
         this.octokit = new Octokit({
             auth: token,
         });
+        this.cache = new Map();
+        this.cacheDuration = cacheDuration;
+
+        // Clean up expired cache entries every 5 minutes
+        setInterval(() => this.cleanupCache(), 300000);
+    }
+
+    private getCacheKey(prefix: string, ...params: string[]): string {
+        return `${prefix}:${params.join(':')}`;
+    }
+
+    private getFromCache<T>(key: string): T | null {
+        const entry = this.cache.get(key);
+
+        if (!entry) {
+            return null;
+        }
+
+        // Check if cache entry has expired
+        if (Date.now() > entry.expiresAt) {
+            this.cache.delete(key);
+            return null;
+        }
+
+        return entry.data as T;
+    }
+
+    private setCache<T>(key: string, data: T): void {
+        const now = Date.now();
+        this.cache.set(key, {
+            data,
+            timestamp: now,
+            expiresAt: now + this.cacheDuration,
+        });
+    }
+
+    private cleanupCache(): void {
+        const now = Date.now();
+        const keysToDelete: string[] = [];
+
+        for (const [key, entry] of this.cache.entries()) {
+            if (now > entry.expiresAt) {
+                keysToDelete.push(key);
+            }
+        }
+
+        keysToDelete.forEach(key => this.cache.delete(key));
+
+        if (keysToDelete.length > 0) {
+            console.log(`Cleaned up ${keysToDelete.length} expired cache entries`);
+        }
+    }
+
+    public clearCache(): void {
+        this.cache.clear();
+        console.log('Cache cleared');
+    }
+
+    public getCacheStats(): { size: number; entries: Array<{ key: string; age: number }> } {
+        const now = Date.now();
+        const entries = Array.from(this.cache.entries()).map(([key, entry]) => ({
+            key,
+            age: Math.floor((now - entry.timestamp) / 1000), // age in seconds
+        }));
+
+        return {
+            size: this.cache.size,
+            entries,
+        };
     }
 
     async fetchUserStats(username: string): Promise<GitHubStats> {
+        // Check cache first
+        const cacheKey = this.getCacheKey('stats', username.toLowerCase());
+        const cached = this.getFromCache<GitHubStats>(cacheKey);
+
+        if (cached) {
+            console.log(`Cache hit for stats: ${username}`);
+            return cached;
+        }
+
+        console.log(`Cache miss for stats: ${username}, fetching from GitHub...`);
+
         try {
             // Fetch user data
             const { data: user } = await this.octokit.users.getByUsername({
@@ -91,7 +179,7 @@ export class GitHubClient {
                 avatarBase64 = user.avatar_url; // Fallback to URL if fetch fails
             }
 
-            return {
+            const stats: GitHubStats = {
                 name: user.name || username,
                 avatarUrl: avatarBase64,
                 totalStars,
@@ -101,6 +189,11 @@ export class GitHubClient {
                 contributedTo,
                 rank,
             };
+
+            // Cache the result
+            this.setCache(cacheKey, stats);
+
+            return stats;
         } catch (error: any) {
             // Check if it's a rate limit error
             if (error.status === 403 && error.message?.includes('rate limit')) {
@@ -123,6 +216,17 @@ export class GitHubClient {
     }
 
     async fetchUserLanguages(username: string): Promise<LanguageCount[]> {
+        // Check cache first
+        const cacheKey = this.getCacheKey('languages', username.toLowerCase());
+        const cached = this.getFromCache<LanguageCount[]>(cacheKey);
+
+        if (cached) {
+            console.log(`Cache hit for languages: ${username}`);
+            return cached;
+        }
+
+        console.log(`Cache miss for languages: ${username}, fetching from GitHub...`);
+
         try {
             const { data: repos } = await this.octokit.repos.listForUser({
                 username,
@@ -137,10 +241,15 @@ export class GitHubClient {
                 languageCounts.set(repo.language, current + 1);
             });
 
-            return Array.from(languageCounts.entries()).map(([name, count]) => ({
+            const languages = Array.from(languageCounts.entries()).map(([name, count]) => ({
                 name,
                 count,
             }));
+
+            // Cache the result
+            this.setCache(cacheKey, languages);
+
+            return languages;
         } catch (error: any) {
             if (error.status === 403 && error.message?.includes('rate limit')) {
                 throw new Error(

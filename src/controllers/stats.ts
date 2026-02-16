@@ -23,12 +23,16 @@ export class StatsController extends Controller {
                 hide_title,
                 hide_border,
                 hide_rank,
-                show_icons,
                 avatar_mode = 'none',
                 show_avatar,
                 custom_title,
                 data_border_style = 'solid',
-                data_border_frame = 'out'
+                data_border_frame = 'out',
+                titleColor,
+                textColor,
+                iconColor,
+                bgColor,
+                borderColor
             } = req.query;
 
             if (!username || typeof username !== 'string') {
@@ -42,7 +46,7 @@ export class StatsController extends Controller {
             }
 
             // Check cache
-            const cacheKey = `${username}-${theme}-${hide_title}-${hide_border}-${hide_rank}-${show_icons}-${finalAvatarMode}-${custom_title}-${data_border_style}-${data_border_frame}`;
+            const cacheKey = `${username}-${theme}-${hide_title}-${hide_border}-${hide_rank}-${finalAvatarMode}-${custom_title}-${data_border_style}-${data_border_frame}-${titleColor}-${textColor}-${iconColor}-${bgColor}-${borderColor}`;
             const cached = StatsController.cache.get(cacheKey);
             if (cached && Date.now() - cached.timestamp < StatsController.CACHE_DURATION) {
                 res.setHeader('Content-Type', 'image/svg+xml');
@@ -60,11 +64,15 @@ export class StatsController extends Controller {
                 hideTitle: hide_title === 'true',
                 hideBorder: hide_border === 'true',
                 hideRank: hide_rank === 'true',
-                showIcons: show_icons !== 'false',
                 avatarMode: finalAvatarMode as 'none' | 'avatar' | 'radar',
                 customTitle: custom_title as string | undefined,
                 dataBorderStyle: data_border_style as 'solid' | 'frame',
                 dataBorderFramePosition: data_border_frame as 'in' | 'out',
+                titleColor: titleColor as string | undefined,
+                textColor: textColor as string | undefined,
+                iconColor: iconColor as string | undefined,
+                bgColor: bgColor as string | undefined,
+                borderColor: borderColor as string | undefined,
             });
 
             // Cache the result
@@ -128,7 +136,6 @@ export class StatsController extends Controller {
                 hideTitle: hide_title === 'true',
                 hideBorder: hide_border === 'true',
                 hideRank: hide_rank === 'true',
-                showIcons: show_icons === 'true',
                 avatarMode: avatar_mode,
                 dataBorderStyle: data_border_style,
                 dataBorderFramePosition: data_border_frame,

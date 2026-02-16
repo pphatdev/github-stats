@@ -3,7 +3,18 @@ import { getTheme } from '../utils/themes.js';
 
 export class LanguagePieChartRenderer {
     static generatePieChart(languages: LanguageCount[], options: CardOptions): string {
-        const theme = getTheme(options.theme);
+        const baseTheme = getTheme(options.theme);
+        
+        // Apply custom colors if provided
+        const theme = {
+            ...baseTheme,
+            titleColor: options.titleColor || baseTheme.titleColor,
+            textColor: options.textColor || baseTheme.textColor,
+            iconColor: options.iconColor || baseTheme.iconColor,
+            bgColor: options.bgColor || baseTheme.bgColor,
+            borderColor: options.borderColor || baseTheme.borderColor,
+        };
+        
         const fontName = theme.fontName || 'Orbitron';
         const fontFamily = theme.fontFamily || `'${fontName}', 'Ubuntu', 'sans-serif'`;
         const fontUrl = theme.fontUrl || '/fonts/orbitron.woff2';

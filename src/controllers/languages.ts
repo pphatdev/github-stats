@@ -18,13 +18,25 @@ export class LanguageController extends Controller {
 
     static async get(req: Request, res: Response) {
         try {
-            const { username, theme = 'default', show_info, top, variant, type = 'card' } = req.query;
+            const { 
+                username, 
+                theme = 'default', 
+                show_info, 
+                top, 
+                variant, 
+                type = 'card',
+                titleColor,
+                textColor,
+                iconColor,
+                bgColor,
+                borderColor
+            } = req.query;
 
             if (!username || typeof username !== 'string') {
                 return res.status(400).send('Username is required');
             }
 
-            const cacheKey = `languages-${username}-${theme}-${show_info}-${top}-${variant}-${type}`;
+            const cacheKey = `languages-${username}-${theme}-${show_info}-${top}-${variant}-${type}-${titleColor}-${textColor}-${iconColor}-${bgColor}-${borderColor}`;
             const cached = LanguageController.cache.get(cacheKey);
             if (cached && Date.now() - cached.timestamp < LanguageController.CACHE_DURATION) {
                 res.setHeader('Content-Type', 'image/svg+xml');
@@ -40,6 +52,11 @@ export class LanguageController extends Controller {
                     username,
                     theme: theme as string,
                     listLength: typeof top === 'string' ? Math.max(0, Number.parseInt(top, 10) || 8) : 8,
+                    titleColor: titleColor as string | undefined,
+                    textColor: textColor as string | undefined,
+                    iconColor: iconColor as string | undefined,
+                    bgColor: bgColor as string | undefined,
+                    borderColor: borderColor as string | undefined,
                 });
             } else {
                 svg = LanguageCardRenderer.generateLanguagesCard(languages, {
@@ -48,6 +65,11 @@ export class LanguageController extends Controller {
                     showInfo: show_info !== 'false',
                     listLength: typeof top === 'string' ? Math.max(0, Number.parseInt(top, 10) || 5) : 5,
                     variant: variant as 'bubbles' | 'pie' | undefined,
+                    titleColor: titleColor as string | undefined,
+                    textColor: textColor as string | undefined,
+                    iconColor: iconColor as string | undefined,
+                    bgColor: bgColor as string | undefined,
+                    borderColor: borderColor as string | undefined,
                 });
             }
 

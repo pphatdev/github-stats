@@ -9,7 +9,7 @@
     "build:css": "npx @tailwindcss/cli -i ./src/styles/app.css -o ./dist/css/app.css --minify",
     "copy:view": "node -e \"require('fs').cpSync('src/views', 'dist/views', {recursive: true})\"",
     "build": "tsc && npm run copy:view && npm run build:css",
-    "dev": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/index.ts | npm run css",
+    "dev": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/index.ts | npm run css | tsc --watch ",
     "start": "node dist/index.js",
     "test": "jest"
   },

@@ -30,3 +30,74 @@
         --primary: 150 79% 38%;
     }
 }
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #166392 transparent;
+}
+
+::-webkit-scrollbar {
+    width: 1px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color:  transparent;
+    border-radius: 20px;
+}
+
+.button {
+    @apply px-3 py-2 text-xs bg-slate-800/50 hover:bg-slate-700 border border-slate-700/50 text-white rounded-lg transition-colors flex items-center gap-1.5;
+}
+
+.input {
+    @apply flex-1 px-3 py-2 w-full outline-none text-xs rounded-lg bg-slate-800/50 border border-slate-700/50 text-white font-mono focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all;
+}
+
+[data-load-template].active {
+    @apply bg-primary/20 border-primary/50;
+}
+
+/* Studio Sidebar Collapse Styles */
+#leftSidebar,
+#rightSidebar {
+    transition: width 0.3s ease, opacity 0.3s ease;
+    overflow: visible !important;
+}
+
+#leftSidebar > section,
+#rightSidebar > section {
+    transition: all 0.3s ease;
+}
+
+#leftSidebar.collapsed > section,
+#rightSidebar.collapsed > section {
+    overflow: visible;
+}
+
+#leftSidebar.collapsed > section > div:not(:first-child),
+#rightSidebar.collapsed > section > div:not(:first-child) {
+    opacity: 0;
+    pointer-events: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.2s ease, max-height 0.3s ease;
+}
+
+#leftSidebar.collapsed #leftSidebarTitle,
+#rightSidebar.collapsed #rightSidebarTitle {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    transition: opacity 0.2s ease, width 0.2s ease;
+}
+
+/* Keep toggle buttons visible when collapsed */
+#leftSidebar.collapsed #toggleLeftSidebar,
+#rightSidebar.collapsed #toggleRightSidebar {
+    opacity: 1;
+    pointer-events: auto;
+}

@@ -34,7 +34,6 @@ export interface CardOptions {
     hideTitle?: boolean;
     hideBorder?: boolean;
     hideRank?: boolean;
-    showIcons?: boolean;
     customTitle?: string;
     showInfo?: boolean;
     listLength?: number;
@@ -43,4 +42,10 @@ export interface CardOptions {
     avatarMode?: 'none' | 'avatar' | 'radar';
     dataBorderStyle?: 'solid' | 'frame';
     dataBorderFramePosition?: 'in' | 'out';
+    // Custom colors (override theme colors)
+    titleColor?: string;
+    textColor?: string;
+    iconColor?: string;
+    bgColor?: string;
+    borderColor?: string;
 }
