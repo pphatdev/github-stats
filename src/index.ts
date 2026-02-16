@@ -37,7 +37,7 @@ const githubClient = new GitHubClient(GITHUB_TOKEN);
 
 // Cache to reduce API calls
 const cache = new Map<string, { data: string; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 20 * 60 * 1000; // 20 minutes
 
 // Initialize controllers
 StatsController.initialize(githubClient, cache, CACHE_DURATION);

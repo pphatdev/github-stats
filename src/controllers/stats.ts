@@ -89,7 +89,7 @@ export class StatsController extends Controller {
                 hide_border = 'false',
                 hide_rank = 'false',
                 show_icons = 'true',
-                avatar_mode = 'none',
+                avatar_mode = 'radar',
                 data_border_style = 'solid',
                 data_border_frame = 'out',
                 custom_title
