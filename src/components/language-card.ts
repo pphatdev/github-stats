@@ -361,7 +361,7 @@ export class LanguageCardRenderer {
                 <circle cx="${centerX}" cy="${centerY}" r="210" fill="none" stroke="${theme.iconColor}" stroke-dasharray="6 10" stroke-width="1" opacity="0.4"/>
             </g>
 
-            <text class="title" x="${centerX}" y="${centerY}" text-anchor="middle" dominant-baseline="middle" fill="${theme.titleColor}" font-size="20" font-weight="700" letter-spacing="0">TOP ${topLanguagesCount} LANGUAGES</text>
+            <text class="title" x="${centerX}" y="${centerY}" text-anchor="middle" dominant-baseline="middle" fill="${theme.titleColor}" font-size="20" font-weight="700" letter-spacing="0">TOP LANGUAGES</text>
 
             ${infoCard}
         </svg>
