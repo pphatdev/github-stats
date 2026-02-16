@@ -41,4 +41,6 @@ export interface CardOptions {
     variant?: 'bubbles' | 'pie';
     type?: 'card' | 'pie';
     avatarMode?: 'none' | 'avatar' | 'radar';
+    dataBorderStyle?: 'solid' | 'frame';
+    dataBorderFramePosition?: 'in' | 'out';
 }
