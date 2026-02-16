@@ -87,6 +87,7 @@ export class CardRenderer {
                 <!-- Radial gradient for background -->
                 <radialGradient id="spaceGradient" cx="50%" cy="50%">
                     <stop offset="0%" style="stop-color:${theme.bgColor};stop-opacity:1" />
+                    <stop offset="60%" style="stop-color:#02030a;stop-opacity:1" />
                     <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
                 </radialGradient>
 
@@ -181,6 +182,7 @@ export class CardRenderer {
 
             <!-- Space background -->
             <rect width="${width}" height="${height}" fill="url(#spaceGradient)" />
+            <rect width="${width}" height="${height}" fill="#000000" opacity="0.22" />
 
             <!-- Starfield -->
             <g opacity="0.8">

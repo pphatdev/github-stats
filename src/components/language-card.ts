@@ -177,7 +177,7 @@ export class LanguageCardRenderer {
             <defs>
                 <radialGradient id="bgGradient" cx="50%" cy="50%" r="70%">
                     <stop offset="0%" style="stop-color:${theme.bgColor};stop-opacity:1" />
-                    <stop offset="55%" style="stop-color:#02030a;stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:#02030a;stop-opacity:1" />
                     <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
                 </radialGradient>
 
@@ -315,6 +315,7 @@ export class LanguageCardRenderer {
             </style>
 
             <rect width="${width}" height="${height}" fill="url(#bgGradient)" />
+            <rect width="${width}" height="${height}" fill="#000000" opacity="0.22" />
             <rect width="${width}" height="${height}" fill="url(#nebulaGradient)" opacity="0.38" />
             <ellipse cx="860" cy="170" rx="240" ry="140" fill="url(#galaxyGradient)" opacity="0.6" />
             <rect width="${width}" height="${height}" fill="url(#gridPattern)" opacity="0.18" />

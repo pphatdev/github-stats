@@ -4,6 +4,7 @@ Generate dynamic, futuristic SVG cards displaying GitHub user statistics for you
 
 <p align="center" style="position:relative;">
   <img align='middle' src='https://stats.sophat.top/stats?username=pphatdev' style="width:100%"/>
+  <img align='middle' src='https://stats.sophat.top/languages?username=pphatdev' style="width:100%"/>
 </p>
 
 <p align="center">
