@@ -33,9 +33,25 @@
                         <span class="text-sm text-slate-300">Show Avatar</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="avatar_mode" value="planet" class="rounded border-slate-600" <%= avatarMode === 'planet' ? 'checked' : '' %>>
-                        <span class="text-sm text-slate-300">Show Planet</span>
+                        <input type="radio" name="avatar_mode" value="radar" class="rounded border-slate-600" <%= avatarMode === 'radar' ? 'checked' : '' %>>
+                        <span class="text-sm text-slate-300">Show Radar</span>
                     </label>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Data Border Style</label>
+                    <select name="data_border_style" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white">
+                        <option value="solid" <%= dataBorderStyle === 'solid' ? 'selected' : '' %>>Solid</option>
+                        <option value="frame" <%= dataBorderStyle === 'frame' ? 'selected' : '' %>>Frame</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Frame Position</label>
+                    <select name="data_border_frame" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white">
+                        <option value="out" <%= dataBorderFramePosition === 'out' ? 'selected' : '' %>>Outside</option>
+                        <option value="in" <%= dataBorderFramePosition === 'in' ? 'selected' : '' %>>Inside</option>
+                    </select>
                 </div>
             </div>
             <div class="grid md:grid-cols-3 gap-4">
