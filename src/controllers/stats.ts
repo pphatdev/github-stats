@@ -26,7 +26,9 @@ export class StatsController extends Controller {
                 show_icons,
                 avatar_mode = 'none',
                 show_avatar,
-                custom_title
+                custom_title,
+                data_border_style = 'solid',
+                data_border_frame = 'out'
             } = req.query;
 
             if (!username || typeof username !== 'string') {
@@ -40,7 +42,7 @@ export class StatsController extends Controller {
             }
 
             // Check cache
-            const cacheKey = `${username}-${theme}-${hide_title}-${hide_border}-${hide_rank}-${show_icons}-${finalAvatarMode}-${custom_title}`;
+            const cacheKey = `${username}-${theme}-${hide_title}-${hide_border}-${hide_rank}-${show_icons}-${finalAvatarMode}-${custom_title}-${data_border_style}-${data_border_frame}`;
             const cached = StatsController.cache.get(cacheKey);
             if (cached && Date.now() - cached.timestamp < StatsController.CACHE_DURATION) {
                 res.setHeader('Content-Type', 'image/svg+xml');
@@ -61,6 +63,8 @@ export class StatsController extends Controller {
                 showIcons: show_icons !== 'false',
                 avatarMode: finalAvatarMode as 'none' | 'avatar' | 'radar',
                 customTitle: custom_title as string | undefined,
+                dataBorderStyle: data_border_style as 'solid' | 'frame',
+                dataBorderFramePosition: data_border_frame as 'in' | 'out',
             });
 
             // Cache the result
@@ -86,6 +90,8 @@ export class StatsController extends Controller {
                 hide_rank = 'false',
                 show_icons = 'true',
                 avatar_mode = 'none',
+                data_border_style = 'solid',
+                data_border_frame = 'out',
                 custom_title
             } = req.query;
 
@@ -102,6 +108,8 @@ export class StatsController extends Controller {
             if (hide_rank === 'true') params.set('hide_rank', 'true');
             if (show_icons !== 'true') params.set('show_icons', 'false');
             if (avatar_mode !== 'none') params.set('avatar_mode', avatar_mode as string);
+            if (data_border_style !== 'solid') params.set('data_border_style', data_border_style as string);
+            if (data_border_frame !== 'out') params.set('data_border_frame', data_border_frame as string);
             if (custom_title) params.set('custom_title', custom_title as string);
 
             const protocol = req.protocol;
@@ -122,6 +130,8 @@ export class StatsController extends Controller {
                 hideRank: hide_rank === 'true',
                 showIcons: show_icons === 'true',
                 avatarMode: avatar_mode,
+                dataBorderStyle: data_border_style,
+                dataBorderFramePosition: data_border_frame,
                 customTitle: custom_title || '',
                 svgUrl,
                 fullUrl,
