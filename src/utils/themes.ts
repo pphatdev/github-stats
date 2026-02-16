@@ -1,5 +1,9 @@
 import { Theme } from '../types.js';
 
+const defaultFontName = 'Orbitron';
+const defaultFontFamily = `'${defaultFontName}', 'Ubuntu', 'sans-serif'`;
+const defaultFontUrl = '/fonts/orbitron.woff2';
+
 export const themes: { [key: string]: Theme } = {
     default: {
         titleColor: '#00c8ff',
@@ -410,5 +414,13 @@ export const themes: { [key: string]: Theme } = {
 };
 
 export function getTheme(themeName: string = 'default'): Theme {
-    return themes[themeName] || themes.default;
+    const theme = themes[themeName] || themes.default;
+
+    return {
+        ...themes.default,
+        ...theme,
+        fontName: theme.fontName ?? defaultFontName,
+        fontFamily: theme.fontFamily ?? defaultFontFamily,
+        fontUrl: theme.fontUrl ?? defaultFontUrl,
+    };
 }

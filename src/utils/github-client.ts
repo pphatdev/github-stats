@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/rest';
-import { GitHubStats } from '../types.js';
+import { GitHubStats, LanguageCount } from '../types.js';
 import fetch from 'node-fetch';
 import sharp from 'sharp';
 
@@ -119,6 +119,44 @@ export class GitHubClient {
             }
 
             throw new Error(`Failed to fetch stats for user ${username}: ${error.message || error}`);
+        }
+    }
+
+    async fetchUserLanguages(username: string): Promise<LanguageCount[]> {
+        try {
+            const { data: repos } = await this.octokit.repos.listForUser({
+                username,
+                per_page: 100,
+                type: 'owner',
+            });
+
+            const languageCounts = new Map<string, number>();
+            repos.forEach(repo => {
+                if (!repo.language) return;
+                const current = languageCounts.get(repo.language) || 0;
+                languageCounts.set(repo.language, current + 1);
+            });
+
+            return Array.from(languageCounts.entries()).map(([name, count]) => ({
+                name,
+                count,
+            }));
+        } catch (error: any) {
+            if (error.status === 403 && error.message?.includes('rate limit')) {
+                throw new Error(
+                    `GitHub API rate limit exceeded. Please set a valid GITHUB_TOKEN in your .env file. ` +
+                    `Get a token at: https://github.com/settings/tokens (requires 'repo' and 'user' scopes)`
+                );
+            }
+
+            if (error.status === 401) {
+                throw new Error(
+                    `GitHub authentication failed. Your GITHUB_TOKEN may be invalid or expired. ` +
+                    `Please update your token in the .env file. Get a new token at: https://github.com/settings/tokens`
+                );
+            }
+
+            throw new Error(`Failed to fetch languages for user ${username}: ${error.message || error}`);
         }
     }
 

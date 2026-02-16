@@ -12,12 +12,20 @@ export interface GitHubStats {
     };
 }
 
+export interface LanguageCount {
+    name: string;
+    count: number;
+}
+
 export interface Theme {
     titleColor: string;
     textColor: string;
     iconColor: string;
     bgColor: string;
     borderColor: string;
+    fontName?: string;
+    fontFamily?: string;
+    fontUrl?: string;
 }
 
 export interface CardOptions {
@@ -28,4 +36,6 @@ export interface CardOptions {
     hideRank?: boolean;
     showIcons?: boolean;
     customTitle?: string;
+    showInfo?: boolean;
+    listLength?: number;
 }

@@ -4,11 +4,13 @@ import cors from 'cors';
 import { GitHubClient } from './utils/github-client.js';
 import { HomeController } from './controllers/home.js';
 import { StatsController } from './controllers/stats.js';
+import { LanguageController } from './controllers/languages.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const publicDir = path.join(__dirname, '..', 'public');
 
 const app = express();
 app.use(cors());
@@ -28,20 +30,23 @@ if (!GITHUB_TOKEN) {
 }
 
 app.use(express.static('dist'));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(publicDir));
+app.use('/public', express.static(publicDir));
 
 const githubClient = new GitHubClient(GITHUB_TOKEN);
 
 // Cache to reduce API calls
 const cache = new Map<string, { data: string; timestamp: number }>();
-const CACHE_DURATION = 500 * 60 * 10; // 10 minutes
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Initialize controllers
 StatsController.initialize(githubClient, cache, CACHE_DURATION);
+LanguageController.initialize(githubClient, cache, CACHE_DURATION);
 
 // Routes
 app.get('/', HomeController.get);
 app.get('/stats', StatsController.get);
+app.get('/languages', LanguageController.get);
 app.get('/stats/view', StatsController.view);
 
 app.listen(PORT, () => {

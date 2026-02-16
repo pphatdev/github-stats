@@ -6,6 +6,12 @@ import { getTheme } from '../utils/themes.js';
 export class CardRenderer {
     static generateStatsCard(stats: GitHubStats, options: CardOptions): string {
         const theme = getTheme(options.theme);
+        const fontName = theme.fontName || 'Orbitron';
+        const fontFamily = theme.fontFamily || `'${fontName}', 'Ubuntu', 'sans-serif'`;
+        const fontUrl = theme.fontUrl || '/fonts/orbitron.woff2';
+        const fontFace = fontUrl
+            ? `@font-face {\n                    font-family: '${fontName}';\n                    font-style: normal;\n                    font-weight: 400 900;\n                    font-display: swap;\n                    src: url(${fontUrl}) format('woff2');\n                    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n                }`
+            : '';
         const showIcons = options.showIcons !== false;
         const hideBorder = options.hideBorder || false;
         const hideTitle = options.hideTitle || false;
@@ -142,17 +148,10 @@ export class CardRenderer {
             </defs>
 
             <style>
-                @font-face {
-                    font-family: 'Orbitron';
-                    font-style: normal;
-                    font-weight: 400 900;
-                    font-display: swap;
-                    src: url(fonts/orbitron.woff2) format('woff2');
-                    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-                }
+                ${fontFace}
 
                 text {
-                    font-family: 'Orbitron', 'Ubuntu', 'sans-serif';
+                    font-family: ${fontFamily};
                     font-weight: 700;
                 }
 
@@ -298,4 +297,5 @@ export class CardRenderer {
         </svg>
         `.trim();
     }
+
 }

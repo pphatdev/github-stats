@@ -122,4 +122,5 @@ export class StatsController extends Controller {
             res.status(500).send(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
+
 }
