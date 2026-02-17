@@ -51,7 +51,9 @@ export class StatsController extends Controller {
             }
 
             // Fetch stats
-            const stats = await StatsController.githubClient.fetchUserStats(username);
+            const stats = await StatsController.githubClient.fetchUserStats(username, {
+                avatarMode: finalAvatarMode as 'none' | 'avatar' | 'radar'
+            });
 
             // Generate card
             const card = CardRenderer.generateStatsCard(stats, {

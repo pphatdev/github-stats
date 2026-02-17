@@ -12,7 +12,7 @@ export class GitHubClient {
         });
     }
 
-    async fetchUserStats(username: string): Promise<GitHubStats> {
+    async fetchUserStats(username: string, options: { avatarMode: 'none' | 'avatar' | 'radar' }): Promise<GitHubStats> {
         try {
             // Fetch user data
             const { data: user } = await this.octokit.users.getByUsername({
@@ -73,22 +73,24 @@ export class GitHubClient {
 
             // Fetch and convert avatar to WebP, then base64 for smaller size
             let avatarBase64 = '';
-            try {
-                // Fetch avatar at reasonable size
-                const avatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=130`;
-                const avatarResponse = await fetch(avatarUrl);
-                const avatarBuffer = Buffer.from(await avatarResponse.arrayBuffer());
+            if (options.avatarMode !== 'none') {
+                try {
+                    // Fetch avatar at reasonable size
+                    const avatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=130`;
+                    const avatarResponse = await fetch(avatarUrl);
+                    const avatarBuffer = Buffer.from(await avatarResponse.arrayBuffer());
 
-                // Compress to WebP format (much smaller than PNG)
-                const webpBuffer = await sharp(avatarBuffer)
-                    .resize(120, 120) // Resize to 120x120
-                    .webp({ quality: 80 }) // Convert to WebP with 80% quality
-                    .toBuffer();
+                    // Compress to WebP format (much smaller than PNG)
+                    const webpBuffer = await sharp(avatarBuffer)
+                        .resize(120, 120) // Resize to 120x120
+                        .webp({ quality: 80 }) // Convert to WebP with 80% quality
+                        .toBuffer();
 
-                avatarBase64 = `data:image/webp;base64,${webpBuffer.toString('base64')}`;
-            } catch (error) {
-                console.warn('Could not fetch/compress avatar:', error);
-                avatarBase64 = user.avatar_url; // Fallback to URL if fetch fails
+                    avatarBase64 = `data:image/webp;base64,${webpBuffer.toString('base64')}`;
+                } catch (error) {
+                    console.warn('Could not fetch/compress avatar:', error);
+                    avatarBase64 = user.avatar_url; // Fallback to URL if fetch fails
+                }
             }
 
             return {
