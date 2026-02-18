@@ -3,13 +3,13 @@
 Generate dynamic, futuristic SVG cards displaying GitHub user statistics for your README files!
 
 <p align="center" style="position:relative;">
-  <img align='middle' src='https://stats.sophat.top/stats?username=pphatdev&avatar_mode=radar&data_border_style=frame&data_border_frame=out&theme=default' style="width:100%"/>
-  <img align='middle' src='https://stats.sophat.top/languages?username=pphatdev' style="width:100%"/>
-  <img align='middle' src='https://stats.sophat.top/languages?username=pphatdev&type=pie' style="width:100%"/>
+  <img align='middle' src='https://stats.pphat.top/stats?username=pphatdev&avatar_mode=radar&data_border_style=frame&data_border_frame=out&theme=default' style="width:100%"/>
+  <img align='middle' src='https://stats.pphat.top/languages?username=pphatdev' style="width:100%"/>
+  <img align='middle' src='https://stats.pphat.top/languages?username=pphatdev&type=pie' style="width:100%"/>
 </p>
 
 <p align="center">
-  <a href="https://stats.sophat.top"><img src="https://img.shields.io/badge/Live%20Demo-Visit%20Site-14ad61?style=for-the-badge" alt="Live Demo"></a>
+  <a href="https://stats.pphat.top"><img src="https://img.shields.io/badge/Live%20Demo-Visit%20Site-14ad61?style=for-the-badge" alt="Live Demo"></a>
   <a href="https://github.com/pphatdev/stats.sophat.top"><img src="https://img.shields.io/github/stars/pphatdev/stats.sophat.top?style=for-the-badge" alt="Stars"></a>
   <a href="https://github.com/pphatdev/stats.sophat.top/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License"></a>
   <a href="https://github.com/pphatdev/stats.sophat.top/issues"><img src="https://img.shields.io/github/issues/pphatdev/stats.sophat.top?style=for-the-badge" alt="Issues"></a>
@@ -45,7 +45,7 @@ Generate SVG stats card.
 
 **Example:**
 ```
-GET https://stats.sophat.top/stats?username=pphatdev&theme=dark
+GET https://stats.pphat.top/stats?username=pphatdev&theme=dark
 ```
 
 ## 📦 Installation
@@ -122,23 +122,23 @@ Add this to your GitHub README:
 #### Live Example
 
 ```markdown
-![GitHub Stats](https://stats.sophat.top/stats?username=pphatdev)
+![GitHub Stats](https://stats.pphat.top/stats?username=pphatdev)
 ```
 
 ## 🎨 Available Themes
 
-Choose from **56+ carefully designed themes**! Visit the [live theme gallery](https://stats.sophat.top) to browse all themes with visual previews.
+Choose from **56+ carefully designed themes**! Visit the [live theme gallery](https://stats.pphat.top) to browse all themes with visual previews.
 
 ### Popular Themes
 
 | Theme | Preview | Description |
 |-------|---------|-------------|
-| `default` | ![Default](https://stats.sophat.top/stats?username=pphatdev) | Classic green theme |
-| `dark` | ![Dark](https://stats.sophat.top/stats?username=pphatdev&theme=dark) | Dark theme with cyan accents |
-| `radical` | ![Radical](https://stats.sophat.top/stats?username=pphatdev&theme=radical) | Pink and cyan futuristic |
-| `tokyonight` | ![Tokyo Night](https://stats.sophat.top/stats?username=pphatdev&theme=tokyonight) | Tokyo night inspired |
-| `dracula` | ![Dracula](https://stats.sophat.top/stats?username=pphatdev&theme=dracula) | Dracula official theme |
-| `monokai` | ![Monokai](https://stats.sophat.top/stats?username=pphatdev&theme=monokai) | Monokai classic |
+| `default` | ![Default](https://stats.pphat.top/stats?username=pphatdev) | Classic green theme |
+| `dark` | ![Dark](https://stats.pphat.top/stats?username=pphatdev&theme=dark) | Dark theme with cyan accents |
+| `radical` | ![Radical](https://stats.pphat.top/stats?username=pphatdev&theme=radical) | Pink and cyan futuristic |
+| `tokyonight` | ![Tokyo Night](https://stats.pphat.top/stats?username=pphatdev&theme=tokyonight) | Tokyo night inspired |
+| `dracula` | ![Dracula](https://stats.pphat.top/stats?username=pphatdev&theme=dracula) | Dracula official theme |
+| `monokai` | ![Monokai](https://stats.pphat.top/stats?username=pphatdev&theme=monokai) | Monokai classic |
 
 ### All Available Themes
 
@@ -162,22 +162,22 @@ All options can be customized via URL parameters or the web interface.
 
 #### Hide Title
 ```markdown
-![GitHub Stats](https://stats.sophat.top/stats?username=pphatdev&hide_title=true)
+![GitHub Stats](https://stats.pphat.top/stats?username=pphatdev&hide_title=true)
 ```
 
 #### Hide Rank
 ```markdown
-![GitHub Stats](https://stats.sophat.top/stats?username=pphatdev&hide_rank=true)
+![GitHub Stats](https://stats.pphat.top/stats?username=pphatdev&hide_rank=true)
 ```
 
 #### Custom Title
 ```markdown
-![GitHub Stats](https://stats.sophat.top/stats?username=pphatdev&custom_title=My%20Awesome%20Stats)
+![GitHub Stats](https://stats.pphat.top/stats?username=pphatdev&custom_title=My%20Awesome%20Stats)
 ```
 
 #### Combined Options
 ```markdown
-![GitHub Stats](https://stats.sophat.top/stats?username=pphatdev&theme=tokyonight&hide_rank=true&custom_title=Developer%20Stats)
+![GitHub Stats](https://stats.pphat.top/stats?username=pphatdev&theme=tokyonight&hide_rank=true&custom_title=Developer%20Stats)
 ```
 
 ## 📊 Stats Displayed

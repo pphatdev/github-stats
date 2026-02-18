@@ -43,11 +43,16 @@ const CACHE_DURATION = 20 * 60 * 1000; // 20 minutes
 StatsController.initialize(githubClient, cache, CACHE_DURATION);
 LanguageController.initialize(githubClient, cache, CACHE_DURATION);
 
-// Routes
+// API Request
+app.get('/stats', StatsController.getSvg);
+app.get('/languages', LanguageController.getSvg);
+
+
+app.get('/preview/stats', StatsController.get);
+app.get('/preview/languages', LanguageController.get);
+
+// UI
 app.get('/', HomeController.get);
-app.get('/stats', StatsController.get);
-app.get('/languages', LanguageController.get);
-app.get('/stats/view', StatsController.view);
 
 app.listen(PORT, () => {
     console.log(`🚀 GitHub Stats server running on https://localhost:${PORT}`);
