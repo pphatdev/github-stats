@@ -1,0 +1,502 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+    <!-- Home Page -->
+    <url>
+        <loc>https://stats.pphat.top/</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- Stats View Page -->
+    <url>
+        <loc>https://stats.pphat.top/view/stats</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <!-- Stats API Endpoint -->
+    <url>
+        <loc>https://stats.pphat.top/stats</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>hourly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Languages API Endpoint -->
+    <url>
+        <loc>https://stats.pphat.top/languages</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>hourly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Stats Theme Variants -->
+    <!-- Default Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=default</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Dark Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=dark</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Radical Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=radical</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Merko Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=merko</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Gruvbox Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=gruvbox</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Tokyo Night Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=tokyonight</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- One Dark Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=onedark</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Cobalt Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=cobalt</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Synthwave Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=synthwave</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- High Contrast Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=highcontrast</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Dracula Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=dracula</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Prussian Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=prussian</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Monokai Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=monokai</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Vue Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=vue</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Vue Dark Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=vue-dark</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Shades of Purple Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=shades-of-purple</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Night Owl Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=nightowl</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Buefy Dark Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=buefy-dark</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Blue Green Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=blue-green</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Algolia Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=algolia</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Great Gatsby Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=great-gatsby</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Darcula Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=darcula</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Bear Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=bear</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Solarized Dark Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=solarized-dark</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Solarized Light Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=solarized-light</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Chartreuse Dark Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=chartreuse-dark</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Nord Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=nord</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Gotham Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=gotham</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Material Palenight Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=material-palenight</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Gray White Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=graywhite</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Vision Friendly Dark Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=vision-friendly-dark</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Ayu Mirage Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=ayu-mirage</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Midnight Purple Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=midnight-purple</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Calm Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=calm</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Flag India Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=flag-india</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Omni Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=omni</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- React Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=react</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Jolly Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=jolly</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Maroongold Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=maroongold</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Yeblu Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=yeblu</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Blueberry Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=blueberry</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Slateorange Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=slateorange</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Kacho GA Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=kacho_ga</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Outrun Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=outrun</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Ocean Dark Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=ocean_dark</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- City Lights Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=city_lights</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- GitHub Dark Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=github_dark</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Discord Old Blurple Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=discord_old_blurple</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Aura Dark Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=aura_dark</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Panda Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=panda</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Noctis Minimus Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=noctis_minimus</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Cobalt2 Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=cobalt2</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Swift Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=swift</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Aura Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=aura</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Apprentice Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=apprentice</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Moltack Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=moltack</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- CodeSTACKr Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=codeSTACKr</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Rose Pine Theme -->
+    <url>
+        <loc>https://stats.pphat.top/stats?username=pphatdev&amp;theme=rose_pine</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+</urlset>
