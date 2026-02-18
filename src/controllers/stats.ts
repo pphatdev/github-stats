@@ -111,7 +111,7 @@ export class StatsController extends Controller {
             }
 
             const userAgent = req.get('user-agent') || '';
-            const isPreviewBot = /discordbot|twitterbot|slackbot|facebookexternalhit|linkedinbot|telegrambot|mastodon/i.test(userAgent);
+            const isPreviewBot = /discordbot|twitterbot|slackbot|facebookexternalhit|linkedinbot|telegrambot|telegram|mastodon|whatsapp/i.test(userAgent);
             const normalizedFormat = typeof format === 'string' ? format.toLowerCase() : (isPreviewBot ? 'png' : 'svg');
             const wantsPng = normalizedFormat === 'png';
 
