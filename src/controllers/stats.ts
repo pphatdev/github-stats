@@ -20,7 +20,7 @@ export class StatsController extends Controller {
 
     static async get(req: Request, res: Response) {
         try {
-            const { username, theme = 'default', hide_title = 'false', hide_border = 'false', hide_rank = 'false', show_icons = 'true', avatar_mode = 'none', custom_title, data_border_style = 'solid', data_border_frame = 'out', format = 'webp' } = req.query;
+            const { username, theme = 'default', hide_title = 'false', hide_border = 'false', hide_rank = 'false', show_icons = 'true', avatar_mode = 'none', custom_title, data_border_style = 'solid', data_border_frame = 'out', format = 'svg' } = req.query;
 
             if (!username || typeof username !== 'string') {
                 return res.status(400).send('Username is required');
@@ -29,7 +29,6 @@ export class StatsController extends Controller {
             // Build the SVG URL
             const params = new URLSearchParams();
             params.set('username', username);
-            params.set('format', 'webp');
             if (theme !== 'default') params.set('theme', theme as string);
             if (hide_title === 'true') params.set('hide_title', 'true');
             if (hide_border === 'true') params.set('hide_border', 'true');
@@ -42,7 +41,7 @@ export class StatsController extends Controller {
 
             const protocol = req.protocol;
             const host = req.get('host');
-            const svgUrl = `/stats?${params.toString()}`;
+            const svgUrl = `/stats?${params.toString()}&format=svg`;
             const fullUrl = `${protocol}://${host}/stats?${params.toString()}`;
 
             const payloads = {
