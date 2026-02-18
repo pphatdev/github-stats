@@ -15,24 +15,24 @@
     <meta name="revisit-after" content="7 days">
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="<% if (fullUrl) { %><%= fullUrl %><% } else { %>https://stats.pphat.top<% } %>">
+    <link rel="canonical" href="<% if (fullUrl) { %><%- fullUrl %><% } else { %>https://stats.pphat.top<% } %>">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="<% if (fullUrl) { %><%= fullUrl %><% } else { %>https://stats.pphat.top/stats?username=pphatdev&format=webp<% } %>">
+    <meta property="og:url" content="<% if (fullUrl) { %><%- fullUrl %><% } else { %>https://stats.pphat.top/stats?username=pphatdev&format=webp<% } %>">
     <meta property="og:title" content="<%= title %>">
     <meta property="og:description" content="<%= description %>">
-    <meta property="og:image" content="<% if (fullUrl) { %><%= fullUrl %><% } else { %>https://stats.pphat.top/stats?username=pphatdev&format=webp<% } %>">
+    <meta property="og:image" content="<% if (fullUrl) { %><%- fullUrl %><% } else { %>https://stats.pphat.top/stats?username=pphatdev&format=webp<% } %>">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="600">
     <meta property="og:site_name" content="<%= title %>">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="<% if (fullUrl) { %><%= fullUrl %><% } else { %>https://stats.pphat.top/stats?username=pphatdev&format=webp<% } %>">
+    <meta property="twitter:url" content="<% if (fullUrl) { %><%- fullUrl %><% } else { %>https://stats.pphat.top/stats?username=pphatdev&format=webp<% } %>">
     <meta property="twitter:title" content="<%= title %>">
     <meta property="twitter:description" content="<%= description %>">
-    <meta property="twitter:image" content="<% if (fullUrl) { %><%= fullUrl %><% } else { %>https://stats.pphat.top/stats?username=pphatdev&format=webp<% } %>">
+    <meta property="twitter:image" content="<% if (fullUrl) { %><%- fullUrl %><% } else { %>https://stats.pphat.top/stats?username=pphatdev&format=webp<% } %>">
     <meta property="twitter:creator" content="@<%= author %>">
 
     <!-- Favicon -->
