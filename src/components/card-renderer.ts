@@ -1,81 +1,95 @@
 import { GitHubStats, CardOptions } from '../types.js';
 import { getTheme } from '../utils/themes.js';
 
-
-
 export class CardRenderer {
+    // Cache static starfield to avoid regenerating
+    private static readonly STARFIELD_CACHE = new Map<string, string>();
+
+    // Reusable static values
+    static readonly DIMENSIONS = { WIDTH: 1200, HEIGHT: 600 };
+    static readonly ORBIT_RADII = [120, 180, 240];
+    static readonly STAT_ANGLES = [0, 72, 144, 216, 288];
+
+    // Format number helper
+    private static formatNumber(num: number): string {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toString();
+    }
+
+    // Generate deterministic starfield based on theme (cached)
+    private static getStarfield(width: number, height: number, textColor: string): string {
+        const cacheKey = `${width}-${height}-${textColor}`;
+        if (this.STARFIELD_CACHE.has(cacheKey)) {
+            return this.STARFIELD_CACHE.get(cacheKey)!;
+        }
+
+        // Seeded pseudo-random for consistent starfield
+        let seed = 12345;
+        const seededRandom = () => {
+            seed = (seed * 9301 + 49297) % 233280;
+            return seed / 233280;
+        };
+
+        const stars = Array.from({ length: 30 }, () => {
+            const x = Math.floor(seededRandom() * width);
+            const y = Math.floor(seededRandom() * height);
+            const r = (seededRandom() * 1 + 0.5).toFixed(1);
+            const opacity = (seededRandom() * 0.7 + 0.3).toFixed(1);
+            return `<circle cx="${x}" cy="${y}" r="${r}" fill="${textColor}" opacity="${opacity}"/>`;
+        }).join('');
+
+        this.STARFIELD_CACHE.set(cacheKey, stars);
+        return stars;
+    }
+
+    // Render panel frame
+    private static renderFrameCorners(width: number, height: number, offset: number, iconColor: string): string {
+        const corner = 14;
+        const x1 = offset, y1 = offset;
+        const x2 = width - offset, y2 = height - offset;
+        return `<g stroke="${iconColor}" stroke-width="2" fill="none" opacity="0.7"><path d="M ${x1} ${y1 + corner} V ${y1} H ${x1 + corner}"/><path d="M ${x2 - corner} ${y1} H ${x2} V ${y1 + corner}"/><path d="M ${x1} ${y2 - corner} V ${y2} H ${x1 + corner}"/><path d="M ${x2 - corner} ${y2} H ${x2} V ${y2 - corner}"/></g>`;
+    }
+
     static generateStatsCard(stats: GitHubStats, options: CardOptions): string {
         const theme = getTheme(options.theme);
         const fontName = theme.fontName || 'Orbitron';
         const fontFamily = theme.fontFamily || `'${fontName}', 'Ubuntu', 'sans-serif'`;
         const fontUrl = theme.fontUrl || '/fonts/orbitron.woff2';
         const fontFace = fontUrl
-            ? `@font-face {\n                    font-family: '${fontName}';\n                    font-style: normal;\n                    font-weight: 400 900;\n                    font-display: swap;\n                    src: url(${fontUrl}) format('woff2');\n                    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n                }`
+            ? `@font-face{font-family:'${fontName}';font-style:normal;font-weight:400 900;font-display:swap;src:url(${fontUrl})format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}`
             : '';
-        const showIcons = options.showIcons !== false;
-        const hideBorder = options.hideBorder || false;
-        const hideTitle = options.hideTitle || false;
-        const hideRank = options.hideRank || false;
-        const dataBorderStyle = options.dataBorderStyle || 'solid';
-        const dataBorderFramePosition = options.dataBorderFramePosition || 'out';
-        const showDataBorderStroke = dataBorderStyle === 'solid';
-        const showDataBorderFrame = dataBorderStyle === 'frame';
+
+        const dataBorderFrameOffset = (options.dataBorderFramePosition || 'out') === 'out' ? -6 : 6;
+        const showDataBorderStroke = (options.dataBorderStyle || 'solid') === 'solid';
+        const showDataBorderFrame = (options.dataBorderStyle || 'solid') === 'frame';
         const avatarMode = options.avatarMode || 'radar';
         const customTitle = options.customTitle || `${stats.name}'s GitHub Stats`;
 
-        const width = 1200;
-        const height = 600;
+        const width = this.DIMENSIONS.WIDTH;
+        const height = this.DIMENSIONS.HEIGHT;
         const centerX = width / 2;
         const centerY = height / 2;
 
-        // Helper function to format large numbers
-        function formatNumber(num: number): string {
-            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-            return num.toString();
-        }
-
-        function renderPanelFrame(width: number, height: number): string {
-            const offset = dataBorderFramePosition === 'out' ? -6 : 6;
-            const corner = 14;
-            const x1 = offset;
-            const y1 = offset;
-            const x2 = width - offset;
-            const y2 = height - offset;
-            return `
-                <g stroke="${theme.iconColor}" stroke-width="2" fill="none" opacity="0.7">
-                    <path d="M ${x1} ${y1 + corner} V ${y1} H ${x1 + corner}" />
-                    <path d="M ${x2 - corner} ${y1} H ${x2} V ${y1 + corner}" />
-                    <path d="M ${x1} ${y2 - corner} V ${y2} H ${x1 + corner}" />
-                    <path d="M ${x2 - corner} ${y2} H ${x2} V ${y2 - corner}" />
-                </g>
-            `;
-        }
-
-        // Generate starfield (static to reduce size)
-        const stars = Array.from({ length: 30 }, (_, i) => {
-            const x = (Math.random() * width).toFixed(0);
-            const y = (Math.random() * height).toFixed(0);
-            const r = (Math.random() * 1.5 + 0.5).toFixed(1);
-            const opacity = (Math.random() * 0.7 + 0.3).toFixed(1);
-            return `<circle cx="${x}" cy="${y}" r="${r}" fill="${theme.textColor}" opacity="${opacity}"/>`;
-        }).join('');
+        // Use cached starfield
+        const stars = this.getStarfield(width, height, theme.textColor);
 
         // Removed shooting stars to reduce size
         const shootingStars = '';
 
         // Generate orbital rings
-        const orbitRings = [120, 180, 240].map((r, i) =>
-            `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="${theme.iconColor}" stroke-width="1" stroke-dasharray="10,8" opacity="${(0.15 - i * 0.03).toFixed(2)}"/>`
-        ).join('');
+        const orbitRings = this.ORBIT_RADII.map((r, i) => {
+            const opacity = (0.15 - i * 0.03).toFixed(2);
+            return `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="${theme.iconColor}" stroke-width="1" stroke-dasharray="10,8" opacity="${opacity}"/>`;
+        }).join('');
 
         // Generate data beams radiating from center
         const statValues = [
-            { value: stats.totalStars, label: 'Stars', angle: 0 },
-            { value: stats.totalCommits, label: 'Commits', angle: 72 },
-            { value: stats.totalPRs, label: 'PRs', angle: 144 },
-            { value: stats.totalIssues, label: 'Issues', angle: 216 },
-            { value: stats.contributedTo, label: 'Contributed', angle: 288 }
+            { value: stats.totalStars, label: 'Stars', angle: this.STAT_ANGLES[0] },
+            { value: stats.totalCommits, label: 'Commits', angle: this.STAT_ANGLES[1] },
+            { value: stats.totalPRs, label: 'PRs', angle: this.STAT_ANGLES[2] },
+            { value: stats.totalIssues, label: 'Issues', angle: this.STAT_ANGLES[3] },
+            { value: stats.contributedTo, label: 'Contributed', angle: this.STAT_ANGLES[4] }
         ];
         const maxValue = Math.max(...statValues.map(s => s.value));
 
@@ -84,24 +98,23 @@ export class CardRenderer {
             const angle = (stat.angle * Math.PI) / 180;
             const intensity = maxValue > 0 ? stat.value / maxValue : 0;
             const beamLength = 100 + (intensity * 140);
-            const endX = (centerX + Math.cos(angle) * beamLength).toFixed(1);
-            const endY = (centerY + Math.sin(angle) * beamLength).toFixed(1);
+            const endX = centerX + Math.cos(angle) * beamLength;
+            const endY = centerY + Math.sin(angle) * beamLength;
+            const dotX = centerX + Math.cos(angle) * (beamLength + 20);
+            const dotY = centerY + Math.sin(angle) * (beamLength + 20);
+            const labelX = centerX + Math.cos(angle) * (beamLength + 60);
+            const labelY = centerY + Math.sin(angle) * (beamLength + 60);
+            const labelYTop = labelY - 12;
+            const labelYBottom = labelY + 6;
 
-            // Data point position
-            const dotX = (centerX + Math.cos(angle) * (beamLength + 20)).toFixed(1);
-            const dotY = (centerY + Math.sin(angle) * (beamLength + 20)).toFixed(1);
-
-            // Label position (further out)
-            const labelX = (centerX + Math.cos(angle) * (beamLength + 60)).toFixed(1);
-            const labelY = (centerY + Math.sin(angle) * (beamLength + 60)).toFixed(1);
-            const labelYTop = (Number(labelY) - 12).toFixed(1);
-            const labelYBottom = (Number(labelY) + 6).toFixed(1);
-
-            return `<line x1="${centerX}" y1="${centerY}" x2="${endX}" y2="${endY}" stroke="url(#beamGradient${i})" stroke-width="2" opacity="0.6"/><circle cx="${dotX}" cy="${dotY}" r="6" fill="${theme.iconColor}" filter="url(#glow)"/><text x="${labelX}" y="${labelYTop}" text-anchor="middle" fill="${theme.iconColor}" font-size="11" font-weight="600">${stat.label}</text><text x="${labelX}" y="${labelYBottom}" text-anchor="middle" fill="${theme.textColor}" font-size="20" font-weight="700" class="number">${formatNumber(stat.value)}</text>`;
+            return `<line x1="${centerX}" y1="${centerY}" x2="${endX.toFixed(1)}" y2="${endY.toFixed(1)}" stroke="url(#beamGradient${i})" stroke-width="2" opacity="0.6"/><circle cx="${dotX.toFixed(1)}" cy="${dotY.toFixed(1)}" r="6" fill="${theme.iconColor}" filter="url(#glow)"/><text x="${labelX.toFixed(1)}" y="${labelYTop.toFixed(1)}" text-anchor="middle" fill="${theme.iconColor}" font-size="11" font-weight="600">${stat.label}</text><text x="${labelX.toFixed(1)}" y="${labelYBottom.toFixed(1)}" text-anchor="middle" fill="${theme.textColor}" font-size="20" font-weight="700" class="number">${CardRenderer.formatNumber(stat.value)}</text>`;
         }).join('');
 
         // Corner info panels
         const totalContributions = stats.totalStars + stats.totalCommits + stats.totalPRs + stats.totalIssues;
+
+        // Timestamp for sync info
+        const syncTime = new Date().toLocaleTimeString();
 
         return `
         <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -133,12 +146,7 @@ export class CardRenderer {
                 </filter>
 
                 <!-- Beam gradients -->
-                ${statValues.map((_, i) => `
-                <linearGradient id="beamGradient${i}" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:${theme.iconColor};stop-opacity:0.1" />
-                    <stop offset="100%" style="stop-color:${theme.iconColor};stop-opacity:0.8" />
-                </linearGradient>
-                `).join('')}
+                ${statValues.map((_, i) => `<linearGradient id="beamGradient${i}" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:${theme.iconColor};stop-opacity:0.1"/><stop offset="100%" style="stop-color:${theme.iconColor};stop-opacity:0.8"/></linearGradient>`).join('')}
 
                 <!-- Circular gradient for center sphere -->
                 <radialGradient id="sphereGradient" cx="40%" cy="40%">
@@ -242,11 +250,11 @@ export class CardRenderer {
             <!-- Grid lines (subtle) -->
             <g opacity="0.1">
                 ${Array.from({ length: 12 }, (_, i) => {
-            const x = (i + 1) * (width / 12);
+            const x = ((i + 1) * (width / 12)) | 0;
             return `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
         }).join('')}
                 ${Array.from({ length: 6 }, (_, i) => {
-            const y = (i + 1) * (height / 6);
+            const y = ((i + 1) * (height / 6)) | 0;
             return `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
         }).join('')}
             </g>
@@ -350,24 +358,24 @@ export class CardRenderer {
             </g>
 
             <!-- Top left panel - User info -->
-            ${!hideTitle ? `
+            ${!options.hideTitle ? `
             <g transform="translate(40, 40)">
                 <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8" />
-                ${showDataBorderFrame ? renderPanelFrame(280, 120) : ''}
+                ${showDataBorderFrame ? this.renderFrameCorners(280, 120, dataBorderFrameOffset, theme.iconColor) : ''}
                 <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
 
                 <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">${customTitle}</text>
                 <text x="15" y="55" fill="${theme.borderColor}" font-size="11" font-weight="500">TOTAL CONTRIBUTIONS</text>
-                <text x="15" y="85" fill="${theme.textColor}" font-size="32" font-weight="700"  class="number" filter="url(#glow)">${formatNumber(totalContributions)}</text>
-                <text x="15" y="108" fill="${theme.iconColor}" font-size="10" opacity="0.7">Last synchronized: ${new Date().toLocaleTimeString()}</text>
+                <text x="15" y="85" fill="${theme.textColor}" font-size="32" font-weight="700"  class="number" filter="url(#glow)">${CardRenderer.formatNumber(totalContributions)}</text>
+                <text x="15" y="108" fill="${theme.iconColor}" font-size="10" opacity="0.7">Last synchronized: ${syncTime}</text>
             </g>
             ` : ''}
 
             <!-- Top right panel - Rank -->
-            ${!hideRank && stats.rank ? `
+            ${!options.hideRank && stats.rank ? `
             <g transform="translate(${width - 320}, 40)">
                 <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8"/>
-                ${showDataBorderFrame ? renderPanelFrame(280, 120) : ''}
+                ${showDataBorderFrame ? this.renderFrameCorners(280, 120, dataBorderFrameOffset, theme.iconColor) : ''}
                 <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3"/>
 
                 <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">DEVELOPER RANK</text>
@@ -382,23 +390,23 @@ export class CardRenderer {
             <!-- Bottom left panel - Activity -->
             <g transform="translate(40, ${height - 160})">
                 <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8" />
-                ${showDataBorderFrame ? renderPanelFrame(280, 120) : ''}
+                ${showDataBorderFrame ? this.renderFrameCorners(280, 120, dataBorderFrameOffset, theme.iconColor) : ''}
                 <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
 
                 <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">REPOSITORY ACTIVITY</text>
 
                 <text x="15" y="60" fill="${theme.borderColor}" font-size="10">Pull Requests</text>
-                <text x="200" y="60" fill="${theme.textColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.totalPRs)}</text>
+                <text x="200" y="60" fill="${theme.textColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${CardRenderer.formatNumber(stats.totalPRs)}</text>
                 <text x="15" y="82" fill="${theme.borderColor}" font-size="10">Issues</text>
-                <text x="200" y="82" fill="${theme.textColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.totalIssues)}</text>
+                <text x="200" y="82" fill="${theme.textColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${CardRenderer.formatNumber(stats.totalIssues)}</text>
                 <text x="15" y="104" fill="${theme.borderColor}" font-size="10">Contributed To</text>
-                <text x="200" y="104" fill="${theme.iconColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${formatNumber(stats.contributedTo)}</text>
+                <text x="200" y="104" fill="${theme.iconColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${CardRenderer.formatNumber(stats.contributedTo)}</text>
             </g>
 
             <!-- Bottom right panel - Terminal style data stream -->
             <g transform="translate(${width - 320}, ${height - 160})">
                 <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8" />
-                ${showDataBorderFrame ? renderPanelFrame(280, 120) : ''}
+                ${showDataBorderFrame ? this.renderFrameCorners(280, 120, dataBorderFrameOffset, theme.iconColor) : ''}
                 <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
 
                 <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">DATA STREAM</text>

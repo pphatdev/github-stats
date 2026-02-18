@@ -1,10 +1,11 @@
 import { Octokit } from '@octokit/rest';
 import { GitHubStats, LanguageCount } from '../types.js';
-import fetch from 'node-fetch';
-import sharp from 'sharp';
 
 export class GitHubClient {
     private octokit: Octokit;
+    private requestCache: Map<string, { data: any; timestamp: number }> = new Map();
+    private REQUEST_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+    private pendingRequests: Map<string, Promise<any>> = new Map();
 
     constructor(token?: string) {
         this.octokit = new Octokit({
@@ -12,97 +13,131 @@ export class GitHubClient {
         });
     }
 
+    // Deduplicate concurrent requests
+    private async cachedRequest<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+        const cached = this.requestCache.get(key);
+        if (cached && Date.now() - cached.timestamp < this.REQUEST_CACHE_TTL) {
+            return cached.data;
+        }
+
+        if (this.pendingRequests.has(key)) {
+            return this.pendingRequests.get(key)!;
+        }
+
+        const promise = fetcher();
+        this.pendingRequests.set(key, promise);
+
+        try {
+            const data = await promise;
+            this.requestCache.set(key, { data, timestamp: Date.now() });
+            return data;
+        } finally {
+            this.pendingRequests.delete(key);
+        }
+    }
+
+    // Return default stats for user not found
+    private getDefaultStats(username: string): GitHubStats {
+        return {
+            name: username,
+            avatarUrl: `https://avatars.githubusercontent.com/u/0?v=4?s=130`,
+            totalStars: 0,
+            totalCommits: 0,
+            totalPRs: 0,
+            totalIssues: 0,
+            contributedTo: 0,
+            rank: {
+                level: 'F',
+                score: 0,
+            },
+        };
+    }
+
     async fetchUserStats(username: string, options: { avatarMode: 'none' | 'avatar' | 'radar' }): Promise<GitHubStats> {
         try {
-            // Fetch user data
-            const { data: user } = await this.octokit.users.getByUsername({
-                username,
-            });
-
-            // Fetch user's repositories
-            const { data: repos } = await this.octokit.repos.listForUser({
-                username,
-                per_page: 100,
-                type: 'owner',
-            });
-
-            // Calculate total stars
-            const totalStars = repos.reduce((acc, repo) => acc + (repo.stargazers_count || 0), 0);
-
-            // Fetch commit count (approximation using search API)
-            let totalCommits = 0;
-            try {
-                const { data: commitData } = await this.octokit.search.commits({
-                    q: `author:${username}`,
-                    per_page: 1,
-                });
-                totalCommits = commitData.total_count;
-            } catch (error) {
-                console.warn('Could not fetch commit count:', error);
-            }
-
-            // Fetch PR count
-            let totalPRs = 0;
-            try {
-                const { data: prData } = await this.octokit.search.issuesAndPullRequests({
-                    q: `author:${username} type:pr`,
-                    per_page: 1,
-                });
-                totalPRs = prData.total_count;
-            } catch (error) {
-                console.warn('Could not fetch PR count:', error);
-            }
-
-            // Fetch issue count
-            let totalIssues = 0;
-            try {
-                const { data: issueData } = await this.octokit.search.issuesAndPullRequests({
-                    q: `author:${username} type:issue`,
-                    per_page: 1,
-                });
-                totalIssues = issueData.total_count;
-            } catch (error) {
-                console.warn('Could not fetch issue count:', error);
-            }
-
-            // Get contributed repositories count
-            const contributedTo = repos.filter(repo => !repo.fork).length;
-
-            // Calculate rank
-            const rank = this.calculateRank(totalStars, totalCommits, totalPRs, totalIssues);
-
-            // Fetch and convert avatar to WebP, then base64 for smaller size
-            let avatarBase64 = '';
-            if (options.avatarMode !== 'none') {
+            return await this.cachedRequest(`user-stats-${username}`, async () => {
+                // Fetch user first (required, don't parallelize)
+                let user: any;
                 try {
-                    // Fetch avatar at reasonable size
-                    const avatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=130`;
-                    const avatarResponse = await fetch(avatarUrl);
-                    const avatarBuffer = Buffer.from(await avatarResponse.arrayBuffer());
-
-                    // Compress to WebP format (much smaller than PNG)
-                    const webpBuffer = await sharp(avatarBuffer)
-                        .resize(120, 120) // Resize to 120x120
-                        .webp({ quality: 80 }) // Convert to WebP with 80% quality
-                        .toBuffer();
-
-                    avatarBase64 = `data:image/webp;base64,${webpBuffer.toString('base64')}`;
-                } catch (error) {
-                    console.warn('Could not fetch/compress avatar:', error);
-                    avatarBase64 = user.avatar_url; // Fallback to URL if fetch fails
+                    const userResponse = await this.octokit.users.getByUsername({ username });
+                    user = userResponse.data;
+                } catch (error: any) {
+                    if (error.status === 404) {
+                        // Return default stats for user not found
+                        return this.getDefaultStats(username);
+                    }
+                    throw error;
                 }
-            }
 
-            return {
-                name: user.name || username,
-                avatarUrl: avatarBase64,
-                totalStars,
-                totalCommits,
-                totalPRs,
-                totalIssues,
-                contributedTo,
-                rank,
-            };
+                // Run remaining API calls in parallel (user fetch is independent prerequisite)
+                const [reposResult, commitsResult, prsResult, issuesResult] = await Promise.allSettled([
+                    this.octokit.repos.listForUser({
+                        username,
+                        per_page: 100,
+                        type: 'owner',
+                    }),
+                    this.octokit.search.commits({
+                        q: `author:${username}`,
+                        per_page: 1,
+                    }),
+                    this.octokit.search.issuesAndPullRequests({
+                        q: `author:${username} type:pr`,
+                        per_page: 1,
+                    }),
+                    this.octokit.search.issuesAndPullRequests({
+                        q: `author:${username} type:issue`,
+                        per_page: 1,
+                    }),
+                ]);
+
+                // Extract data with safe fallbacks
+                const repos = (reposResult.status === 'fulfilled' ? reposResult.value?.data : []) || [];
+                const commits = (commitsResult.status === 'fulfilled' ? commitsResult.value?.data?.total_count : 0) || 0;
+                const prs = (prsResult.status === 'fulfilled' ? prsResult.value?.data?.total_count : 0) || 0;
+                const issues = (issuesResult.status === 'fulfilled' ? issuesResult.value?.data?.total_count : 0) || 0;
+
+                // Log non-critical failures
+                if (reposResult.status === 'rejected') {
+                    console.warn(`Warning: Failed to fetch repos for ${username}:`, reposResult.reason?.message);
+                }
+                if (commitsResult.status === 'rejected') {
+                    console.warn(`Warning: Failed to fetch commits for ${username}:`, commitsResult.reason?.message);
+                }
+                if (prsResult.status === 'rejected') {
+                    console.warn(`Warning: Failed to fetch PRs for ${username}:`, prsResult.reason?.message);
+                }
+                if (issuesResult.status === 'rejected') {
+                    console.warn(`Warning: Failed to fetch issues for ${username}:`, issuesResult.reason?.message);
+                }
+
+                // Calculate totals efficiently
+                const totalStars = repos && repos.length > 0 ? repos.reduce((acc: number, repo: any) => acc + (repo.stargazers_count || 0), 0) : 0;
+                const totalCommits = commits || 0;
+                const totalPRs = prs || 0;
+                const totalIssues = issues || 0;
+                const contributedTo = repos && repos.length > 0 ? repos.filter((repo: any) => !repo.fork).length : 0;
+
+                // Calculate rank
+                const rank = this.calculateRank(totalStars, totalCommits, totalPRs, totalIssues);
+
+                // Use avatar URL directly (no expensive base64/sharp conversion)
+                let avatarUrl = user.avatar_url;
+                if (options.avatarMode !== 'none') {
+                    // Add size parameter for better performance
+                    avatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=130`;
+                }
+
+                return {
+                    name: user.name || username,
+                    avatarUrl,
+                    totalStars,
+                    totalCommits,
+                    totalPRs,
+                    totalIssues,
+                    contributedTo,
+                    rank,
+                };
+            });
         } catch (error: any) {
             // Check if it's a rate limit error
             if (error.status === 403 && error.message?.includes('rate limit')) {
@@ -120,29 +155,36 @@ export class GitHubClient {
                 );
             }
 
+            // Re-throw user not found errors with context
+            if (error.message?.includes('not found')) {
+                throw error;
+            }
+
             throw new Error(`Failed to fetch stats for user ${username}: ${error.message || error}`);
         }
     }
 
     async fetchUserLanguages(username: string): Promise<LanguageCount[]> {
         try {
-            const { data: repos } = await this.octokit.repos.listForUser({
-                username,
-                per_page: 100,
-                type: 'owner',
-            });
+            return await this.cachedRequest(`user-langs-${username}`, async () => {
+                const { data: repos } = await this.octokit.repos.listForUser({
+                    username,
+                    per_page: 100,
+                    type: 'owner',
+                });
 
-            const languageCounts = new Map<string, number>();
-            repos.forEach(repo => {
-                if (!repo.language) return;
-                const current = languageCounts.get(repo.language) || 0;
-                languageCounts.set(repo.language, current + 1);
-            });
+                const languageCounts = new Map<string, number>();
+                repos.forEach(repo => {
+                    if (!repo.language) return;
+                    const current = languageCounts.get(repo.language) || 0;
+                    languageCounts.set(repo.language, current + 1);
+                });
 
-            return Array.from(languageCounts.entries()).map(([name, count]) => ({
-                name,
-                count,
-            }));
+                return Array.from(languageCounts.entries()).map(([name, count]) => ({
+                    name,
+                    count,
+                }));
+            });
         } catch (error: any) {
             if (error.status === 403 && error.message?.includes('rate limit')) {
                 throw new Error(
