@@ -7,7 +7,7 @@ export class HomeController extends Controller {
         const PORT = process.env.PORT || 3000;
         const protocol = req.protocol;
         const host = req.get('host');
-        const fullUrl = `${protocol}://${host}/`;
+        const fullUrl = `${protocol}://${host}/stats?username=pphatdev&format=webp`;
 
         const payloads = {
             ...Controller.defaultConfig,
