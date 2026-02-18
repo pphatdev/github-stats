@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { GitHubClient } from '../utils/github-client.js';
 import { CardRenderer } from '../components/card-renderer.js';
+import sharp from 'sharp';
 import { themes } from '../utils/themes.js';
 import { Controller } from './controller.js';
 
@@ -9,6 +10,7 @@ export class StatsController extends Controller {
     private static cache: Map<string, { data: string; timestamp: number }>;
     private static CACHE_DURATION: number;
     private static pendingRequests: Map<string, Promise<string>> = new Map();
+    private static pngCache: Map<string, { data: Buffer; timestamp: number }> = new Map();
 
     static initialize(githubClient: GitHubClient, cache: Map<string, { data: string; timestamp: number }>, cacheDuration: number) {
         this.githubClient = githubClient;
@@ -94,7 +96,8 @@ export class StatsController extends Controller {
                 show_avatar,
                 custom_title,
                 data_border_style = 'solid',
-                data_border_frame = 'out'
+                data_border_frame = 'out',
+                format
             } = req.query;
 
             if (!username || typeof username !== 'string') {
@@ -106,6 +109,11 @@ export class StatsController extends Controller {
             if (show_avatar === 'true') {
                 finalAvatarMode = 'avatar';
             }
+
+            const userAgent = req.get('user-agent') || '';
+            const isPreviewBot = /discordbot|twitterbot|slackbot|facebookexternalhit|linkedinbot|telegrambot|mastodon/i.test(userAgent);
+            const normalizedFormat = typeof format === 'string' ? format.toLowerCase() : (isPreviewBot ? 'png' : 'svg');
+            const wantsPng = normalizedFormat === 'png';
 
             // Generate optimized cache key using pipe separator
             const cacheKey = [
@@ -121,58 +129,68 @@ export class StatsController extends Controller {
                 data_border_frame || 'out'
             ].join('|');
 
-            // Check cache first
-            const cached = StatsController.cache.get(cacheKey);
-            if (cached && Date.now() - cached.timestamp < StatsController.CACHE_DURATION) {
-                res.setHeader('Content-Type', 'image/svg+xml');
+            const getSvgCard = async () => {
+                const cached = StatsController.cache.get(cacheKey);
+                if (cached && Date.now() - cached.timestamp < StatsController.CACHE_DURATION) {
+                    return cached.data;
+                }
+
+                if (StatsController.pendingRequests.has(cacheKey)) {
+                    return StatsController.pendingRequests.get(cacheKey)!;
+                }
+
+                const cardPromise = (async () => {
+                    const stats = await StatsController.githubClient.fetchUserStats(username, {
+                        avatarMode: finalAvatarMode as 'none' | 'avatar' | 'radar'
+                    });
+
+                    const card = CardRenderer.generateStatsCard(stats, {
+                        username,
+                        theme: theme as string,
+                        hideTitle: hide_title === 'true',
+                        hideBorder: hide_border === 'true',
+                        hideRank: hide_rank === 'true',
+                        showIcons: show_icons !== 'false',
+                        avatarMode: finalAvatarMode as 'none' | 'avatar' | 'radar',
+                        customTitle: custom_title as string | undefined,
+                        dataBorderStyle: data_border_style as 'solid' | 'frame',
+                        dataBorderFramePosition: data_border_frame as 'in' | 'out',
+                    });
+
+                    StatsController.cache.set(cacheKey, { data: card, timestamp: Date.now() });
+                    return card;
+                })();
+
+                StatsController.pendingRequests.set(cacheKey, cardPromise);
+
+                try {
+                    return await cardPromise;
+                } finally {
+                    StatsController.pendingRequests.delete(cacheKey);
+                }
+            };
+
+            if (wantsPng) {
+                const pngCacheKey = `${cacheKey}|png`;
+                const cachedPng = StatsController.pngCache.get(pngCacheKey);
+                if (cachedPng && Date.now() - cachedPng.timestamp < StatsController.CACHE_DURATION) {
+                    res.setHeader('Content-Type', 'image/png');
+                    res.setHeader('Cache-Control', 'public, max-age=600');
+                    return res.send(cachedPng.data);
+                }
+
+                const svgCard = await getSvgCard();
+                const pngBuffer = await sharp(Buffer.from(svgCard)).png().toBuffer();
+                StatsController.pngCache.set(pngCacheKey, { data: pngBuffer, timestamp: Date.now() });
+                res.setHeader('Content-Type', 'image/png');
                 res.setHeader('Cache-Control', 'public, max-age=600');
-                return res.send(cached.data);
+                return res.send(pngBuffer);
             }
 
-            // Deduplicate concurrent requests
-            if (StatsController.pendingRequests.has(cacheKey)) {
-                const card = await StatsController.pendingRequests.get(cacheKey)!;
-                res.setHeader('Content-Type', 'image/svg+xml');
-                res.setHeader('Cache-Control', 'public, max-age=600');
-                return res.send(card);
-            }
-
-            // Create promise for this request
-            const cardPromise = (async () => {
-                // Fetch stats
-                const stats = await StatsController.githubClient.fetchUserStats(username, {
-                    avatarMode: finalAvatarMode as 'none' | 'avatar' | 'radar'
-                });
-
-                // Generate card
-                const card = CardRenderer.generateStatsCard(stats, {
-                    username,
-                    theme: theme as string,
-                    hideTitle: hide_title === 'true',
-                    hideBorder: hide_border === 'true',
-                    hideRank: hide_rank === 'true',
-                    showIcons: show_icons !== 'false',
-                    avatarMode: finalAvatarMode as 'none' | 'avatar' | 'radar',
-                    customTitle: custom_title as string | undefined,
-                    dataBorderStyle: data_border_style as 'solid' | 'frame',
-                    dataBorderFramePosition: data_border_frame as 'in' | 'out',
-                });
-
-                // Cache the result
-                StatsController.cache.set(cacheKey, { data: card, timestamp: Date.now() });
-                return card;
-            })();
-
-            StatsController.pendingRequests.set(cacheKey, cardPromise);
-
-            try {
-                const card = await cardPromise;
-                res.setHeader('Content-Type', 'image/svg+xml');
-                res.setHeader('Cache-Control', 'public, max-age=600');
-                res.send(card);
-            } finally {
-                StatsController.pendingRequests.delete(cacheKey);
-            }
+            const card = await getSvgCard();
+            res.setHeader('Content-Type', 'image/svg+xml');
+            res.setHeader('Cache-Control', 'public, max-age=600');
+            res.send(card);
         } catch (error) {
             console.error('Error generating stats:', error);
             res.status(500).send(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
