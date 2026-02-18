@@ -20,6 +20,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 const PORT = process.env.PORT || 3000;
+const APP_ENV = process.env.APP_ENV || 'development';
+const PROTOCOL = APP_ENV === 'production' ? 'https' : 'http';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
 if (!GITHUB_TOKEN) {
@@ -55,6 +57,7 @@ app.get('/view/stats', StatsController.get);
 app.get('/', HomeController.get);
 
 app.listen(PORT, () => {
-    console.log(`🚀 GitHub Stats server running on https://localhost:${PORT}`);
-    console.log(`📊 Example: https://localhost:${PORT}/stats?username=pphatdev&theme=dark`);
+    console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}`);
+    console.log(`📊 Example: ${PROTOCOL}://localhost:${PORT}/stats?username=pphatdev&theme=dark`);
+    console.log(`🔧 Environment: ${APP_ENV}`);
 });
