@@ -69,7 +69,7 @@
             "url": "https://pphat.top"
         },
         "featureList": <%= JSON.stringify(features) %>,
-        "screenshot": "https://stats.pphat.top/stats?username=pphatdev&format=webp"
+        "screenshot": "<% if (fullUrl) { %><%- fullUrl %><% } else { %>https://stats.pphat.top/stats?username=pphatdev&format=webp<% } %>"
     }
     </script>
 </head>
