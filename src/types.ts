@@ -43,4 +43,8 @@ export interface CardOptions {
     avatarMode?: 'none' | 'avatar' | 'radar';
     dataBorderStyle?: 'solid' | 'frame';
     dataBorderFramePosition?: 'in' | 'out';
+    bgColor?: string;
+    borderColor?: string;
+    textColor?: string;
+    titleColor?: string;
 }

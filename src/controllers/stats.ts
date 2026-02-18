@@ -88,6 +88,10 @@ export class StatsController extends Controller {
                 custom_title,
                 data_border_style = 'solid',
                 data_border_frame = 'out',
+                bgColor,
+                borderColor,
+                textColor,
+                titleColor,
                 format
             } = req.query;
 
@@ -117,7 +121,11 @@ export class StatsController extends Controller {
                 finalAvatarMode,
                 custom_title || '',
                 data_border_style || 'solid',
-                data_border_frame || 'out'
+                data_border_frame || 'out',
+                bgColor || '',
+                borderColor || '',
+                textColor || '',
+                titleColor || ''
             ].join('|');
 
             const getSvgCard = async () => {
@@ -146,6 +154,10 @@ export class StatsController extends Controller {
                         customTitle: custom_title as string | undefined,
                         dataBorderStyle: data_border_style as 'solid' | 'frame',
                         dataBorderFramePosition: data_border_frame as 'in' | 'out',
+                        bgColor: bgColor as string | undefined,
+                        borderColor: borderColor as string | undefined,
+                        textColor: textColor as string | undefined,
+                        titleColor: titleColor as string | undefined,
                     });
 
                     StatsController.cache.set(cacheKey, { data: card, timestamp: Date.now() });

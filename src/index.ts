@@ -5,6 +5,7 @@ import { GitHubClient } from './utils/github-client.js';
 import { HomeController } from './controllers/home.js';
 import { StatsController } from './controllers/stats.js';
 import { LanguageController } from './controllers/languages.js';
+import { StudioController } from './controllers/studio.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -18,6 +19,10 @@ app.use(cors());
 // Set up EJS as the view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+app.use(express.static('dist'));
+app.use(express.static(publicDir));
+app.use('/public', express.static(publicDir));
+app.use('/js', express.static("dist/views/pages"));
 
 const PORT = process.env.PORT || 3000;
 const APP_ENV = process.env.APP_ENV || 'development';
@@ -50,11 +55,12 @@ app.get('/stats', StatsController.getSvg);
 app.get('/languages', LanguageController.getSvg);
 
 
-app.get('/view/stats', StatsController.get);
+// app.get('/view/stats', StatsController.get);
 // app.get('/preview/languages', LanguageController.get);
 
 // UI
 app.get('/', HomeController.get);
+app.get('/studio', StudioController.get);
 
 app.listen(PORT, () => {
     console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}`);

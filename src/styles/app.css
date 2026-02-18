@@ -30,3 +30,57 @@
         --primary: 150 79% 38%;
     }
 }
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #166392 transparent;
+}
+
+::-webkit-scrollbar {
+    width: 1px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 20px;
+}
+
+.button {
+    @apply px-3 cursor-pointer py-2 transition-all text-xs bg-slate-800/50 hover:bg-slate-700 border border-slate-700/50 text-white rounded-lg ease-in-out flex items-center gap-1.5;
+}
+
+.input {
+    @apply flex-1 px-3 py-2 w-full outline-none text-xs rounded-lg bg-slate-800/50 border border-slate-700/50 text-white font-mono focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all;
+}
+
+[data-load-template].active {
+    @apply bg-primary/20 border-primary/50;
+}
+
+.sidebar {
+    @apply flex h-[calc(100vh-8rem)] w-60 shrink-0 flex-col space-y-4 transition-all ease-in-out duration-300;
+}
+
+[data-content] {
+    @apply w-full bg-card-dark/60 transition-all ease-in-out p-1 backdrop-blur-sm rounded-2xl border border-slate-800/50;
+}
+
+.collapsed {
+    @apply w-0;
+}
+
+/* Responsive for screens smaller than 64rem (1024px) */
+@media (max-width: 63.9375rem) {
+    .sidebar {
+        @apply fixed h-[calc(100vh-8rem)] w-60 top-21.25 z-1 bg-transparent rounded-none border-none;
+    }
+
+
+    #rightSidebar {
+        @apply right-0;
+    }
+}

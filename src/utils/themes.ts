@@ -413,7 +413,12 @@ export const themes: { [key: string]: Theme } = {
     },
 };
 
-export function getTheme(themeName: string = 'default'): Theme {
+export function getTheme(themeName: string = 'default', customColors?: {
+    bgColor?: string;
+    borderColor?: string;
+    textColor?: string;
+    titleColor?: string;
+}): Theme {
     const theme = themes[themeName] || themes.default;
 
     return {
@@ -422,5 +427,10 @@ export function getTheme(themeName: string = 'default'): Theme {
         fontName: theme.fontName ?? defaultFontName,
         fontFamily: theme.fontFamily ?? defaultFontFamily,
         fontUrl: theme.fontUrl ?? defaultFontUrl,
+        // Override with custom colors if provided
+        ...(customColors?.bgColor && { bgColor: customColors.bgColor }),
+        ...(customColors?.borderColor && { borderColor: customColors.borderColor }),
+        ...(customColors?.textColor && { textColor: customColors.textColor }),
+        ...(customColors?.titleColor && { titleColor: customColors.titleColor, iconColor: customColors.titleColor }),
     };
 }

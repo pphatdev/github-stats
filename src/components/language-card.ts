@@ -3,7 +3,12 @@ import { getTheme } from '../utils/themes.js';
 
 export class LanguageCardRenderer {
     static generateLanguagesCard(languages: LanguageCount[], options: CardOptions): string {
-        const theme = getTheme(options.theme);
+        const theme = getTheme(options.theme, {
+            bgColor: options.bgColor,
+            borderColor: options.borderColor,
+            textColor: options.textColor,
+            titleColor: options.titleColor,
+        });
         const dataBorderStyle = options.dataBorderStyle || 'solid';
         const dataBorderFramePosition = options.dataBorderFramePosition || 'out';
         const showDataBorderStroke = dataBorderStyle === 'solid';

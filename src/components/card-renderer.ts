@@ -52,7 +52,12 @@ export class CardRenderer {
     }
 
     static generateStatsCard(stats: GitHubStats, options: CardOptions): string {
-        const theme = getTheme(options.theme);
+        const theme = getTheme(options.theme, {
+            bgColor: options.bgColor,
+            borderColor: options.borderColor,
+            textColor: options.textColor,
+            titleColor: options.titleColor,
+        });
         const fontName = theme.fontName || 'Orbitron';
         const fontFamily = theme.fontFamily || `'${fontName}', 'Ubuntu', 'sans-serif'`;
         const fontUrl = theme.fontUrl || '/fonts/orbitron.woff2';
