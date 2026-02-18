@@ -39,10 +39,12 @@ export class StatsController extends Controller {
             if (data_border_frame !== 'out') params.set('data_border_frame', data_border_frame as string);
             if (custom_title) params.set('custom_title', custom_title as string);
 
-            const protocol = req.protocol;
             const host = req.get('host');
             const svgUrl = `/stats?${params.toString()}&format=svg`;
-            const fullUrl = `${protocol}://${host}/stats?${params.toString()}`;
+            const APP_ENV = process.env.APP_ENV || 'development';
+            const PROTOCOL = APP_ENV === 'production' ? 'https' : 'http';
+
+            const fullUrl = `${PROTOCOL}://${host}/stats?${params.toString()}`;
 
             const payloads = {
                 ...Controller.defaultConfig,
