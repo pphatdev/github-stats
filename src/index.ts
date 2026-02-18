@@ -48,7 +48,7 @@ app.get('/stats', StatsController.getSvg);
 app.get('/languages', LanguageController.getSvg);
 
 
-// app.get('/preview/stats', StatsController.get);
+app.get('/view/stats', StatsController.get);
 // app.get('/preview/languages', LanguageController.get);
 
 // UI

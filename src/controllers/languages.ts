@@ -32,6 +32,7 @@ export class LanguageController extends Controller {
 
             const params = new URLSearchParams();
             params.set('username', username);
+            params.set('format', 'webp');
             if (theme !== 'default') params.set('theme', theme as string);
             if (show_info === 'false') params.set('show_info', 'false');
             if (top) params.set('top', top as string);
@@ -39,7 +40,7 @@ export class LanguageController extends Controller {
 
             const protocol = req.protocol;
             const host = req.get('host');
-            const svgUrl = `/languages/svg?${params.toString()}`;
+            const svgUrl = `/languages?${params.toString()}`;
             const fullUrl = `${protocol}://${host}/languages?${params.toString()}`;
 
             const payloads = {
@@ -67,7 +68,7 @@ export class LanguageController extends Controller {
 
     static async getSvg(req: Request, res: Response) {
         try {
-            const { username, theme = 'default', show_info, top, variant, type = 'card' } = req.query;
+            const { username, theme = 'default', show_info, top, variant, type = 'card', format } = req.query;
 
             if (!username || typeof username !== 'string') {
                 return res.status(400).send('Username is required');
