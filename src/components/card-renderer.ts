@@ -36,7 +36,11 @@ export class CardRenderer {
             const y = Math.floor(seededRandom() * height);
             const r = (seededRandom() * 1 + 0.5).toFixed(1);
             const opacity = (seededRandom() * 0.7 + 0.3).toFixed(1);
-            return `<circle cx="${x}" cy="${y}" r="${r}" fill="${textColor}" opacity="${opacity}"/>`;
+            const duration = (seededRandom() * 3 + 2).toFixed(1);
+            const delay = (seededRandom() * 5).toFixed(1);
+            return `<circle cx="${x}" cy="${y}" r="${r}" fill="${textColor}" opacity="${opacity}">
+                <animate attributeName="opacity" values="${opacity};${(parseFloat(opacity) * 0.3).toFixed(1)};${opacity}" dur="${duration}s" begin="${delay}s" repeatCount="indefinite" />
+            </circle>`;
         }).join('');
 
         this.STARFIELD_CACHE.set(cacheKey, stars);
