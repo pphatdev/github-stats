@@ -73,6 +73,7 @@ Optional query params:
 - `theme` — see [Graph Themes](#graph-themes) below
 - `year` — 4-digit year (default: last 365 days)
 - `animate` — cell animation mode: `glow` (default) | `wave` | `pulse` | `none`
+- `size` — canvas size preset: `default` (1200×600) | `small` (800×400) | `medium` (1000×500) | `large` (1400×700)
 - `show_title` — show/hide the username + year heading (`true` default, `false` centers remaining content)
 - `show_total_contribution` — show/hide the contributions subtitle (`true` default, `false` also shrinks SVG height to fit content)
 - `show_background` — show/hide the background gradient, stars, and grid lines (`true` default, `false` makes bg transparent and shrinks SVG width to fit only the cells with 10px margin)
@@ -141,16 +142,18 @@ Full theme list is in [src/utils/themes.ts](src/utils/themes.ts).
 
 These themes are tuned for the `/graph` heatmap card — vivid `iconColor` cells against near-black backgrounds.
 
-| Theme | Key | Preview |
-|---|---|---|
-| 🌌 Aurora | `aurora` | ![aurora](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=aurora) |
-| 💚 Matrix | `matrix` | ![matrix](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=matrix) |
-| 🔥 Inferno | `inferno` | ![inferno](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=inferno) |
-| 🌊 Ocean | `ocean` | ![ocean](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=ocean) |
-| 💜 Neon | `neon` | ![neon](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=neon) |
-| ☀️ Solar | `solar` | ![solar](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=solar) |
-| 🌠 Galaxy | `galaxy` | ![galaxy](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=galaxy) |
-| 🐙 GitHub Dark | `github-dark` | ![github-dark](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=github-dark) |
+<table>
+	<tr>
+		<td align="center"><img alt="aurora" src="https://stats.pphat.top/graph?username=pphatdev&size=small&show_title=false&show_total_contribution=false&theme=aurora" /><br /><strong>🌌 aurora</strong></td>
+		<td align="center"><img alt="matrix" src="https://stats.pphat.top/graph?username=pphatdev&size=small&show_title=false&show_total_contribution=false&theme=matrix" /><br /><strong>💚 matrix</strong></td>
+	</tr>
+	<tr>
+		<td align="center"><img alt="inferno" src="https://stats.pphat.top/graph?username=pphatdev&size=small&show_title=false&show_total_contribution=false&theme=inferno" /><br /><strong>🔥 inferno</strong></td>
+		<td align="center"><img alt="ocean" src="https://stats.pphat.top/graph?username=pphatdev&size=small&show_title=false&show_total_contribution=false&theme=ocean" /><br /><strong>🌊 ocean</strong></td>
+	</tr>
+</table>
+
+All available themes: `aurora` · `matrix` · `inferno` · `ocean` · `neon` · `solar` · `galaxy` · `github-dark`
 
 ### Animate Modes
 
@@ -160,6 +163,15 @@ These themes are tuned for the `/graph` heatmap card — vivid `iconColor` cells
 | `wave` | Cells ripple in a wave pattern across columns |
 | `pulse` | ~16 random cells flash independently |
 | `none` | No animation — static render |
+
+### Size Presets
+
+| Value | Canvas | Cell size |
+|---|---|---|
+| `default` | 1200 × 600 | 14 px |
+| `small` | 800 × 400 | 9 px |
+| `medium` | 1000 × 500 | 12 px |
+| `large` | 1400 × 700 | 16 px |
 
 ## Development
 
