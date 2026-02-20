@@ -204,6 +204,64 @@ export class GitHubClient {
         }
     }
 
+    async fetchUserContributions(username: string, from: string, to: string, cacheKeyExtra: string): Promise<any> {
+        const query = `
+            query($username: String!, $from: DateTime!, $to: DateTime!) {
+                user(login: $username) {
+                    contributionsCollection(from: $from, to: $to) {
+                        contributionCalendar {
+                            totalContributions
+                            weeks {
+                                contributionDays {
+                                    contributionCount
+                                    date
+                                    contributionLevel
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        `;
+
+        try {
+            return await this.cachedRequest(`user-contributions-${username}-${cacheKeyExtra}`, async () => {
+                const response: any = await this.octokit.graphql(query, {
+                    username,
+                    from,
+                    to
+                });
+
+                const calendar = response.user.contributionsCollection.contributionCalendar;
+                
+                return {
+                    username,
+                    totalContributions: calendar.totalContributions,
+                    weeks: calendar.weeks.map((week: any) => 
+                        week.contributionDays.map((day: any) => ({
+                            date: day.date,
+                            count: day.contributionCount,
+                            level: this.parseContributionLevel(day.contributionLevel)
+                        }))
+                    )
+                };
+            });
+        } catch (error: any) {
+            console.error('Error fetching contributions:', error);
+            throw new Error(`Failed to fetch contributions for ${username}: ${error.message}`);
+        }
+    }
+
+    private parseContributionLevel(level: string): number {
+        switch (level) {
+            case 'FIRST_QUARTILE': return 1;
+            case 'SECOND_QUARTILE': return 2;
+            case 'THIRD_QUARTILE': return 3;
+            case 'FOURTH_QUARTILE': return 4;
+            default: return 0;
+        }
+    }
+
     private calculateRank(stars: number, commits: number, prs: number, issues: number): { level: string; score: number } {
         // Simple ranking algorithm (can be improved)
         const score = stars * 2 + commits * 1 + prs * 3 + issues * 1;
