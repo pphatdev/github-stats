@@ -98,10 +98,16 @@ export class LanguageCardRenderer {
         const starField = Array.from({ length: 60 }, (_, i) => {
             const x = ((i * 113) % width).toFixed(0);
             const y = ((i * 61) % height).toFixed(0);
-            const r = (1 + (i % 3)).toFixed(0);
-            const delay = ((i % 10) * 0.5).toFixed(1);
-            const opacity = (0.2 + (i % 4) * 0.06).toFixed(2);
-            return `<circle class="star" style="animation-delay:${delay}s" cx="${x}" cy="${y}" r="${r}" opacity="${opacity}" />`;
+            const r = (1 + (i % 3)).toFixed(1);
+            const opacity = (0.2 + (i % 4) * 0.08).toFixed(2);
+            const duration = (i % 3 === 0 ? 3 : i % 3 === 1 ? 5 : 7);
+            const begin = (i % 10) * 0.2;
+            const minOpacity = (parseFloat(opacity) * 0.3).toFixed(2);
+            
+            return `
+                <circle cx="${x}" cy="${y}" r="${r}" fill="${theme.textColor}" opacity="${opacity}">
+                    <animate attributeName="opacity" values="${opacity};${minOpacity};${opacity}" dur="${duration}s" begin="${begin}s" repeatCount="indefinite" />
+                </circle>`;
         }).join('');
 
         const bubbleNodes = bubbles.map((bubble, index) => {
@@ -275,11 +281,6 @@ export class LanguageCardRenderer {
                     50% { transform: translate(12px, -8px); }
                 }
 
-                @keyframes twinkle {
-                    0%, 100% { opacity: 0.2; }
-                    50% { opacity: 0.6; }
-                }
-
                 @keyframes spaceFloat {
                     0%, 100% { transform: translate(0, 0); }
                     50% { transform: translate(-6px, -4px); }
@@ -298,11 +299,6 @@ export class LanguageCardRenderer {
                 .bubble {
                     animation: floatY 6s ease-in-out infinite;
                     transform-origin: ${centerX}px ${centerY}px;
-                }
-
-                .star {
-                    fill: ${theme.textColor};
-                    animation: twinkle 6s ease-in-out infinite;
                 }
 
                 .space-icons {
