@@ -43,6 +43,23 @@
 |---|---|---|---|
 | `animate` | `glow` \| `wave` \| `pulse` \| `none` | `glow` | Cell animation mode |
 
+### Output
+
+| Param | Type | Default | Description |
+|---|---|---|---|
+| `as` | `svg` \| `webp` \| `png` \| `gif` | `svg` | Output format. Raster formats are converted server-side via sharp. |
+
+---
+
+## Output Formats
+
+| Value | MIME type | Animated | Notes |
+|---|---|---|---|
+| `svg` | `image/svg+xml` | ✅ native | Default — inline `<animate>` elements, all filters preserved |
+| `gif` | `image/gif` | ✅ 20 frames | Per-frame opacity snapshots assembled with gifencoder |
+| `webp` | `image/webp` | ✅ 20 frames | GIF frames converted to animated WebP via sharp |
+| `png` | `image/png` | ❌ static | Single raster snapshot, lossless |
+
 ---
 
 ## Size Presets
@@ -92,4 +109,7 @@
 /graph?username=pphatdev&show_title=false&show_total_contribution=false
 /graph?username=pphatdev&show_background=false
 /graph?username=pphatdev&theme=ocean&size=small&animate=wave
+/graph?username=pphatdev&as=webp
+/graph?username=pphatdev&theme=aurora&as=png
+/graph?username=pphatdev&theme=matrix&size=large&as=gif
 ```
