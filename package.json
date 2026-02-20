@@ -5,11 +5,8 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "css": "npx @tailwindcss/cli -i ./src/styles/app.css -o ./dist/css/app.css --watch",
-    "build:css": "npx @tailwindcss/cli -i ./src/styles/app.css -o ./dist/css/app.css --minify",
-    "copy:view": "node -e \"require('fs').cpSync('src/views', 'dist/views', {recursive: true})\"",
-    "build": "tsc && npm run copy:view && npm run build:css",
-    "dev": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/index.ts | npm run css | tsc --watch ",
+    "build": "tsc",
+    "dev": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/index.ts | tsc --watch ",
     "start": "node dist/index.js",
     "test": "jest"
   },
@@ -24,19 +21,14 @@
   "license": "MIT",
   "dependencies": {
     "@octokit/rest": "^20.0.2",
-    "@tailwindcss/cli": "^4.1.18",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
-    "ejs": "^3.1.9",
     "express": "^4.18.2",
     "node-fetch": "^3.3.2",
-    "sharp": "^0.33.2",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18"
+    "sharp": "^0.33.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
-    "@types/ejs": "^3.1.5",
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.5",
     "ts-node": "^10.9.2",
