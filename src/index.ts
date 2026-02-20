@@ -4,6 +4,7 @@ import cors from 'cors';
 import { GitHubClient } from './utils/github-client.js';
 import { StatsController } from './controllers/stats.js';
 import { LanguageController } from './controllers/languages.js';
+import { GraphController } from './controllers/graph.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -30,7 +31,8 @@ type RouteInfo = {
 
 const routeDocs: Record<string, Omit<RouteInfo, 'method' | 'path'>> = {
     'GET /stats': StatsController.routeDocs,
-    'GET /languages': LanguageController.routeDocs
+    'GET /languages': LanguageController.routeDocs,
+    'GET /graph': GraphController.routeDocs
 };
 
 const getRoutes = (): RouteInfo[] => {
@@ -95,10 +97,12 @@ const CACHE_DURATION = 20 * 60 * 1000; // 20 minutes
 // Initialize controllers
 StatsController.initialize(githubClient, cache, CACHE_DURATION);
 LanguageController.initialize(githubClient, cache, CACHE_DURATION);
+GraphController.initialize(githubClient, cache, CACHE_DURATION);
 
 // API Request
 app.get('/stats', StatsController.getSvg);
 app.get('/languages', LanguageController.getSvg);
+app.get('/graph', GraphController.getSvg);
 
 app.listen(PORT, () => {
     console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}`);

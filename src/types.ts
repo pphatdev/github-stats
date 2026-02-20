@@ -18,13 +18,21 @@ export interface LanguageCount {
 }
 
 export interface Theme {
+    /** Card/graph title text color */
     titleColor: string;
+    /** General body text, labels, and subtitle color */
     textColor: string;
+    /** Icons, accents, graph heatmap cell fill color, and data chart color */
     iconColor: string;
+    /** Card/graph background fill color */
     bgColor: string;
+    /** Card border, divider lines, and grid line color */
     borderColor: string;
+    /** Font name (e.g. 'Orbitron') — defaults to Orbitron */
     fontName?: string;
+    /** Full CSS font-family stack (e.g. "'Orbitron', sans-serif") */
     fontFamily?: string;
+    /** URL to the woff2 font file for @font-face embedding */
     fontUrl?: string;
 }
 
@@ -57,4 +65,22 @@ export interface LanguagesCardOptions extends ThemeOverrides {
 
 export interface LanguagesPieChartOptions extends ThemeOverrides {
     listLength?: number;
+}
+
+export interface ContributionDay {
+    date: string;
+    count: number;
+    level: number;
+}
+
+export interface ContributionGraphData {
+    username: string;
+    year: string | number;
+    totalContributions: number;
+    weeks: ContributionDay[][];
+}
+
+export interface GraphCardOptions extends ThemeOverrides {
+    year?: string | number;
+    animate?: 'none' | 'glow' | 'wave' | 'pulse';
 }

@@ -63,6 +63,25 @@ Example:
 GET https://stats.pphat.top/languages?username=pphatdev&theme=default
 ```
 
+### GET /graph
+Returns an SVG activity graph for a user for a specific year or the last 365 days.
+
+Required query params:
+- username
+
+Optional query params:
+- theme
+- year (default: last 365 days)
+- bgColor
+- borderColor
+- textColor
+- titleColor
+
+Example:
+```
+GET https://stats.pphat.top/graph?username=pphatdev&year=2024
+```
+
 ## Usage in README
 
 Stats card:
@@ -78,6 +97,11 @@ Languages card:
 Languages pie chart:
 ```markdown
 ![Top Languages](https://stats.pphat.top/languages?username=YOUR_USERNAME&type=pie)
+```
+
+Activity graph:
+```markdown
+![Activity Graph](https://stats.pphat.top/graph?username=YOUR_USERNAME)
 ```
 
 ## Example Themes
