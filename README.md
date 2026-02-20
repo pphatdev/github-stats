@@ -77,6 +77,7 @@ Optional query params:
 - `show_title` — show/hide the username + year heading (`true` default, `false` centers remaining content)
 - `show_total_contribution` — show/hide the contributions subtitle (`true` default, `false` also shrinks SVG height to fit content)
 - `show_background` — show/hide the background gradient, stars, and grid lines (`true` default, `false` makes bg transparent and shrinks SVG width to fit only the cells with 10px margin)
+- `as` — output format: `svg` (default) | `gif` (animated) | `webp` (animated) | `png` (static)
 - `bgColor`
 - `borderColor`
 - `textColor`
@@ -88,6 +89,9 @@ GET https://stats.pphat.top/graph?username=pphatdev&year=2024
 GET https://stats.pphat.top/graph?username=pphatdev&theme=aurora
 GET https://stats.pphat.top/graph?username=pphatdev&theme=matrix&animate=pulse
 GET https://stats.pphat.top/graph?username=pphatdev&theme=ocean&animate=wave
+GET https://stats.pphat.top/graph?username=pphatdev&theme=aurora&animate=wave&as=gif
+GET https://stats.pphat.top/graph?username=pphatdev&theme=matrix&animate=pulse&as=webp
+GET https://stats.pphat.top/graph?username=pphatdev&as=png
 ```
 
 ## Usage in README
