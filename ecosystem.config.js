@@ -1,26 +1,23 @@
 module.exports = {
     apps: [
         {
-            name: 'github-stats',
-            script: './dist/index.js',
-            instances: 'max',
+            name: 'studio.pphat.top:3102',
+            port: 3102,
             exec_mode: 'cluster',
-            autorestart: true,
-            watch: false,
-            max_memory_restart: '1G',
-            env_production: {
+            instances: 'max',
+            script: './dist/index.js',
+            env: {
                 NODE_ENV: 'production',
-                PORT: 3102
+                PORT: 3102,
             },
-            error_file: './logs/err.log',
-            out_file: './logs/out.log',
-            log_file: './logs/combined.log',
-            time: true,
+            error_file: './logs/error.log',
+            out_file: './logs/output.log',
+            log_date_format: 'YYYY-MM-DD HH:mm:ss',
             merge_logs: true,
-            kill_timeout: 5000,
-            wait_ready: true,
-            listen_timeout: 10000,
-            shutdown_with_message: true
-        }
+
+            max_restarts: 10,
+            min_uptime: '10s',
+            max_memory_restart: '500M'
+        },
     ],
 };
