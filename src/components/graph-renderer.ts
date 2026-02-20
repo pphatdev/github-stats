@@ -52,7 +52,12 @@ export class GraphRenderer {
         }
     }
 
-    static generateGraphCard(data: ContributionGraphData, options: GraphCardOptions): string {
+    /**
+     * @param frameTime optional 0..1 normalized position in the animation cycle.
+     * When set, all SVG <animate> elements are replaced with statically computed
+     * opacity values so sharp/librsvg renders a meaningful raster frame.
+     */
+    static generateGraphCard(data: ContributionGraphData, options: GraphCardOptions, frameTime?: number): string {
         const theme = getTheme(options.theme, {
             bgColor: options.bgColor,
             borderColor: options.borderColor,
@@ -126,6 +131,15 @@ export class GraphRenderer {
 
         // ── Cells ──────────────────────────────────────────────────────────────
         const animateMode = options.animate;
+        // For raster frame export: interpolate keyframe values at a given cycle position
+        const ANIM_CYCLE = 8; // seconds — covers all animation durations
+        const lerpAnim = (vals: number[], dur: number, begin: number): number => {
+            const t = ((frameTime! * ANIM_CYCLE - begin) / dur % 1 + 1) % 1;
+            const pos = t * (vals.length - 1);
+            const i = Math.floor(pos);
+            return vals[i] * (1 - (pos - i)) + vals[Math.min(i + 1, vals.length - 1)] * (pos - i);
+        };
+
         const cells = data.weeks.map((week, x) => {
             const xPos = (startX + x * step).toFixed(1);
             const xDelay = (x * 0.04).toFixed(2);
@@ -137,6 +151,26 @@ export class GraphRenderer {
                     return `<rect x="${xPos}" y="${yPos}" width="${cellSize}" height="${cellSize}" fill="${color}" rx="2" opacity="${day.level === 0 ? 0.3 : 0.85}"/>`;
                 }
 
+                // ── Static frame snapshot (for raster export) ──────────────────
+                if (frameTime !== undefined) {
+                    let op: number;
+                    if (animateMode === 'wave') {
+                        op = lerpAnim([0.1, 0.8, 0.1], 3, x * 0.05 + y * 0.02);
+                    } else if (animateMode === 'pulse') {
+                        const seed = (x * 7 + y) * 1337 % 1000;
+                        if (seed % 22 === 0) {
+                            op = lerpAnim([0.1, 1, 0.1], 1.5 + (seed % 10) * 0.1, seed % 20 * 0.1);
+                        } else {
+                            op = 0.85;
+                        }
+                    } else {
+                        // glow (default)
+                        op = lerpAnim([0.2, 0.7, 0.2], 2.0 + (x % 4) * 0.5, x * 0.04);
+                    }
+                    return `<rect x="${xPos}" y="${yPos}" width="${cellSize}" height="${cellSize}" fill="${color}" rx="2" opacity="${op.toFixed(2)}"/>`;
+                }
+
+                // ── Live SVG animation ─────────────────────────────────────────
                 let animation = '';
                 let isAnimating = true;
 
