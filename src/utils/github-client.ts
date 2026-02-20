@@ -233,11 +233,11 @@ export class GitHubClient {
                 });
 
                 const calendar = response.user.contributionsCollection.contributionCalendar;
-                
+
                 return {
                     username,
                     totalContributions: calendar.totalContributions,
-                    weeks: calendar.weeks.map((week: any) => 
+                    weeks: calendar.weeks.map((week: any) =>
                         week.contributionDays.map((day: any) => ({
                             date: day.date,
                             count: day.contributionCount,
