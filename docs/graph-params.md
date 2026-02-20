@@ -1,5 +1,7 @@
 # `/graph` Query Parameters
 
+<img alt="aurora" src="https://stats.pphat.top/graph?username=pphatdev&size=small&show_title=false&show_total_contribution=false" />
+
 ## Required
 
 | Param | Type | Description |
