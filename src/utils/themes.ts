@@ -8,13 +8,36 @@ const defaultFontUrl = '/fonts/orbitron.woff2';
 
 export const themes: { [key: string]: Theme } = { ...baseThemes, ...graphThemes };
 
+/**
+ * Normalises a theme name for fuzzy lookup:
+ * lower-case + collapse spaces / underscores / hyphens to a single hyphen.
+ * e.g. "Tokyo Night", "tokyoNight", "tokyo_night" all → "tokyo-night"
+ */
+function normalizeKey(name: string): string {
+    return name.toLowerCase().replace(/[\s_]+/g, '-');
+}
+
+/** Pre-built map: normalised key → original themes key */
+const themeIndex: Map<string, string> = new Map(
+    Object.keys(themes).map(k => [normalizeKey(k), k])
+);
+
+/** Resolve a user-supplied theme name to the actual themes key, or 'default'. */
+function resolveThemeName(name: string): string {
+    // Exact match first (fast path)
+    if (themes[name]) return name;
+    // Normalised match (case / separator insensitive)
+    const resolved = themeIndex.get(normalizeKey(name));
+    return resolved ?? 'default';
+}
+
 export function getTheme(themeName: string = 'default', customColors?: {
     bgColor?: string;
     borderColor?: string;
     textColor?: string;
     titleColor?: string;
 }): Theme {
-    const theme = themes[themeName] || themes.default;
+    const theme = themes[resolveThemeName(themeName)];
 
     return {
         ...themes.default,
