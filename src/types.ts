@@ -83,6 +83,8 @@ export interface ContributionGraphData {
 export interface GraphCardOptions extends ThemeOverrides {
     year?: string | number;
     animate?: 'none' | 'glow' | 'wave' | 'pulse';
+    /** Canvas size preset. 'default' = 1200×600, 'small' = 800×400, 'medium' = 1000×500, 'large' = 1400×700 */
+    size?: 'small' | 'medium' | 'large' | 'default';
     /** Show/hide the title (username + year). When false, content is centered. Default: true */
     show_title?: boolean;
     /** Show/hide the total contributions subtitle. When false, SVG height shrinks to fit content. Default: true */

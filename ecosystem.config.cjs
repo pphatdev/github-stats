@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
         {
-            name: 'studio.pphat.top:3102',
+            name: 'stats.pphat.top:3102',
             port: 3102,
             exec_mode: 'cluster',
             instances: 'max',

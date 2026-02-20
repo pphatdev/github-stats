@@ -143,14 +143,14 @@ These themes are tuned for the `/graph` heatmap card — vivid `iconColor` cells
 
 | Theme | Key | Preview |
 |---|---|---|
-| 🌌 Aurora | `aurora` | ![aurora](https://stats.pphat.top/graph?username=pphatdev&theme=aurora) |
-| 💚 Matrix | `matrix` | ![matrix](https://stats.pphat.top/graph?username=pphatdev&theme=matrix) |
-| 🔥 Inferno | `inferno` | ![inferno](https://stats.pphat.top/graph?username=pphatdev&theme=inferno) |
-| 🌊 Ocean | `ocean` | ![ocean](https://stats.pphat.top/graph?username=pphatdev&theme=ocean) |
-| 💜 Neon | `neon` | ![neon](https://stats.pphat.top/graph?username=pphatdev&theme=neon) |
-| ☀️ Solar | `solar` | ![solar](https://stats.pphat.top/graph?username=pphatdev&theme=solar) |
-| 🌠 Galaxy | `galaxy` | ![galaxy](https://stats.pphat.top/graph?username=pphatdev&theme=galaxy) |
-| 🐙 GitHub Dark | `github-dark` | ![github-dark](https://stats.pphat.top/graph?username=pphatdev&theme=github-dark) |
+| 🌌 Aurora | `aurora` | ![aurora](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=aurora) |
+| 💚 Matrix | `matrix` | ![matrix](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=matrix) |
+| 🔥 Inferno | `inferno` | ![inferno](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=inferno) |
+| 🌊 Ocean | `ocean` | ![ocean](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=ocean) |
+| 💜 Neon | `neon` | ![neon](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=neon) |
+| ☀️ Solar | `solar` | ![solar](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=solar) |
+| 🌠 Galaxy | `galaxy` | ![galaxy](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=galaxy) |
+| 🐙 GitHub Dark | `github-dark` | ![github-dark](https://stats.pphat.top/graph?username=mrdoob&size=small&show_title=false&show_total_contribution=false&theme=github-dark) |
 
 ### Animate Modes
 

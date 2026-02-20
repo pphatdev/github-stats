@@ -60,7 +60,16 @@ export class GraphRenderer {
             titleColor: options.titleColor,
         });
 
-        const { WIDTH: width, HEIGHT: height } = this.DIMENSIONS;
+        const SIZE_PRESETS: Record<string, { WIDTH: number; HEIGHT: number }> = {
+            small:   { WIDTH: 800,  HEIGHT: 400 },
+            medium:  { WIDTH: 1000, HEIGHT: 500 },
+            default: { WIDTH: 1200, HEIGHT: 600 },
+            large:   { WIDTH: 1400, HEIGHT: 700 },
+        };
+        const { WIDTH: width, HEIGHT: height } = SIZE_PRESETS[options.size ?? 'default'] ?? SIZE_PRESETS.default;
+        const scale = width / 1200;
+        const titleFontSize = Math.round(42 * scale);
+        const contribFontSize = Math.round(18 * scale);
         const fontName = theme.fontName || 'Orbitron';
         const fontFamily = theme.fontFamily || `'${fontName}', 'Ubuntu', 'sans-serif'`;
         const fontUrl = theme.fontUrl || '/fonts/orbitron.woff2';
@@ -76,8 +85,8 @@ export class GraphRenderer {
             this.adjustColor(theme.iconColor, 25),
         ];
 
-        const cellSize = 14;
-        const gap = 4;
+        const cellSize = Math.round(14 * scale);
+        const gap = Math.max(2, Math.round(4 * scale));
         const step = cellSize + gap;
         const gridWidth = data.weeks.length * step;
         const gridHeight = 7 * step;
@@ -90,27 +99,27 @@ export class GraphRenderer {
         const svgWidth = showBackground ? width : gridWidth + bgMargin * 2;
         const startX = showBackground ? (width - gridWidth) / 2 : bgMargin;
 
-        const titleY = 90;
-        const titleFrameY1 = 52;
-        const titleFrameY2 = 100;
+        const titleY = Math.round(90 * scale);
+        const titleFrameY1 = Math.round(52 * scale);
+        const titleFrameY2 = Math.round(100 * scale);
 
         const svgRenderHeight = showContrib
             ? height
             : showTitle
-                ? Math.max(300, 158 + gridHeight + 90)
-                : Math.max(240, 48 + gridHeight + 90);
+                ? Math.max(Math.round(300 * scale), Math.round(158 * scale) + gridHeight + Math.round(90 * scale))
+                : Math.max(Math.round(240 * scale), Math.round(48 * scale) + gridHeight + Math.round(90 * scale));
 
         const startY = (showTitle && showContrib)
-            ? Math.round((height - gridHeight) / 2 + 60)
+            ? Math.round((height - gridHeight) / 2 + Math.round(60 * scale))
             : (!showTitle && showContrib)
                 ? Math.round((height - gridHeight) / 2)
                 : showTitle
-                    ? Math.round(svgRenderHeight * 0.15) + titleFrameY2 + 28
-                    : Math.round(svgRenderHeight * 0.15) + 28;
+                    ? Math.round(svgRenderHeight * 0.15) + titleFrameY2 + Math.round(28 * scale)
+                    : Math.round(svgRenderHeight * 0.15) + Math.round(28 * scale);
 
-        const contribBaseY = showTitle ? 125 : Math.round(startY / 2);
-        const contribFrameTop = contribBaseY - 28;
-        const contribFrameBot = contribBaseY + 14;
+        const contribBaseY = showTitle ? Math.round(125 * scale) : Math.round(startY / 2);
+        const contribFrameTop = contribBaseY - Math.round(28 * scale);
+        const contribFrameBot = contribBaseY + Math.round(14 * scale);
 
         // Stars only needed when background is visible; cache uses full canvas dims
         const stars = showBackground ? this.getStarfield(width, height, theme.textColor) : '';
@@ -164,7 +173,7 @@ export class GraphRenderer {
             const month = new Date(day0.date).getMonth();
             if (month !== currentMonth) {
                 currentMonth = month;
-                monthParts.push(`<text x="${(startX + i * step).toFixed(1)}" y="${monthY}" fill="${theme.textColor}" font-size="10" opacity="0.5" font-family="${fontFamily}">${MONTHS[month]}</text>`);
+                monthParts.push(`<text x="${(startX + i * step).toFixed(1)}" y="${monthY}" fill="${theme.textColor}" font-size="${Math.round(10 * scale)}" opacity="0.5" font-family="${fontFamily}">${MONTHS[month]}</text>`);
             }
         }
 
@@ -181,10 +190,10 @@ export class GraphRenderer {
             if (!showTitle) return '';
             const cx = svgWidth / 2;
             const titleText = data.username + "'s Activity " + data.year;
-            const tfw = (titleText.length * 24) / 2;
+            const tfw = (titleText.length * Math.round(24 * scale)) / 2;
             return [
-                `<text x="50%" y="${titleY}" text-anchor="middle" fill="${theme.titleColor}" font-size="42" font-family="${fontFamily}" font-weight="700" style="filter:drop-shadow(0 0 12px ${theme.titleColor}66)">${titleText}</text>`,
-                `<g fill="none" stroke="${theme.titleColor}" stroke-width="1.5" opacity="0.25">${buildCornerPaths(cx - tfw - 12, titleFrameY1, cx + tfw + 12, titleFrameY2, 16)}</g>`,
+                `<text x="50%" y="${titleY}" text-anchor="middle" fill="${theme.titleColor}" font-size="${titleFontSize}" font-family="${fontFamily}" font-weight="700" style="filter:drop-shadow(0 0 12px ${theme.titleColor}66)">${titleText}</text>`,
+                `<g fill="none" stroke="${theme.titleColor}" stroke-width="1.5" opacity="0.25">${buildCornerPaths(cx - tfw - Math.round(12 * scale), titleFrameY1, cx + tfw + Math.round(12 * scale), titleFrameY2, Math.round(16 * scale))}</g>`,
             ].join('\n            ');
         })();
 
@@ -192,14 +201,14 @@ export class GraphRenderer {
             if (!showContrib) return '';
             const cx = svgWidth / 2;
             const contribText = data.totalContributions.toLocaleString() + ' total contributions';
-            const tfw = (contribText.length * 11) / 2;
+            const tfw = (contribText.length * Math.round(11 * scale)) / 2;
             return [
-                `<text x="50%" y="${contribBaseY}" text-anchor="middle" fill="${theme.textColor}" font-size="18" opacity="0.8" font-family="${fontFamily}" filter="url(#textGlow)">${contribText}</text>`,
-                `<g fill="none" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.35">${buildCornerPaths(cx - tfw - 9, contribFrameTop, cx + tfw + 9, contribFrameBot, 12)}</g>`,
+                `<text x="50%" y="${contribBaseY}" text-anchor="middle" fill="${theme.textColor}" font-size="${contribFontSize}" opacity="0.8" font-family="${fontFamily}" filter="url(#textGlow)">${contribText}</text>`,
+                `<g fill="none" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.35">${buildCornerPaths(cx - tfw - Math.round(9 * scale), contribFrameTop, cx + tfw + Math.round(9 * scale), contribFrameBot, Math.round(12 * scale))}</g>`,
             ].join('\n            ');
         })();
 
-        const gridCorners = `<g fill="none" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.35">${buildCornerPaths(startX - 24, startY - 28, startX + gridWidth + 24, startY + gridHeight + 24, 12)}</g>`;
+        const gridCorners = `<g fill="none" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.35">${buildCornerPaths(startX - Math.round(24 * scale), startY - Math.round(28 * scale), startX + gridWidth + Math.round(24 * scale), startY + gridHeight + Math.round(24 * scale), Math.round(12 * scale))}</g>`;
 
         const gridLines = showBackground ? (() => {
             const vLines = Array.from({ length: 24 }, (_, i) => {
@@ -214,10 +223,14 @@ export class GraphRenderer {
         })() : '';
 
         const legend = (() => {
-            const lx = (startX + gridWidth - 100).toFixed(1);
-            const ly = (startY + gridHeight + 25).toFixed(1);
-            const rects = levelColors.map((c, i) => `<rect x="${i * 15}" y="0" width="12" height="12" fill="${c}" rx="2" opacity="${i === 0 ? 0.3 : 0.9}"/>`).join('');
-            return `<g transform="translate(${lx},${ly})"><text x="-35" y="10" fill="${theme.textColor}" font-size="10" opacity="0.5" font-family="${fontFamily}">Less</text>${rects}<text x="${levelColors.length * 15 + 5}" y="10" fill="${theme.textColor}" font-size="10" opacity="0.5" font-family="${fontFamily}">More</text></g>`;
+            const lgCell = Math.round(12 * scale);
+            const lgStep = Math.round(15 * scale);
+            const lgFont = Math.round(10 * scale);
+            const lgTextY = Math.round(10 * scale);
+            const lx = (startX + gridWidth - Math.round(100 * scale)).toFixed(1);
+            const ly = (startY + gridHeight + Math.round(25 * scale)).toFixed(1);
+            const rects = levelColors.map((c, i) => `<rect x="${i * lgStep}" y="0" width="${lgCell}" height="${lgCell}" fill="${c}" rx="2" opacity="${i === 0 ? 0.3 : 0.9}"/>`).join('');
+            return `<g transform="translate(${lx},${ly})"><text x="${-Math.round(35 * scale)}" y="${lgTextY}" fill="${theme.textColor}" font-size="${lgFont}" opacity="0.5" font-family="${fontFamily}">Less</text>${rects}<text x="${levelColors.length * lgStep + Math.round(5 * scale)}" y="${lgTextY}" fill="${theme.textColor}" font-size="${lgFont}" opacity="0.5" font-family="${fontFamily}">More</text></g>`;
         })();
 
         const divClipX = (svgWidth / 2 - (width - 160) / 4).toFixed(1);
