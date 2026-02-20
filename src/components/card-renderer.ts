@@ -1,4 +1,4 @@
-import { GitHubStats, CardOptions } from '../types.js';
+import { GitHubStats, StatsCardOptions } from '../types.js';
 import { getTheme } from '../utils/themes.js';
 
 export class CardRenderer {
@@ -51,7 +51,7 @@ export class CardRenderer {
         return `<g stroke="${iconColor}" stroke-width="2" fill="none" opacity="0.7"><path d="M ${x1} ${y1 + corner} V ${y1} H ${x1 + corner}"/><path d="M ${x2 - corner} ${y1} H ${x2} V ${y1 + corner}"/><path d="M ${x1} ${y2 - corner} V ${y2} H ${x1 + corner}"/><path d="M ${x2 - corner} ${y2} H ${x2} V ${y2 - corner}"/></g>`;
     }
 
-    static generateStatsCard(stats: GitHubStats, options: CardOptions): string {
+    static generateStatsCard(stats: GitHubStats, options: StatsCardOptions): string {
         const theme = getTheme(options.theme, {
             bgColor: options.bgColor,
             borderColor: options.borderColor,

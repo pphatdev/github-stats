@@ -2,10 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { GitHubClient } from './utils/github-client.js';
-import { HomeController } from './controllers/home.js';
 import { StatsController } from './controllers/stats.js';
 import { LanguageController } from './controllers/languages.js';
-import { StudioController } from './controllers/studio.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -16,13 +14,8 @@ const publicDir = path.join(__dirname, '..', 'public');
 const app = express();
 app.use(cors());
 
-// Set up EJS as the view engine
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.static('dist'));
 app.use(express.static(publicDir));
 app.use('/public', express.static(publicDir));
-app.use('/js', express.static("dist/views/pages"));
 
 const PORT = process.env.PORT || 3000;
 const APP_ENV = process.env.APP_ENV || 'development';
@@ -35,10 +28,6 @@ if (!GITHUB_TOKEN) {
     console.warn('⚠️  Create a .env file with: GITHUB_TOKEN=your_token_here');
     console.warn('⚠️  Get a token at: https://github.com/settings/tokens');
 }
-
-app.use(express.static('dist'));
-app.use(express.static(publicDir));
-app.use('/public', express.static(publicDir));
 
 const githubClient = new GitHubClient(GITHUB_TOKEN);
 
@@ -53,14 +42,6 @@ LanguageController.initialize(githubClient, cache, CACHE_DURATION);
 // API Request
 app.get('/stats', StatsController.getSvg);
 app.get('/languages', LanguageController.getSvg);
-
-
-// app.get('/view/stats', StatsController.get);
-// app.get('/preview/languages', LanguageController.get);
-
-// UI
-app.get('/', HomeController.get);
-app.get('/studio', StudioController.get);
 
 app.listen(PORT, () => {
     console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}`);

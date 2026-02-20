@@ -1,8 +1,8 @@
-import { CardOptions, LanguageCount } from '../types.js';
+import { LanguagesCardOptions, LanguageCount } from '../types.js';
 import { getTheme } from '../utils/themes.js';
 
 export class LanguageCardRenderer {
-    static generateLanguagesCard(languages: LanguageCount[], options: CardOptions): string {
+    static generateLanguagesCard(languages: LanguageCount[], options: LanguagesCardOptions): string {
         const theme = getTheme(options.theme, {
             bgColor: options.bgColor,
             borderColor: options.borderColor,

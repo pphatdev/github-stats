@@ -28,23 +28,33 @@ export interface Theme {
     fontUrl?: string;
 }
 
-export interface CardOptions {
-    username: string;
+export interface ThemeOverrides {
     theme?: string;
+    bgColor?: string;
+    borderColor?: string;
+    textColor?: string;
+    titleColor?: string;
+}
+
+export interface StatsCardOptions extends ThemeOverrides {
     hideTitle?: boolean;
     hideBorder?: boolean;
     hideRank?: boolean;
     showIcons?: boolean;
     customTitle?: string;
-    showInfo?: boolean;
-    listLength?: number;
-    variant?: 'bubbles' | 'pie';
-    type?: 'card' | 'pie';
     avatarMode?: 'none' | 'avatar' | 'radar';
     dataBorderStyle?: 'solid' | 'frame';
     dataBorderFramePosition?: 'in' | 'out';
-    bgColor?: string;
-    borderColor?: string;
-    textColor?: string;
-    titleColor?: string;
+}
+
+export interface LanguagesCardOptions extends ThemeOverrides {
+    showInfo?: boolean;
+    listLength?: number;
+    variant?: 'bubbles' | 'pie';
+    dataBorderStyle?: 'solid' | 'frame';
+    dataBorderFramePosition?: 'in' | 'out';
+}
+
+export interface LanguagesPieChartOptions extends ThemeOverrides {
+    listLength?: number;
 }
