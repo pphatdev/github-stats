@@ -83,4 +83,10 @@ export interface ContributionGraphData {
 export interface GraphCardOptions extends ThemeOverrides {
     year?: string | number;
     animate?: 'none' | 'glow' | 'wave' | 'pulse';
+    /** Show/hide the title (username + year). When false, content is centered. Default: true */
+    show_title?: boolean;
+    /** Show/hide the total contributions subtitle. When false, SVG height shrinks to fit content. Default: true */
+    show_total_contribution?: boolean;
+    /** Show/hide the background (gradient, stars, grid lines). When false, bg is transparent and SVG width fits the cells. Default: true */
+    show_background?: boolean;
 }

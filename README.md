@@ -67,19 +67,26 @@ GET https://stats.pphat.top/languages?username=pphatdev&theme=default
 Returns an SVG activity graph for a user for a specific year or the last 365 days.
 
 Required query params:
-- username
+- `username`
 
 Optional query params:
-- theme
-- year (default: last 365 days)
-- bgColor
-- borderColor
-- textColor
-- titleColor
+- `theme` — see [Graph Themes](#graph-themes) below
+- `year` — 4-digit year (default: last 365 days)
+- `animate` — cell animation mode: `glow` (default) | `wave` | `pulse` | `none`
+- `show_title` — show/hide the username + year heading (`true` default, `false` centers remaining content)
+- `show_total_contribution` — show/hide the contributions subtitle (`true` default, `false` also shrinks SVG height to fit content)
+- `show_background` — show/hide the background gradient, stars, and grid lines (`true` default, `false` makes bg transparent and shrinks SVG width to fit only the cells with 10px margin)
+- `bgColor`
+- `borderColor`
+- `textColor`
+- `titleColor`
 
 Example:
 ```
 GET https://stats.pphat.top/graph?username=pphatdev&year=2024
+GET https://stats.pphat.top/graph?username=pphatdev&theme=aurora
+GET https://stats.pphat.top/graph?username=pphatdev&theme=matrix&animate=pulse
+GET https://stats.pphat.top/graph?username=pphatdev&theme=ocean&animate=wave
 ```
 
 ## Usage in README
@@ -104,6 +111,11 @@ Activity graph:
 ![Activity Graph](https://stats.pphat.top/graph?username=YOUR_USERNAME)
 ```
 
+Activity graph with theme and animation:
+```markdown
+![Activity Graph](https://stats.pphat.top/graph?username=YOUR_USERNAME&theme=aurora&animate=pulse)
+```
+
 ## Example Themes
 
 Use the `theme` query param. A few previews:
@@ -124,6 +136,30 @@ Use the `theme` query param. A few previews:
 </table>
 
 Full theme list is in [src/utils/themes.ts](src/utils/themes.ts).
+
+## Graph Themes
+
+These themes are tuned for the `/graph` heatmap card — vivid `iconColor` cells against near-black backgrounds.
+
+| Theme | Key | Preview |
+|---|---|---|
+| 🌌 Aurora | `aurora` | ![aurora](https://stats.pphat.top/graph?username=pphatdev&theme=aurora) |
+| 💚 Matrix | `matrix` | ![matrix](https://stats.pphat.top/graph?username=pphatdev&theme=matrix) |
+| 🔥 Inferno | `inferno` | ![inferno](https://stats.pphat.top/graph?username=pphatdev&theme=inferno) |
+| 🌊 Ocean | `ocean` | ![ocean](https://stats.pphat.top/graph?username=pphatdev&theme=ocean) |
+| 💜 Neon | `neon` | ![neon](https://stats.pphat.top/graph?username=pphatdev&theme=neon) |
+| ☀️ Solar | `solar` | ![solar](https://stats.pphat.top/graph?username=pphatdev&theme=solar) |
+| 🌠 Galaxy | `galaxy` | ![galaxy](https://stats.pphat.top/graph?username=pphatdev&theme=galaxy) |
+| 🐙 GitHub Dark | `github-dark` | ![github-dark](https://stats.pphat.top/graph?username=pphatdev&theme=github-dark) |
+
+### Animate Modes
+
+| Mode | Description |
+|---|---|
+| `glow` | Default — active cells pulse with a soft glow |
+| `wave` | Cells ripple in a wave pattern across columns |
+| `pulse` | ~16 random cells flash independently |
+| `none` | No animation — static render |
 
 ## Development
 

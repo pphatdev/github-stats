@@ -13,6 +13,9 @@ export class GraphController {
             'theme',
             'year',
             'animate',
+            'show_title',
+            'show_total_contribution',
+            'show_background',
             'bgColor',
             'borderColor',
             'textColor',
@@ -30,7 +33,7 @@ export class GraphController {
 
     static async getSvg(req: Request, res: Response) {
         try {
-            const { username, theme = 'default', year, animate, bgColor, borderColor, textColor, titleColor } = req.query;
+            const { username, theme = 'default', year, animate, show_title, show_total_contribution, show_background, bgColor, borderColor, textColor, titleColor } = req.query;
 
             if (!username || typeof username !== 'string') {
                 return res.status(400).send('Username is required');
@@ -58,7 +61,7 @@ export class GraphController {
                 displayYear = `${oneYearAgo.getFullYear()}-${now.getFullYear()}`;
             }
 
-            const cacheKey = `graph-${username}-${theme}-${cacheKeyExtra}-${animate || ''}-${bgColor || ''}-${borderColor || ''}-${textColor || ''}-${titleColor || ''}`;
+            const cacheKey = `graph-${username}-${theme}-${cacheKeyExtra}-${animate || ''}-${show_title ?? ''}-${show_total_contribution ?? ''}-${show_background ?? ''}-${bgColor || ''}-${borderColor || ''}-${textColor || ''}-${titleColor || ''}`;
             const cached = GraphController.cache.get(cacheKey);
             if (cached && Date.now() - cached.timestamp < GraphController.CACHE_DURATION) {
                 res.setHeader('Content-Type', 'image/svg+xml');
@@ -71,6 +74,9 @@ export class GraphController {
             const svg = GraphRenderer.generateGraphCard({ ...contributions, year: displayYear }, {
                 theme: theme as string,
                 animate: animate as 'none' | 'glow' | 'wave' | 'pulse' | undefined,
+                show_title: show_title === 'false' ? false : true,
+                show_total_contribution: show_total_contribution === 'false' ? false : true,
+                show_background: show_background === 'false' ? false : true,
                 bgColor: bgColor as string | undefined,
                 borderColor: borderColor as string | undefined,
                 textColor: textColor as string | undefined,
