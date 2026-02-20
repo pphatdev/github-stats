@@ -8,6 +8,28 @@ export class StatsController {
     private static CACHE_DURATION: number;
     private static pendingRequests: Map<string, Promise<string>> = new Map();
     private static pngCache: Map<string, { data: Buffer; timestamp: number }> = new Map();
+    static routeDocs = {
+        requiredParams: ['username'],
+        optionalParams: [
+            'theme',
+            'hide_title',
+            'hide_border',
+            'hide_rank',
+            'show_icons',
+            'avatar_mode',
+            'show_avatar',
+            'custom_title',
+            'data_border_style',
+            'data_border_frame',
+            'bgColor',
+            'borderColor',
+            'textColor',
+            'titleColor',
+            'format'
+        ],
+        payload: null as null,
+        example: '/stats?username=pphatdev&theme=dark'
+    };
 
     static initialize(githubClient: GitHubClient, cache: Map<string, { data: string; timestamp: number }>, cacheDuration: number) {
         this.githubClient = githubClient;

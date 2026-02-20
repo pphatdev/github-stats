@@ -17,6 +17,63 @@ app.use(cors());
 app.use(express.static(publicDir));
 app.use('/public', express.static(publicDir));
 
+const staticRoots = ['/', '/public'];
+
+type RouteInfo = {
+    method: string;
+    path: string;
+    requiredParams?: string[];
+    optionalParams?: string[];
+    payload?: string | null;
+    example?: string;
+};
+
+const routeDocs: Record<string, Omit<RouteInfo, 'method' | 'path'>> = {
+    'GET /stats': StatsController.routeDocs,
+    'GET /languages': LanguageController.routeDocs
+};
+
+const getRoutes = (): RouteInfo[] => {
+    const routes: RouteInfo[] = [];
+    const router = (app as { _router?: { stack?: Array<{ route?: { path?: string; methods?: Record<string, boolean> } } | { name?: string; handle?: { stack?: Array<{ route?: { path?: string; methods?: Record<string, boolean> } }> } }> } })._router;
+    const stack = router?.stack ?? [];
+
+    for (const layer of stack) {
+        if ('route' in layer && layer.route) {
+            const path = layer.route.path ?? '';
+            const methods = Object.keys(layer.route.methods ?? {}).filter((method) => layer.route?.methods?.[method]);
+            for (const method of methods) {
+                const routeKey = `${method.toUpperCase()} ${path}`;
+                routes.push({ method: method.toUpperCase(), path, ...routeDocs[routeKey] });
+            }
+        } else if ('name' in layer && layer.name === 'router' && layer.handle?.stack) {
+            for (const nestedLayer of layer.handle.stack) {
+                if (nestedLayer.route) {
+                    const path = nestedLayer.route.path ?? '';
+                    const methods = Object.keys(nestedLayer.route.methods ?? {}).filter((method) => nestedLayer.route?.methods?.[method]);
+                    for (const method of methods) {
+                        const routeKey = `${method.toUpperCase()} ${path}`;
+                        routes.push({ method: method.toUpperCase(), path, ...routeDocs[routeKey] });
+                    }
+                }
+            }
+        }
+    }
+
+    routes.sort((a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method));
+    return routes;
+};
+
+app.get('/', (_req, res) => {
+    res.json({
+        routes: getRoutes(),
+        staticAssets: {
+            roots: staticRoots,
+            example: '/sitemap.xml'
+        }
+    });
+});
+
 const PORT = process.env.PORT || 3000;
 const APP_ENV = process.env.APP_ENV || 'development';
 const PROTOCOL = APP_ENV === 'production' ? 'https' : 'http';

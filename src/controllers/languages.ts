@@ -6,6 +6,23 @@ export class LanguageController {
     private static githubClient: GitHubClient;
     private static cache: Map<string, { data: string; timestamp: number }>;
     private static CACHE_DURATION: number;
+    static routeDocs = {
+        requiredParams: ['username'],
+        optionalParams: [
+            'theme',
+            'show_info',
+            'top',
+            'variant',
+            'type',
+            'bgColor',
+            'borderColor',
+            'textColor',
+            'titleColor',
+            'format'
+        ],
+        payload: null as null,
+        example: '/languages?username=pphatdev&theme=default'
+    };
 
     static initialize(githubClient: GitHubClient, cache: Map<string, { data: string; timestamp: number }>, cacheDuration: number) {
         this.githubClient = githubClient;
