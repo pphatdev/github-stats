@@ -7,6 +7,20 @@ export class GraphRenderer {
 
     static readonly DIMENSIONS = { WIDTH: 1200, HEIGHT: 600 };
 
+    // Allocated once — not re-created per generateGraphCard call
+    private static readonly SIZE_PRESETS: Record<string, { WIDTH: number; HEIGHT: number }> = {
+        small: { WIDTH: 800, HEIGHT: 400 },
+        medium: { WIDTH: 1000, HEIGHT: 500 },
+        default: { WIDTH: 1200, HEIGHT: 600 },
+        large: { WIDTH: 1400, HEIGHT: 700 },
+    };
+    private static readonly MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+    // Reusable lerp value arrays — avoids allocating [0.1,0.8,0.1] on every animated cell
+    private static readonly LERP_WAVE = [0.1, 0.8, 0.1] as const;
+    private static readonly LERP_PULSE = [0.1, 1.0, 0.1] as const;
+    private static readonly LERP_GLOW = [0.2, 0.7, 0.2] as const;
+
     private static getStarfield(width: number, height: number, textColor: string): string {
         // Always key by full canvas dims so the cache works across show_background states
         const cacheKey = `${width}-${height}-${textColor}`;
@@ -16,7 +30,8 @@ export class GraphRenderer {
         let seed = 54321;
         const rng = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
 
-        const stars = Array.from({ length: 40 }, () => {
+        const parts: string[] = [];
+        for (let i = 0; i < 40; i++) {
             const x = (rng() * width) | 0;
             const y = (rng() * height) | 0;
             const r = (rng() * 1 + 0.5).toFixed(1);
@@ -24,9 +39,10 @@ export class GraphRenderer {
             const dur = (rng() * 3 + 2).toFixed(1);
             const del = (rng() * 5).toFixed(1);
             const opDim = (parseFloat(op) * 0.3).toFixed(1);
-            return `<circle cx="${x}" cy="${y}" r="${r}" fill="${textColor}" opacity="${op}"><animate attributeName="opacity" values="${op};${opDim};${op}" dur="${dur}s" begin="${del}s" repeatCount="indefinite"/></circle>`;
-        }).join('');
+            parts.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="${textColor}" opacity="${op}"><animate attributeName="opacity" values="${op};${opDim};${op}" dur="${dur}s" begin="${del}s" repeatCount="indefinite"/></circle>`);
+        }
 
+        const stars = parts.join('');
         this.STARFIELD_CACHE.set(cacheKey, stars);
         return stars;
     }
@@ -65,16 +81,38 @@ export class GraphRenderer {
             titleColor: options.titleColor,
         });
 
-        const SIZE_PRESETS: Record<string, { WIDTH: number; HEIGHT: number }> = {
-            small:   { WIDTH: 800,  HEIGHT: 400 },
-            medium:  { WIDTH: 1000, HEIGHT: 500 },
-            default: { WIDTH: 1200, HEIGHT: 600 },
-            large:   { WIDTH: 1400, HEIGHT: 700 },
-        };
-        const { WIDTH: width, HEIGHT: height } = SIZE_PRESETS[options.size ?? 'default'] ?? SIZE_PRESETS.default;
+        const { WIDTH: width, HEIGHT: height } =
+            GraphRenderer.SIZE_PRESETS[options.size ?? 'default'] ?? GraphRenderer.SIZE_PRESETS.default;
+
         const scale = width / 1200;
-        const titleFontSize = Math.round(42 * scale);
-        const contribFontSize = Math.round(18 * scale);
+
+        // ── Pre-compute all scale-dependent constants (avoids repeated Math.round in loops) ──
+        const s = (n: number) => Math.round(n * scale);
+        const sc5 = s(5);
+        const sc9 = s(9);
+        const sc10 = s(10);
+        const sc11 = s(11);
+        const sc12 = s(12);
+        const sc14 = s(14);
+        const sc15 = s(15);
+        const sc16 = s(16);
+        const sc24 = s(24);
+        const sc25 = s(25);
+        const sc28 = s(28);
+        const sc35 = s(35);
+        const sc42 = s(42);
+        const sc48 = s(48);
+        const sc60 = s(60);
+        const sc90 = s(90);
+        const sc100 = s(100);
+        const sc125 = s(125);
+        const sc158 = s(158);
+        const sc240 = s(240);
+        const sc300 = s(300);
+
+        const titleFontSize = sc42;
+        const contribFontSize = s(18);
+
         const fontName = theme.fontName || 'Orbitron';
         const fontFamily = theme.fontFamily || `'${fontName}', 'Ubuntu', 'sans-serif'`;
         const fontUrl = theme.fontUrl || '/fonts/orbitron.woff2';
@@ -90,10 +128,11 @@ export class GraphRenderer {
             this.adjustColor(theme.iconColor, 25),
         ];
 
-        const cellSize = Math.round(14 * scale);
-        const gap = Math.max(2, Math.round(4 * scale));
+        const cellSize = sc14;
+        const gap = Math.max(2, s(4));
         const step = cellSize + gap;
-        const gridWidth = data.weeks.length * step;
+        const weeksLen = data.weeks.length;
+        const gridWidth = weeksLen * step;
         const gridHeight = 7 * step;
 
         const showTitle = options.show_title !== false;
@@ -104,110 +143,145 @@ export class GraphRenderer {
         const svgWidth = showBackground ? width : gridWidth + bgMargin * 2;
         const startX = showBackground ? (width - gridWidth) / 2 : bgMargin;
 
-        const titleY = Math.round(90 * scale);
-        const titleFrameY1 = Math.round(52 * scale);
-        const titleFrameY2 = Math.round(100 * scale);
+        const titleY = sc90;
+        const titleFrameY1 = s(52);
+        const titleFrameY2 = s(100);
 
         const svgRenderHeight = showContrib
             ? height
             : showTitle
-                ? Math.max(Math.round(300 * scale), Math.round(158 * scale) + gridHeight + Math.round(90 * scale))
-                : Math.max(Math.round(240 * scale), Math.round(48 * scale) + gridHeight + Math.round(90 * scale));
+                ? Math.max(sc300, sc158 + gridHeight + sc90)
+                : Math.max(sc240, sc48 + gridHeight + sc90);
 
         const startY = (showTitle && showContrib)
-            ? Math.round((height - gridHeight) / 2 + Math.round(60 * scale))
+            ? Math.round((height - gridHeight) / 2 + sc60)
             : (!showTitle && showContrib)
                 ? Math.round((height - gridHeight) / 2)
                 : showTitle
-                    ? Math.round(svgRenderHeight * 0.15) + titleFrameY2 + Math.round(28 * scale)
-                    : Math.round(svgRenderHeight * 0.15) + Math.round(28 * scale);
+                    ? Math.round(svgRenderHeight * 0.15) + titleFrameY2 + sc28
+                    : Math.round(svgRenderHeight * 0.15) + sc28;
 
-        const contribBaseY = showTitle ? Math.round(125 * scale) : Math.round(startY / 2);
-        const contribFrameTop = contribBaseY - Math.round(28 * scale);
-        const contribFrameBot = contribBaseY + Math.round(14 * scale);
+        const contribBaseY = showTitle ? sc125 : Math.round(startY / 2);
+        const contribFrameTop = contribBaseY - sc28;
+        const contribFrameBot = contribBaseY + s(14);
 
         // Stars only needed when background is visible; cache uses full canvas dims
         const stars = showBackground ? this.getStarfield(width, height, theme.textColor) : '';
 
+        // ── Pre-compute position format strings (avoid repeated toFixed in cell loop) ────────
+        const xPosFmt: string[] = new Array(weeksLen);
+        const xDelayFmt: string[] = new Array(weeksLen);
+        const xDelayNum: number[] = new Array(weeksLen);
+        for (let i = 0; i < weeksLen; i++) {
+            xPosFmt[i] = (startX + i * step).toFixed(1);
+            xDelayNum[i] = i * 0.04;
+            xDelayFmt[i] = xDelayNum[i].toFixed(2);
+        }
+        const yPosFmt: string[] = new Array(7);
+        for (let j = 0; j < 7; j++) {
+            yPosFmt[j] = (startY + j * step).toFixed(1);
+        }
+
         // ── Cells ──────────────────────────────────────────────────────────────
         const animateMode = options.animate;
-        // For raster frame export: interpolate keyframe values at a given cycle position
         const ANIM_CYCLE = 8; // seconds — covers all animation durations
-        const lerpAnim = (vals: number[], dur: number, begin: number): number => {
+        const isFrameExport = frameTime !== undefined;
+
+        // Pre-compute per-column glow animation strings — identical for every row in a column
+        const glowAnimPerCol: string[] =
+            (animateMode !== 'wave' && animateMode !== 'pulse')
+                ? Array.from({ length: weeksLen }, (_, x) => {
+                    const dur = (2.0 + (x % 4) * 0.5).toFixed(1);
+                    return `<animate attributeName="opacity" values="0.2;0.7;0.2" dur="${dur}s" begin="${xDelayFmt[x]}s" repeatCount="indefinite"/>`;
+                })
+                : [];
+
+        // Bind static lerp arrays to local vars to avoid prototype lookups in hot loop
+        const LERP_WAVE = GraphRenderer.LERP_WAVE;
+        const LERP_PULSE = GraphRenderer.LERP_PULSE;
+        const LERP_GLOW = GraphRenderer.LERP_GLOW;
+
+        const lerpAnim = (vals: readonly number[], dur: number, begin: number): number => {
             const t = ((frameTime! * ANIM_CYCLE - begin) / dur % 1 + 1) % 1;
             const pos = t * (vals.length - 1);
             const i = Math.floor(pos);
             return vals[i] * (1 - (pos - i)) + vals[Math.min(i + 1, vals.length - 1)] * (pos - i);
         };
 
-        const cells = data.weeks.map((week, x) => {
-            const xPos = (startX + x * step).toFixed(1);
-            const xDelay = (x * 0.04).toFixed(2);
-            return week.map((day, y) => {
-                const color = levelColors[day.level] || levelColors[0];
-                const yPos = (startY + y * step).toFixed(1);
+        // Flat push array — avoids allocating O(weeks × 7) intermediate string arrays
+        const cellParts: string[] = [];
 
-                if (day.level === 0 || animateMode === 'none') {
-                    return `<rect x="${xPos}" y="${yPos}" width="${cellSize}" height="${cellSize}" fill="${color}" rx="2" opacity="${day.level === 0 ? 0.3 : 0.85}"/>`;
+        for (let x = 0; x < weeksLen; x++) {
+            const week = data.weeks[x];
+            const xPos = xPosFmt[x];
+            const glowAnim = glowAnimPerCol[x] ?? '';
+
+            for (let y = 0; y < week.length; y++) {
+                const day = week[y];
+                const level = day.level;
+                const color = levelColors[level] ?? levelColors[0];
+                const yPos = yPosFmt[y];
+                // Shared rect prefix (no closing > so we can append attributes)
+                const pfx = `<rect x="${xPos}" y="${yPos}" width="${cellSize}" height="${cellSize}" fill="${color}" rx="2"`;
+
+                if (level === 0 || animateMode === 'none') {
+                    cellParts.push(`${pfx} opacity="${level === 0 ? 0.3 : 0.85}"/>`);
+                    continue;
                 }
 
                 // ── Static frame snapshot (for raster export) ──────────────────
-                if (frameTime !== undefined) {
+                if (isFrameExport) {
                     let op: number;
                     if (animateMode === 'wave') {
-                        op = lerpAnim([0.1, 0.8, 0.1], 3, x * 0.05 + y * 0.02);
+                        op = lerpAnim(LERP_WAVE, 3, x * 0.05 + y * 0.02);
                     } else if (animateMode === 'pulse') {
                         const seed = (x * 7 + y) * 1337 % 1000;
-                        if (seed % 22 === 0) {
-                            op = lerpAnim([0.1, 1, 0.1], 1.5 + (seed % 10) * 0.1, seed % 20 * 0.1);
-                        } else {
-                            op = 0.85;
-                        }
+                        op = seed % 22 === 0
+                            ? lerpAnim(LERP_PULSE, 1.5 + (seed % 10) * 0.1, seed % 20 * 0.1)
+                            : 0.85;
                     } else {
                         // glow (default)
-                        op = lerpAnim([0.2, 0.7, 0.2], 2.0 + (x % 4) * 0.5, x * 0.04);
+                        op = lerpAnim(LERP_GLOW, 2.0 + (x % 4) * 0.5, xDelayNum[x]);
                     }
-                    return `<rect x="${xPos}" y="${yPos}" width="${cellSize}" height="${cellSize}" fill="${color}" rx="2" opacity="${op.toFixed(2)}"/>`;
+                    cellParts.push(`${pfx} opacity="${op.toFixed(2)}"/>`);
+                    continue;
                 }
 
                 // ── Live SVG animation ─────────────────────────────────────────
-                let animation = '';
-                let isAnimating = true;
-
                 if (animateMode === 'wave') {
                     const d = (x * 0.05 + y * 0.02).toFixed(2);
-                    animation = `<animate attributeName="opacity" values="0.1;0.8;0.1" dur="3s" begin="${d}s" repeatCount="indefinite"/>`;
+                    const anim = `<animate attributeName="opacity" values="0.1;0.8;0.1" dur="3s" begin="${d}s" repeatCount="indefinite"/>`;
+                    cellParts.push(`<g>${pfx} opacity="0.4" filter="url(#glowSmall)">${anim}</rect>${pfx} opacity="0.85"/></g>`);
                 } else if (animateMode === 'pulse') {
                     const seed = (x * 7 + y) * 1337 % 1000;
-                    isAnimating = seed % 22 === 0;
-                    if (isAnimating) {
-                        animation = `<animate attributeName="opacity" values="0.1;1;0.1" dur="${(1.5 + (seed % 10) * 0.1).toFixed(1)}s" begin="${(seed % 20 * 0.1).toFixed(1)}s" repeatCount="indefinite"/>`;
+                    if (seed % 22 !== 0) {
+                        cellParts.push(`${pfx} opacity="0.85"/>`);
+                    } else {
+                        const anim = `<animate attributeName="opacity" values="0.1;1;0.1" dur="${(1.5 + (seed % 10) * 0.1).toFixed(1)}s" begin="${(seed % 20 * 0.1).toFixed(1)}s" repeatCount="indefinite"/>`;
+                        cellParts.push(`<g>${pfx} opacity="0.4" filter="url(#glowSmall)">${anim}</rect>${pfx} opacity="0.85"/></g>`);
                     }
                 } else {
-                    const dur = (2.0 + (x % 4) * 0.5).toFixed(1);
-                    animation = `<animate attributeName="opacity" values="0.2;0.7;0.2" dur="${dur}s" begin="${xDelay}s" repeatCount="indefinite"/>`;
+                    // glow (default) — animation string is pre-computed per column
+                    cellParts.push(`<g>${pfx} opacity="0.4" filter="url(#glowSmall)">${glowAnim}</rect>${pfx} opacity="0.85"/></g>`);
                 }
+            }
+        }
 
-                if (!isAnimating) {
-                    return `<rect x="${xPos}" y="${yPos}" width="${cellSize}" height="${cellSize}" fill="${color}" rx="2" opacity="0.85"/>`;
-                }
-
-                return `<g><rect x="${xPos}" y="${yPos}" width="${cellSize}" height="${cellSize}" fill="${color}" rx="2" opacity="0.4" filter="url(#glowSmall)">${animation}</rect><rect x="${xPos}" y="${yPos}" width="${cellSize}" height="${cellSize}" fill="${color}" rx="2" opacity="0.85"/></g>`;
-            }).join('');
-        }).join('');
+        const cells = cellParts.join('');
 
         // ── Month labels ───────────────────────────────────────────────────────
-        const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const MONTHS = GraphRenderer.MONTHS;
         const monthY = (startY - 10).toFixed(1);
         const monthParts: string[] = [];
         let currentMonth = -1;
-        for (let i = 0; i < data.weeks.length; i++) {
+        for (let i = 0; i < weeksLen; i++) {
             const day0 = data.weeks[i][0];
             if (!day0) continue;
-            const month = new Date(day0.date).getMonth();
+            // Fast parse: "YYYY-MM-DD" slice avoids constructing a Date object
+            const month = parseInt(day0.date.slice(5, 7), 10) - 1;
             if (month !== currentMonth) {
                 currentMonth = month;
-                monthParts.push(`<text x="${(startX + i * step).toFixed(1)}" y="${monthY}" fill="${theme.textColor}" font-size="${Math.round(10 * scale)}" opacity="0.5" font-family="${fontFamily}">${MONTHS[month]}</text>`);
+                monthParts.push(`<text x="${xPosFmt[i]}" y="${monthY}" fill="${theme.textColor}" font-size="${sc10}" opacity="0.5" font-family="${fontFamily}">${MONTHS[month]}</text>`);
             }
         }
 
@@ -220,54 +294,53 @@ export class GraphRenderer {
             return `<path d="M ${xa1} ${sy1} L ${sx1} ${sy1} L ${sx1} ${ya1}"/><path d="M ${xa2} ${sy1} L ${sx2} ${sy1} L ${sx2} ${ya1}"/><path d="M ${xa1} ${sy2} L ${sx1} ${sy2} L ${sx1} ${ya2}"/><path d="M ${xa2} ${sy2} L ${sx2} ${sy2} L ${sx2} ${ya2}"/>`;
         };
 
+        const cx = svgWidth / 2;
+
         const titleSection = (() => {
             if (!showTitle) return '';
-            const cx = svgWidth / 2;
             const titleText = data.username + "'s Activity " + data.year;
-            const tfw = (titleText.length * Math.round(24 * scale)) / 2;
-            return [
-                `<text x="50%" y="${titleY}" text-anchor="middle" fill="${theme.titleColor}" font-size="${titleFontSize}" font-family="${fontFamily}" font-weight="700" style="filter:drop-shadow(0 0 12px ${theme.titleColor}66)">${titleText}</text>`,
-                `<g fill="none" stroke="${theme.titleColor}" stroke-width="1.5" opacity="0.25">${buildCornerPaths(cx - tfw - Math.round(12 * scale), titleFrameY1, cx + tfw + Math.round(12 * scale), titleFrameY2, Math.round(16 * scale))}</g>`,
-            ].join('\n            ');
+            const tfw = (titleText.length * sc24) / 2;
+            return `<text x="50%" y="${titleY}" text-anchor="middle" fill="${theme.titleColor}" font-size="${titleFontSize}" font-family="${fontFamily}" font-weight="700" style="filter:drop-shadow(0 0 12px ${theme.titleColor}66)">${titleText}</text>\n            <g fill="none" stroke="${theme.titleColor}" stroke-width="1.5" opacity="0.25">${buildCornerPaths(cx - tfw - sc12, titleFrameY1, cx + tfw + sc12, titleFrameY2, sc16)}</g>`;
         })();
 
         const contribSection = (() => {
             if (!showContrib) return '';
-            const cx = svgWidth / 2;
             const contribText = data.totalContributions.toLocaleString() + ' total contributions';
-            const tfw = (contribText.length * Math.round(11 * scale)) / 2;
-            return [
-                `<text x="50%" y="${contribBaseY}" text-anchor="middle" fill="${theme.textColor}" font-size="${contribFontSize}" opacity="0.8" font-family="${fontFamily}" filter="url(#textGlow)">${contribText}</text>`,
-                `<g fill="none" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.35">${buildCornerPaths(cx - tfw - Math.round(9 * scale), contribFrameTop, cx + tfw + Math.round(9 * scale), contribFrameBot, Math.round(12 * scale))}</g>`,
-            ].join('\n            ');
+            const tfw = (contribText.length * sc11) / 2;
+            return `<text x="50%" y="${contribBaseY}" text-anchor="middle" fill="${theme.textColor}" font-size="${contribFontSize}" opacity="0.8" font-family="${fontFamily}" filter="url(#textGlow)">${contribText}</text>\n            <g fill="none" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.35">${buildCornerPaths(cx - tfw - sc9, contribFrameTop, cx + tfw + sc9, contribFrameBot, sc12)}</g>`;
         })();
 
-        const gridCorners = `<g fill="none" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.35">${buildCornerPaths(startX - Math.round(24 * scale), startY - Math.round(28 * scale), startX + gridWidth + Math.round(24 * scale), startY + gridHeight + Math.round(24 * scale), Math.round(12 * scale))}</g>`;
+        const gridCorners = `<g fill="none" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.35">${buildCornerPaths(startX - sc24, startY - sc28, startX + gridWidth + sc24, startY + gridHeight + sc24, sc12)}</g>`;
 
         const gridLines = showBackground ? (() => {
-            const vLines = Array.from({ length: 24 }, (_, i) => {
-                const x = ((i + 1) * svgWidth / 24) | 0;
-                return `<line x1="${x}" y1="0" x2="${x}" y2="${svgRenderHeight}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
-            }).join('');
-            const hLines = Array.from({ length: 12 }, (_, i) => {
-                const y = ((i + 1) * svgRenderHeight / 12) | 0;
-                return `<line x1="0" y1="${y}" x2="${svgWidth}" y2="${y}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
-            }).join('');
-            return `<g opacity="0.12">${vLines}${hLines}</g>`;
+            // Plain for-loops avoid Array.from allocation overhead
+            const lineParts: string[] = [];
+            const ic = theme.iconColor;
+            const vStep = svgWidth / 24;
+            const hStep = svgRenderHeight / 12;
+            for (let i = 1; i <= 24; i++) {
+                const lx = (i * vStep) | 0;
+                lineParts.push(`<line x1="${lx}" y1="0" x2="${lx}" y2="${svgRenderHeight}" stroke="${ic}" stroke-width="0.5"/>`);
+            }
+            for (let i = 1; i <= 12; i++) {
+                const ly = (i * hStep) | 0;
+                lineParts.push(`<line x1="0" y1="${ly}" x2="${svgWidth}" y2="${ly}" stroke="${ic}" stroke-width="0.5"/>`);
+            }
+            return `<g opacity="0.12">${lineParts.join('')}</g>`;
         })() : '';
 
         const legend = (() => {
-            const lgCell = Math.round(12 * scale);
-            const lgStep = Math.round(15 * scale);
-            const lgFont = Math.round(10 * scale);
-            const lgTextY = Math.round(10 * scale);
-            const lx = (startX + gridWidth - Math.round(100 * scale)).toFixed(1);
-            const ly = (startY + gridHeight + Math.round(25 * scale)).toFixed(1);
+            const lgCell = sc12;
+            const lgStep = sc15;
+            const lgFont = sc10;
+            const lgTextY = sc10;
+            const lx = (startX + gridWidth - sc100).toFixed(1);
+            const ly = (startY + gridHeight + sc25).toFixed(1);
             const rects = levelColors.map((c, i) => `<rect x="${i * lgStep}" y="0" width="${lgCell}" height="${lgCell}" fill="${c}" rx="2" opacity="${i === 0 ? 0.3 : 0.9}"/>`).join('');
-            return `<g transform="translate(${lx},${ly})"><text x="${-Math.round(35 * scale)}" y="${lgTextY}" fill="${theme.textColor}" font-size="${lgFont}" opacity="0.5" font-family="${fontFamily}">Less</text>${rects}<text x="${levelColors.length * lgStep + Math.round(5 * scale)}" y="${lgTextY}" fill="${theme.textColor}" font-size="${lgFont}" opacity="0.5" font-family="${fontFamily}">More</text></g>`;
+            return `<g transform="translate(${lx},${ly})"><text x="${-sc35}" y="${lgTextY}" fill="${theme.textColor}" font-size="${lgFont}" opacity="0.5" font-family="${fontFamily}">Less</text>${rects}<text x="${levelColors.length * lgStep + sc5}" y="${lgTextY}" fill="${theme.textColor}" font-size="${lgFont}" opacity="0.5" font-family="${fontFamily}">More</text></g>`;
         })();
 
-        const divClipX = (svgWidth / 2 - (width - 160) / 4).toFixed(1);
+        const divClipX = (cx - (width - 160) / 4).toFixed(1);
         const divClipW = ((width - 160) / 2).toFixed(1);
 
         return `<svg width="${svgWidth}" height="${svgRenderHeight}" viewBox="0 0 ${svgWidth} ${svgRenderHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">
