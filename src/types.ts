@@ -36,6 +36,13 @@ export interface Theme {
     fontUrl?: string;
 }
 
+export interface BadgeTheme {
+    labelColor: string;
+    labelBackground: string;
+    valueColor: string;
+    valueBackground: string;
+}
+
 export interface ThemeOverrides {
     theme?: string;
     bgColor?: string;
