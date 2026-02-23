@@ -3,3 +3,13 @@ dist/
 .env
 *.log
 .DS_Store
+
+# Database
+data/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
