@@ -1,12 +1,14 @@
-import { Theme } from '../types.js';
+import { Theme, BadgeTheme } from '../types.js';
 import { baseThemes } from './themes/base.js';
 import { graphThemes } from './themes/graph.js';
+import { badgeThemes } from './themes/badge.js';
 
 const defaultFontName = 'Orbitron';
 const defaultFontFamily = `'${defaultFontName}', 'Ubuntu', 'sans-serif'`;
 const defaultFontUrl = '/fonts/orbitron.woff2';
 
 export const themes: { [key: string]: Theme } = { ...baseThemes, ...graphThemes };
+export { badgeThemes };
 
 /**
  * Normalises a theme name for fuzzy lookup:
@@ -51,4 +53,8 @@ export function getTheme(themeName: string = 'default', customColors?: {
         ...(customColors?.textColor && { textColor: customColors.textColor }),
         ...(customColors?.titleColor && { titleColor: customColors.titleColor, iconColor: customColors.titleColor }),
     };
+}
+
+export function getBadgeTheme(themeName: string = 'default'): BadgeTheme {
+    return badgeThemes[themeName] || badgeThemes.default;
 }

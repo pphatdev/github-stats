@@ -5,6 +5,7 @@ import { GitHubClient } from './utils/github-client.js';
 import { StatsController } from './controllers/stats.js';
 import { LanguageController } from './controllers/languages.js';
 import { GraphController } from './controllers/graph.js';
+import { VisitorController } from './controllers/visitor.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -32,7 +33,8 @@ type RouteInfo = {
 const routeDocs: Record<string, Omit<RouteInfo, 'method' | 'path'>> = {
     'GET /stats': StatsController.routeDocs,
     'GET /languages': LanguageController.routeDocs,
-    'GET /graph': GraphController.routeDocs
+    'GET /graph': GraphController.routeDocs,
+    'GET /badge': VisitorController.routeDocs
 };
 
 const getRoutes = (): RouteInfo[] => {
@@ -103,6 +105,7 @@ GraphController.initialize(githubClient, cache, CACHE_DURATION);
 app.get('/stats', StatsController.getSvg);
 app.get('/languages', LanguageController.getSvg);
 app.get('/graph', GraphController.getSvg);
+app.get('/badge', VisitorController.getBadge);
 
 app.listen(PORT, () => {
     console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}`);
