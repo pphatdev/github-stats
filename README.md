@@ -5,20 +5,25 @@ Generate dynamic GitHub stats and language cards for README embeds.
 ## Endpoints
 
 ### GET /
+
 Returns JSON describing the live route list and static asset roots.
 
 Example:
+
 ```
 GET https://stats.pphat.top/
 ```
 
 ### GET /stats
+
 Returns an SVG (default) or WebP stats card for a user.
 
 Required query params:
+
 - username
 
 Optional query params:
+
 - theme
 - hide_title
 - hide_border
@@ -36,17 +41,21 @@ Optional query params:
 - format (svg | webp)
 
 Example:
+
 ```
 GET https://stats.pphat.top/stats?username=pphatdev&theme=dark
 ```
 
 ### GET /languages
+
 Returns an SVG languages card or pie chart for a user.
 
 Required query params:
+
 - username
 
 Optional query params:
+
 - theme
 - show_info
 - top
@@ -59,17 +68,21 @@ Optional query params:
 - format
 
 Example:
+
 ```
 GET https://stats.pphat.top/languages?username=pphatdev&theme=default
 ```
 
 ### GET /graph
+
 Returns an SVG activity graph for a user for a specific year or the last 365 days.
 
 Required query params:
+
 - `username`
 
 Optional query params:
+
 - `theme` — see [Graph Themes](#graph-themes) below
 - `year` — 4-digit year (default: last 365 days)
 - `animate` — cell animation mode: `glow` (default) | `wave` | `pulse` | `none`
@@ -84,6 +97,7 @@ Optional query params:
 - `titleColor`
 
 Example:
+
 ```
 GET https://stats.pphat.top/graph?username=pphatdev&year=2024
 GET https://stats.pphat.top/graph?username=pphatdev&theme=aurora
@@ -94,31 +108,70 @@ GET https://stats.pphat.top/graph?username=pphatdev&theme=matrix&animate=pulse&a
 GET https://stats.pphat.top/graph?username=pphatdev&as=png
 ```
 
+### GET /badge
+
+Returns a dynamic visitor badge SVG that increments on every page load.
+
+Required query params:
+
+- `username`
+
+Optional query params:
+
+- `theme`
+- `labelColor`
+- `labelBackground`
+- `valueColor`
+- `valueBackground`
+
+Example:
+
+```
+GET https://stats.pphat.top/badge?username=pphatdev&theme=tokyo
+```
+
 ## Usage in README
 
 Stats card:
+
 ```markdown
 ![GitHub Stats](https://stats.pphat.top/stats?username=YOUR_USERNAME)
 ```
 
 Languages card:
+
 ```markdown
 ![Top Languages](https://stats.pphat.top/languages?username=YOUR_USERNAME)
 ```
 
 Languages pie chart:
+
 ```markdown
 ![Top Languages](https://stats.pphat.top/languages?username=YOUR_USERNAME&type=pie)
 ```
 
 Activity graph:
+
 ```markdown
 ![Activity Graph](https://stats.pphat.top/graph?username=YOUR_USERNAME)
 ```
 
 Activity graph with theme and animation:
+
 ```markdown
 ![Activity Graph](https://stats.pphat.top/graph?username=YOUR_USERNAME&theme=aurora&animate=pulse)
+```
+
+Visitor badge:
+
+```markdown
+![Visitor Badge](https://stats.pphat.top/badge?username=YOUR_USERNAME)
+```
+
+Visitor badge with theme and custom colors:
+
+```markdown
+![Visitor Badge](https://stats.pphat.top/badge?username=YOUR_USERNAME&theme=tokyo&labelColor=ff0000)
 ```
 
 ## Example Themes
@@ -161,34 +214,37 @@ All available themes: `aurora` · `matrix` · `inferno` · `ocean` · `neon` · 
 
 ### Animate Modes
 
-| Mode | Description |
-|---|---|
-| `glow` | Default — active cells pulse with a soft glow |
-| `wave` | Cells ripple in a wave pattern across columns |
-| `pulse` | ~16 random cells flash independently |
-| `none` | No animation — static render |
+| Mode    | Description                                   |
+| ------- | --------------------------------------------- |
+| `glow`  | Default — active cells pulse with a soft glow |
+| `wave`  | Cells ripple in a wave pattern across columns |
+| `pulse` | ~16 random cells flash independently          |
+| `none`  | No animation — static render                  |
 
 ### Size Presets
 
-| Value | Canvas | Cell size |
-|---|---|---|
-| `default` | 1200 × 600 | 14 px |
-| `small` | 800 × 400 | 9 px |
-| `medium` | 1000 × 500 | 12 px |
-| `large` | 1400 × 700 | 16 px |
+| Value     | Canvas     | Cell size |
+| --------- | ---------- | --------- |
+| `default` | 1200 × 600 | 14 px     |
+| `small`   | 800 × 400  | 9 px      |
+| `medium`  | 1000 × 500 | 12 px     |
+| `large`   | 1400 × 700 | 16 px     |
 
 ## Development
 
 ### Prerequisites
+
 - Node.js 16+
 - GitHub Personal Access Token (recommended)
 
 ### Setup
+
 ```bash
 npm install
 ```
 
 Create a .env file:
+
 ```env
 GITHUB_TOKEN=your_github_personal_access_token
 PORT=3000
@@ -196,19 +252,23 @@ APP_ENV=development
 ```
 
 Build and run:
+
 ```bash
 npm run build
 npm start
 ```
 
 Development mode:
+
 ```bash
 npm run dev
 ```
 
 ## Notes
+
 - The API uses GitHub REST and caches responses for 20 minutes.
 - Without a token, GitHub rate limits are low; set GITHUB_TOKEN for higher limits.
 
 ## License
+
 MIT. See LICENSE.
