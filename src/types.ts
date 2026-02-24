@@ -43,6 +43,37 @@ export interface BadgeTheme {
     valueBackground: string;
 }
 
+export type BadgeType =
+    | 'visitors'
+    | 'repositories'
+    | 'organization'
+    | 'languages'
+    | 'followers'
+    | 'total-stars'
+    | 'total-contributors'
+    | 'total-commits'
+    | 'total-code-reviews'
+    | 'total-issues'
+    | 'total-pull-requests'
+    | 'total-joined-years';
+
+export interface BadgeOptions {
+    /** Badge metric type to display */
+    type: BadgeType;
+    /** Theme name */
+    theme?: string;
+    /** Override label background color */
+    labelBackground?: string;
+    /** Override label text color */
+    labelColor?: string;
+    /** Override value background color */
+    valueBackground?: string;
+    /** Override value text color */
+    valueColor?: string;
+    /** Custom label text (overrides the default derived from type) */
+    customLabel?: string;
+}
+
 export interface ThemeOverrides {
     theme?: string;
     bgColor?: string;

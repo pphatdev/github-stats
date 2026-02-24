@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/rest';
-import { GitHubStats, LanguageCount } from '../types.js';
+import { GitHubStats, LanguageCount, BadgeType } from '../types.js';
 
 export class GitHubClient {
     private octokit: Octokit;
@@ -275,5 +275,110 @@ export class GitHubClient {
         else if (score > 100) level = 'B';
 
         return { level, score };
+    }
+
+    /**
+     * Fetch the numeric value for a given badge type.
+     * The `visitors` type is intentionally excluded – it is managed by the DB in the controller.
+     */
+    async fetchBadgeValue(username: string, type: Exclude<BadgeType, 'visitors'>): Promise<number> {
+        const key = `badge-${type}-${username}`;
+
+        switch (type) {
+            // ── profile fields (single user request) ──────────────────────
+            case 'repositories':
+                return this.cachedRequest(key, async () => {
+                    const { data } = await this.octokit.users.getByUsername({ username });
+                    return data.public_repos;
+                });
+
+            case 'followers':
+                return this.cachedRequest(key, async () => {
+                    const { data } = await this.octokit.users.getByUsername({ username });
+                    return data.followers;
+                });
+
+            case 'total-joined-years':
+                return this.cachedRequest(key, async () => {
+                    const { data } = await this.octokit.users.getByUsername({ username });
+                    const joinedYear = new Date(data.created_at).getFullYear();
+                    return new Date().getFullYear() - joinedYear;
+                });
+
+            // ── organization membership ────────────────────────────────────
+            case 'organization':
+                return this.cachedRequest(key, async () => {
+                    const { data } = await this.octokit.orgs.listForUser({ username, per_page: 100 });
+                    return data.length;
+                });
+
+            // ── derived from repo list ─────────────────────────────────────
+            case 'languages': {
+                const langs = await this.fetchUserLanguages(username);
+                return langs.length;
+            }
+
+            case 'total-stars':
+                return this.cachedRequest(key, async () => {
+                    const { data: repos } = await this.octokit.repos.listForUser({
+                        username, per_page: 100, type: 'owner',
+                    });
+                    return repos.reduce((acc, r) => acc + (r.stargazers_count ?? 0), 0);
+                });
+
+            case 'total-contributors':
+                return this.cachedRequest(key, async () => {
+                    // Fetch top-10 most-starred repos to keep API calls manageable
+                    const { data: repos } = await this.octokit.repos.listForUser({
+                        username, per_page: 10, type: 'owner', sort: 'pushed', direction: 'desc',
+                    });
+                    const unique = new Set<string>();
+                    for (const repo of repos) {
+                        try {
+                            const { data: contribs } = await this.octokit.repos.listContributors({
+                                owner: username, repo: repo.name, per_page: 100,
+                            });
+                            contribs.forEach(c => c.login && unique.add(c.login));
+                        } catch { /* non-critical – skip unavailable repos */ }
+                    }
+                    return unique.size;
+                });
+
+            // ── search API ────────────────────────────────────────────────
+            case 'total-commits':
+                return this.cachedRequest(key, async () => {
+                    const { data } = await this.octokit.search.commits({
+                        q: `author:${username}`, per_page: 1,
+                    });
+                    return data.total_count;
+                });
+
+            case 'total-code-reviews':
+                return this.cachedRequest(key, async () => {
+                    const { data } = await this.octokit.search.issuesAndPullRequests({
+                        q: `reviewed-by:${username} type:pr`, per_page: 1,
+                    });
+                    return data.total_count;
+                });
+
+            case 'total-issues':
+                return this.cachedRequest(key, async () => {
+                    const { data } = await this.octokit.search.issuesAndPullRequests({
+                        q: `author:${username} type:issue`, per_page: 1,
+                    });
+                    return data.total_count;
+                });
+
+            case 'total-pull-requests':
+                return this.cachedRequest(key, async () => {
+                    const { data } = await this.octokit.search.issuesAndPullRequests({
+                        q: `author:${username} type:pr`, per_page: 1,
+                    });
+                    return data.total_count;
+                });
+
+            default:
+                throw new Error(`Unknown badge type: ${type}`);
+        }
     }
 }
