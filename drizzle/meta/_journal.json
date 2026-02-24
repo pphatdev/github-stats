@@ -8,6 +8,13 @@
       "when": 1771919072157,
       "tag": "0000_supreme_bulldozer",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1740369600000,
+      "tag": "0001_visitor_logs",
+      "breakpoints": true
     }
   ]
 }
