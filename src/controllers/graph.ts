@@ -2,11 +2,16 @@ import { Request, Response } from 'express';
 import { GitHubClient } from '../utils/github-client.js';
 import { GraphRenderer } from '../components/graph-renderer.js';
 import sharp from 'sharp';
+import { spawn } from 'child_process';
+import { mkdir, writeFile, readFile, stat } from 'fs/promises';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
-import { PNG } from 'pngjs';
 const _require = createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const GIFEncoder = _require('gifencoder') as any;
+const ffmpegPath = _require('ffmpeg-static') as string;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const publicDir = join(__dirname, '..', '..', 'public');
 
 export class GraphController {
     private static githubClient: GitHubClient;
@@ -21,6 +26,7 @@ export class GraphController {
             'animate',
             'size',
             'as',
+            'format',
             'show_title',
             'show_total_contribution',
             'show_background',
@@ -41,7 +47,7 @@ export class GraphController {
 
     static async getSvg(req: Request, res: Response) {
         try {
-            const { username, theme = 'default', year, animate, size, as: outputFormat, show_title, show_total_contribution, show_background, bgColor, borderColor, textColor, titleColor } = req.query;
+            const { username, theme = 'default', year, animate, size, as: outputFormat, format: formatParam, show_title, show_total_contribution, show_background, bgColor, borderColor, textColor, titleColor } = req.query;
 
             if (!username || typeof username !== 'string') {
                 return res.status(400).send('Username is required');
@@ -69,7 +75,7 @@ export class GraphController {
                 displayYear = `${oneYearAgo.getFullYear()}-${now.getFullYear()}`;
             }
 
-            const format = typeof outputFormat === 'string' ? outputFormat.toLowerCase() : 'svg';
+            const format = typeof outputFormat === 'string' ? outputFormat.toLowerCase() : typeof formatParam === 'string' ? formatParam.toLowerCase() : 'svg';
             const cacheKey = `graph-${username}-${theme}-${cacheKeyExtra}-${animate || ''}-${size || ''}-${show_title ?? ''}-${show_total_contribution ?? ''}-${show_background ?? ''}-${bgColor || ''}-${borderColor || ''}-${textColor || ''}-${titleColor || ''}`;
 
             const contributions = await GraphController.githubClient.fetchUserContributions(username, from, to, cacheKeyExtra);
@@ -96,7 +102,7 @@ export class GraphController {
                 return svg;
             };
 
-            if (format === 'webp' || format === 'png' || format === 'gif') {
+            if (format === 'webp' || format === 'png') {
                 const rasterCacheKey = `${cacheKey}|${format}`;
                 const cachedRaster = (GraphController as any)._rasterCache?.get(rasterCacheKey);
                 if (cachedRaster && Date.now() - cachedRaster.timestamp < GraphController.CACHE_DURATION) {
@@ -112,50 +118,75 @@ export class GraphController {
                     const svgData = await getSvg();
                     buffer = await sharp(Buffer.from(svgData)).png().toBuffer();
                 } else {
-                    // Animated GIF or WebP — generate frames via per-frame opacity snapshots
+                    // Animated WebP — generate frames and encode with FFmpeg
                     const FRAME_COUNT = 20;
                     const FRAME_DELAY_MS = 80; // ~12 fps
 
-                    // Rasterize all frames in parallel
-                    const pngFrames = await Promise.all(
-                        Array.from({ length: FRAME_COUNT }, (_, i) => {
-                            const frameSvg = GraphRenderer.generateGraphCard(graphData, cardOptions, i / FRAME_COUNT);
-                            return sharp(Buffer.from(frameSvg)).png().toBuffer();
-                        })
-                    );
+                    if (!ffmpegPath) throw new Error('ffmpeg binary not found');
 
-                    // Get canvas dimensions from first frame
-                    const { width: fw, height: fh } = await sharp(pngFrames[0]).metadata();
+                    const tmpDir = join(publicDir, 'user', username);
+                    await mkdir(tmpDir, { recursive: true });
 
-                    // Assemble animated GIF using createReadStream (stream mode is required)
-                    const encoder = new GIFEncoder(fw!, fh!);
-                    const gifChunks: Buffer[] = [];
-                    const gifBuffer = await new Promise<Buffer>((resolve, reject) => {
-                        const readStream = encoder.createReadStream();
-                        readStream.on('data', (chunk: Buffer) => gifChunks.push(Buffer.from(chunk)));
-                        readStream.on('end', () => resolve(Buffer.concat(gifChunks)));
-                        readStream.on('error', reject);
+                    const outFile = join(tmpDir, 'output.webp');
 
-                        encoder.start();
-                        encoder.setRepeat(0);        // loop forever
-                        encoder.setDelay(FRAME_DELAY_MS);
-                        encoder.setQuality(10);
-                        for (const pngBuf of pngFrames) {
-                            const decoded = PNG.sync.read(pngBuf);
-                            encoder.addFrame(decoded.data as unknown as CanvasRenderingContext2D);
-                        }
-                        encoder.finish();
-                    });
+                    // Re-use the previously rendered file if it's still within cache window
+                    const reuse = await stat(outFile)
+                        .then(s => Date.now() - s.mtimeMs < GraphController.CACHE_DURATION)
+                        .catch(() => false);
 
-                    buffer = format === 'webp'
-                        // sharp can convert animated GIF → animated WebP natively
-                        ? await sharp(gifBuffer, { animated: true }).webp({ loop: 0 }).toBuffer()
-                        : gifBuffer;
+                    if (!reuse) {
+                        // Rasterize all frames in parallel
+                        const pngFrames = await Promise.all(
+                            Array.from({ length: FRAME_COUNT }, (_, i) => {
+                                const frameSvg = GraphRenderer.generateGraphCard(graphData, cardOptions, i / FRAME_COUNT);
+                                return sharp(Buffer.from(frameSvg)).png().toBuffer();
+                            })
+                        );
+
+                        // Write frames with zero-padded names (no %-pattern issues on Windows)
+                        await Promise.all(
+                            pngFrames.map((buf, i) =>
+                                writeFile(join(tmpDir, `frame${String(i).padStart(3, '0')}.png`), buf)
+                            )
+                        );
+
+                        // Build an explicit concat file to avoid shell-expanding % on Windows
+                        const concatLines = pngFrames
+                            .map((_, i) => `file '${join(tmpDir, `frame${String(i).padStart(3, '0')}.png`).replace(/\\/g, '/')}'\nduration ${FRAME_DELAY_MS / 1000}`)
+                            .join('\n');
+                        const concatFile = join(tmpDir, 'concat.txt');
+                        await writeFile(concatFile, concatLines + '\n');
+
+                        await new Promise<void>((resolve, reject) => {
+                            const stderr: Buffer[] = [];
+                            const proc = spawn(ffmpegPath, [
+                                '-y',
+                                '-f', 'concat',
+                                '-safe', '0',
+                                '-i', concatFile.replace(/\\/g, '/'),
+                                '-c:v', 'libwebp_anim',
+                                '-lossless', '0',
+                                '-q:v', '75',
+                                '-compression_level', '4',
+                                '-loop', '0',
+                                '-an',
+                                outFile.replace(/\\/g, '/'),
+                            ]);
+                            proc.stderr?.on('data', (chunk: Buffer) => stderr.push(chunk));
+                            proc.on('close', (code: number) =>
+                                code === 0
+                                    ? resolve()
+                                    : reject(new Error(`ffmpeg exited ${code}: ${Buffer.concat(stderr).toString().slice(-400)}`))
+                            );
+                        });
+                    }
+
+                    buffer = await readFile(outFile);
                 }
 
                 if (!(GraphController as any)._rasterCache) (GraphController as any)._rasterCache = new Map();
                 (GraphController as any)._rasterCache.set(rasterCacheKey, { data: buffer, timestamp: Date.now() });
-                res.setHeader('Content-Type', `image/${format === 'gif' ? 'gif' : format === 'webp' ? 'webp' : 'png'}`);
+                res.setHeader('Content-Type', `image/${format === 'webp' ? 'webp' : 'png'}`);
                 res.setHeader('Cache-Control', 'public, max-age=600');
                 return res.send(buffer);
             }

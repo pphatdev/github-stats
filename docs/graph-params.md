@@ -47,7 +47,7 @@
 
 | Param | Type | Default | Description |
 |---|---|---|---|
-| `as` | `svg` \| `webp` \| `png` \| `gif` | `svg` | Output format. Raster formats are converted server-side via sharp. |
+| `as` | `svg` \| `webp` \| `png` | `svg` | Output format. Raster formats are converted server-side via sharp / FFmpeg. |
 
 ---
 
@@ -56,8 +56,7 @@
 | Value | MIME type | Animated | Notes |
 |---|---|---|---|
 | `svg` | `image/svg+xml` | ✅ native | Default — inline `<animate>` elements, all filters preserved |
-| `gif` | `image/gif` | ✅ 20 frames | Per-frame opacity snapshots assembled with gifencoder |
-| `webp` | `image/webp` | ✅ 20 frames | GIF frames converted to animated WebP via sharp |
+| `webp` | `image/webp` | ✅ 20 frames | Per-frame PNG snapshots encoded into animated WebP via FFmpeg |
 | `png` | `image/png` | ❌ static | Single raster snapshot, lossless |
 
 ---
