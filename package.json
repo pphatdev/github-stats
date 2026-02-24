@@ -12,7 +12,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio --host 127.0.0.1"
+    "db:studio": "drizzle-kit studio --host 127.0.0.1",
+    "studio": "pm2 start npx --name drizzle-studio -- drizzle-kit studio --host 127.0.0.1"
   },
   "keywords": [
     "github",
