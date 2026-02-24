@@ -5,7 +5,7 @@ import { GitHubClient } from './utils/github-client.js';
 import { StatsController } from './controllers/stats.js';
 import { LanguageController } from './controllers/languages.js';
 import { GraphController } from './controllers/graph.js';
-import { VisitorController } from './controllers/visitor.js';
+import { BadgeController } from './controllers/badge.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -31,10 +31,21 @@ type RouteInfo = {
 };
 
 const routeDocs: Record<string, Omit<RouteInfo, 'method' | 'path'>> = {
-    'GET /stats': StatsController.routeDocs,
-    'GET /languages': LanguageController.routeDocs,
-    'GET /graph': GraphController.routeDocs,
-    'GET /badge': VisitorController.routeDocs
+    'GET /stats':                    StatsController.routeDocs,
+    'GET /languages':                LanguageController.routeDocs,
+    'GET /graph':                    GraphController.routeDocs,
+    'GET /badge/visitors':           BadgeController.routeDocs.visitors,
+    'GET /badge/repositories':       BadgeController.routeDocs.repositories,
+    'GET /badge/organization':       BadgeController.routeDocs.organization,
+    'GET /badge/languages':          BadgeController.routeDocs.languages,
+    'GET /badge/followers':          BadgeController.routeDocs.followers,
+    'GET /badge/total-stars':        BadgeController.routeDocs['total-stars'],
+    'GET /badge/total-contributors': BadgeController.routeDocs['total-contributors'],
+    'GET /badge/total-commits':      BadgeController.routeDocs['total-commits'],
+    'GET /badge/total-code-reviews': BadgeController.routeDocs['total-code-reviews'],
+    'GET /badge/total-issues':       BadgeController.routeDocs['total-issues'],
+    'GET /badge/total-pull-requests':BadgeController.routeDocs['total-pull-requests'],
+    'GET /badge/total-joined-years': BadgeController.routeDocs['total-joined-years'],
 };
 
 const getRoutes = (): RouteInfo[] => {
@@ -100,12 +111,26 @@ const CACHE_DURATION = 20 * 60 * 1000; // 20 minutes
 StatsController.initialize(githubClient, cache, CACHE_DURATION);
 LanguageController.initialize(githubClient, cache, CACHE_DURATION);
 GraphController.initialize(githubClient, cache, CACHE_DURATION);
+BadgeController.initialize(githubClient, cache, CACHE_DURATION);
 
 // API Request
-app.get('/stats', StatsController.getSvg);
-app.get('/languages', LanguageController.getSvg);
-app.get('/graph', GraphController.getSvg);
-app.get('/badge', VisitorController.getBadge);
+app.get('/stats',    StatsController.getSvg);
+app.get('/languages',LanguageController.getSvg);
+app.get('/graph',    GraphController.getSvg);
+
+// Badge routes — one per type
+app.get('/badge/visitors',             BadgeController.getVisitors);
+app.get('/badge/repositories',         BadgeController.getRepositories);
+app.get('/badge/organization',         BadgeController.getOrganization);
+app.get('/badge/languages',            BadgeController.getLanguages);
+app.get('/badge/followers',            BadgeController.getFollowers);
+app.get('/badge/total-stars',          BadgeController.getTotalStars);
+app.get('/badge/total-contributors',   BadgeController.getTotalContributors);
+app.get('/badge/total-commits',        BadgeController.getTotalCommits);
+app.get('/badge/total-code-reviews',   BadgeController.getTotalCodeReviews);
+app.get('/badge/total-issues',         BadgeController.getTotalIssues);
+app.get('/badge/total-pull-requests',  BadgeController.getTotalPullRequests);
+app.get('/badge/total-joined-years',   BadgeController.getTotalJoinedYears);
 
 app.listen(PORT, () => {
     console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}`);

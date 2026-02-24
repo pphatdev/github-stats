@@ -7,6 +7,9 @@ dist/
 # Database
 data/
 
+# FFmpeg working directory
+public/user/
+
 # IDE
 .vscode/
 .idea/

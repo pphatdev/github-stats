@@ -187,12 +187,12 @@ export class GraphRenderer {
         const ANIM_CYCLE = 8; // seconds — covers all animation durations
         const isFrameExport = frameTime !== undefined;
 
-        // Pre-compute per-column glow animation strings — identical for every row in a column
+        // Pre-compute per-column glow CSS animation strings — identical for every row in a column
         const glowAnimPerCol: string[] =
             (animateMode !== 'wave' && animateMode !== 'pulse')
                 ? Array.from({ length: weeksLen }, (_, x) => {
                     const dur = (2.0 + (x % 4) * 0.5).toFixed(1);
-                    return `<animate attributeName="opacity" values="0.2;0.7;0.2" dur="${dur}s" begin="${xDelayFmt[x]}s" repeatCount="indefinite"/>`;
+                    return `style="animation:graph-glow ${dur}s ${xDelayFmt[x]}s infinite"`;
                 })
                 : [];
 
@@ -250,19 +250,17 @@ export class GraphRenderer {
                 // ── Live SVG animation ─────────────────────────────────────────
                 if (animateMode === 'wave') {
                     const d = (x * 0.05 + y * 0.02).toFixed(2);
-                    const anim = `<animate attributeName="opacity" values="0.1;0.8;0.1" dur="3s" begin="${d}s" repeatCount="indefinite"/>`;
-                    cellParts.push(`<g>${pfx} opacity="0.4" filter="url(#glowSmall)">${anim}</rect>${pfx} opacity="0.85"/></g>`);
+                    cellParts.push(`<g>${pfx} opacity="0.4" filter="url(#glowSmall)" style="animation:graph-wave 3s ${d}s infinite"/>${pfx} opacity="0.85"/></g>`);
                 } else if (animateMode === 'pulse') {
                     const seed = (x * 7 + y) * 1337 % 1000;
                     if (seed % 22 !== 0) {
                         cellParts.push(`${pfx} opacity="0.85"/>`);
                     } else {
-                        const anim = `<animate attributeName="opacity" values="0.1;1;0.1" dur="${(1.5 + (seed % 10) * 0.1).toFixed(1)}s" begin="${(seed % 20 * 0.1).toFixed(1)}s" repeatCount="indefinite"/>`;
-                        cellParts.push(`<g>${pfx} opacity="0.4" filter="url(#glowSmall)">${anim}</rect>${pfx} opacity="0.85"/></g>`);
+                        cellParts.push(`<g>${pfx} opacity="0.4" filter="url(#glowSmall)" style="animation:graph-pulse ${(1.5 + (seed % 10) * 0.1).toFixed(1)}s ${(seed % 20 * 0.1).toFixed(1)}s infinite"/>${pfx} opacity="0.85"/></g>`);
                     }
                 } else {
-                    // glow (default) — animation string is pre-computed per column
-                    cellParts.push(`<g>${pfx} opacity="0.4" filter="url(#glowSmall)">${glowAnim}</rect>${pfx} opacity="0.85"/></g>`);
+                    // glow (default) — CSS animation style is pre-computed per column
+                    cellParts.push(`<g>${pfx} opacity="0.4" filter="url(#glowSmall)" ${glowAnim}/>${pfx} opacity="0.85"/></g>`);
                 }
             }
         }
@@ -372,13 +370,11 @@ export class GraphRenderer {
                     <stop offset="100%" stop-color="${theme.iconColor}" stop-opacity="0"/>
                 </linearGradient>
                 <filter id="textGlow" x="-20%" y="-60%" width="140%" height="220%">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur">
-                        <animate attributeName="stdDeviation" values="0.5;2.5;0.8;3;0.5;1.5;2;0.5" dur="9s" repeatCount="indefinite"/>
-                    </feGaussianBlur>
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
                     <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                 </filter>
             </defs>
-            <style>${fontFace} text{font-family:${fontFamily}}</style>
+            <style>${fontFace} text{font-family:${fontFamily}} @keyframes graph-wave{0%,100%{opacity:.1}50%{opacity:.8}} @keyframes graph-glow{0%,100%{opacity:.2}50%{opacity:.7}} @keyframes graph-pulse{0%,100%{opacity:.1}50%{opacity:1}}</style>
             <rect width="100%" height="100%" fill="${showBackground ? 'url(#spaceGradient)' : 'none'}"/>
             ${stars}
             ${gridLines}
