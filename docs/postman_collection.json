@@ -1,0 +1,215 @@
+{
+  "info": {
+    "name": "GitHub Stats API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for GitHub Stats routes"
+  },
+  "item": [
+    {
+      "name": "Root",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": ["{{baseUrl}}"],
+          "path": [""]
+        }
+      }
+    },
+    {
+      "name": "Stats",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/stats?username=pphatdev&theme=dark",
+          "host": ["{{baseUrl}}"],
+          "path": ["stats"],
+          "query": [
+            { "key": "username", "value": "pphatdev" },
+            { "key": "theme", "value": "dark" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Languages",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/languages?username=pphatdev&theme=default",
+          "host": ["{{baseUrl}}"],
+          "path": ["languages"],
+          "query": [
+            { "key": "username", "value": "pphatdev" },
+            { "key": "theme", "value": "default" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Graph",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/graph?username=pphatdev&animate=wave",
+          "host": ["{{baseUrl}}"],
+          "path": ["graph"],
+          "query": [
+            { "key": "username", "value": "pphatdev" },
+            { "key": "animate", "value": "wave" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Badge - Visitors",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/visitors?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "visitors"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Repositories",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/repositories?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "repositories"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Organization",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/organization?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "organization"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Languages",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/languages?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "languages"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Followers",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/followers?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "followers"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Total Stars",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/total-stars?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "total-stars"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Total Contributors",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/total-contributors?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "total-contributors"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Total Commits",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/total-commits?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "total-commits"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Total Code Reviews",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/total-code-reviews?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "total-code-reviews"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Total Issues",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/total-issues?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "total-issues"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Total Pull Requests",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/total-pull-requests?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "total-pull-requests"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    },
+    {
+      "name": "Badge - Total Joined Years",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/badge/total-joined-years?username=pphatdev",
+          "host": ["{{baseUrl}}"],
+          "path": ["badge", "total-joined-years"],
+          "query": [{ "key": "username", "value": "pphatdev" }]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    }
+  ]
+}
