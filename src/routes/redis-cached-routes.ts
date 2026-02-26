@@ -7,9 +7,28 @@ import { cacheMiddleware } from '../utils/cache-middleware.js';
 import { CACHE_KEYS, DEFAULT_TTL } from '../utils/redis-client.js';
 
 export function registerCachedRoutes(app: Application): void {
-    // Cache middleware for /stats - cache by username and theme
+    const normalizeQueryParams = (query: Record<string, unknown>): string => {
+        const entries = Object.entries(query)
+            .filter(([, value]) => value !== undefined)
+            .map(([key, value]) => {
+                if (Array.isArray(value)) {
+                    return [key, value.join(',')];
+                }
+
+                return [key, String(value)];
+            })
+            .sort(([a], [b]) => a.localeCompare(b));
+
+        return new URLSearchParams(entries as Array<[string, string]>).toString();
+    };
+
+    // Cache middleware for /stats - cache by username and all params
     const statsCache = cacheMiddleware({
-        keyGenerator: (req) => `${CACHE_KEYS.STATS(req.query.username as string)}:${req.query.theme || 'default'}`,
+        keyGenerator: (req) => {
+            const username = req.query.username as string;
+            const params = normalizeQueryParams(req.query as Record<string, unknown>);
+            return `${CACHE_KEYS.STATS(username)}:${params}`;
+        },
         ttl: DEFAULT_TTL.STATS
     });
 
