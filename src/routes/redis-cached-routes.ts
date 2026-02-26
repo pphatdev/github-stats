@@ -1,4 +1,4 @@
-import type { Application } from 'express';
+import type { Application, Request } from 'express';
 import { StatsController } from '../controllers/stats.js';
 import { LanguageController } from '../controllers/languages.js';
 import { GraphController } from '../controllers/graph.js';
@@ -22,6 +22,26 @@ export function registerCachedRoutes(app: Application): void {
         return new URLSearchParams(entries as Array<[string, string]>).toString();
     };
 
+    const getStatsContentType = (req: Request) => {
+        const format = typeof req.query.format === 'string' ? req.query.format.toLowerCase() : undefined;
+        const userAgent = req.get('user-agent') || '';
+        const isPreviewBot = /discordbot|twitterbot|slackbot|facebookexternalhit|linkedinbot|telegrambot|telegram|mastodon|whatsapp/i.test(userAgent);
+        const normalizedFormat = format ?? (isPreviewBot ? 'webp' : 'svg');
+        return normalizedFormat === 'webp' ? 'image/webp' : 'image/svg+xml';
+    };
+
+    const getGraphContentType = (req: Request) => {
+        const format = typeof req.query.as === 'string'
+            ? req.query.as.toLowerCase()
+            : typeof req.query.format === 'string'
+                ? req.query.format.toLowerCase()
+                : 'svg';
+
+        if (format === 'webp') return 'image/webp';
+        if (format === 'png') return 'image/png';
+        return 'image/svg+xml';
+    };
+
     // Cache middleware for /stats - cache by username and all params
     const statsCache = cacheMiddleware({
         keyGenerator: (req) => {
@@ -29,12 +49,14 @@ export function registerCachedRoutes(app: Application): void {
             const params = normalizeQueryParams(req.query as Record<string, unknown>);
             return `${CACHE_KEYS.STATS(username)}:${params}`;
         },
+        responseHeaders: (req) => ({ 'Content-Type': getStatsContentType(req) }),
         ttl: DEFAULT_TTL.STATS
     });
 
     // Cache middleware for /languages - cache by username
     const languagesCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.LANGUAGES(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.LANGUAGES
     });
 
@@ -45,67 +67,80 @@ export function registerCachedRoutes(app: Application): void {
             const params = JSON.stringify(req.query);
             return CACHE_KEYS.GRAPH(username, params);
         },
+        responseHeaders: (req) => ({ 'Content-Type': getGraphContentType(req) }),
         ttl: DEFAULT_TTL.GRAPH
     });
 
     // Cache middleware for badge routes - cache by type and username
     const badgeVisitorsCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_VISITORS(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeRepositoriesCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_REPOSITORIES(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeOrganizationCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_ORGANIZATION(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeLanguagesCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_LANGUAGES(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeFollowersCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_FOLLOWERS(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeTotalStarsCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_TOTAL_STARS(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeTotalContributorsCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_TOTAL_CONTRIBUTORS(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeTotalCommitsCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_TOTAL_COMMITS(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeTotalCodeReviewsCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_TOTAL_CODE_REVIEWS(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeTotalIssuesCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_TOTAL_ISSUES(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeTotalPullRequestsCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_TOTAL_PULL_REQUESTS(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 
     const badgeTotalJoinedYearsCache = cacheMiddleware({
         keyGenerator: (req) => CACHE_KEYS.BADGE_TOTAL_JOINED_YEARS(req.query.username as string),
+        responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.BADGE
     });
 

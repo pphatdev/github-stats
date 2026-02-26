@@ -4,6 +4,7 @@ import { getCacheValue, setCacheValue } from './cache.js';
 export interface CacheMiddlewareOptions {
     keyGenerator: (req: Request) => string;
     ttl?: number;
+    responseHeaders?: (req: Request) => Record<string, string>;
 }
 
 type Deferred<T> = {
@@ -57,6 +58,10 @@ export function cacheMiddleware(options: CacheMiddlewareOptions) {
             // Try to get from cache
             const cachedResponse = await getCacheValue<any>(cacheKey);
             if (cachedResponse) {
+                const headers = options.responseHeaders?.(req);
+                if (headers) {
+                    Object.entries(headers).forEach(([key, value]) => res.setHeader(key, value));
+                }
                 res.set('X-Cache', 'HIT');
                 return respondWithCached(res, cachedResponse);
             }
@@ -69,6 +74,10 @@ export function cacheMiddleware(options: CacheMiddlewareOptions) {
         if (inFlight) {
             try {
                 const sharedResponse = await inFlight;
+                const headers = options.responseHeaders?.(req);
+                if (headers) {
+                    Object.entries(headers).forEach(([key, value]) => res.setHeader(key, value));
+                }
                 res.set('X-Cache', 'COALESCED');
                 return respondWithCached(res, sharedResponse);
             } catch (error) {
