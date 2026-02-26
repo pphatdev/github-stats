@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { GitHubClient } from '../utils/github-client.js';
 import { GraphRenderer } from '../components/graph-renderer.js';
 import sharp from 'sharp';
+import { Resvg } from '@resvg/resvg-js';
 import { spawn } from 'child_process';
 import { mkdir, writeFile, readFile, stat } from 'fs/promises';
 import { join, dirname } from 'path';
@@ -46,6 +47,9 @@ export class GraphController {
     }
 
     static async getSvg(req: Request, res: Response) {
+        const startTime = Date.now();
+        const timings: { [key: string]: number } = {};
+        
         try {
             const { username, theme = 'default', year, animate, size, as: outputFormat, format: formatParam, show_title, show_total_contribution, show_background, bgColor, borderColor, textColor, titleColor } = req.query;
 
@@ -78,7 +82,9 @@ export class GraphController {
             const format = typeof outputFormat === 'string' ? outputFormat.toLowerCase() : typeof formatParam === 'string' ? formatParam.toLowerCase() : 'svg';
             const cacheKey = `graph-${username}-${theme}-${cacheKeyExtra}-${animate || ''}-${size || ''}-${show_title ?? ''}-${show_total_contribution ?? ''}-${show_background ?? ''}-${bgColor || ''}-${borderColor || ''}-${textColor || ''}-${titleColor || ''}`;
 
+            const apiStartTime = Date.now();
             const contributions = await GraphController.githubClient.fetchUserContributions(username, from, to, cacheKeyExtra);
+            timings['github_api'] = Date.now() - apiStartTime;
 
             const cardOptions = {
                 theme: theme as string,
@@ -97,7 +103,9 @@ export class GraphController {
             const getSvg = async (): Promise<string> => {
                 const cached = GraphController.cache.get(cacheKey);
                 if (cached && Date.now() - cached.timestamp < GraphController.CACHE_DURATION) return cached.data;
+                const renderStartTime = Date.now();
                 const svg = GraphRenderer.generateGraphCard(graphData, cardOptions);
+                timings['svg_render'] = Date.now() - renderStartTime;
                 GraphController.cache.set(cacheKey, { data: svg, timestamp: Date.now() });
                 return svg;
             };
@@ -106,6 +114,8 @@ export class GraphController {
                 const rasterCacheKey = `${cacheKey}|${format}`;
                 const cachedRaster = (GraphController as any)._rasterCache?.get(rasterCacheKey);
                 if (cachedRaster && Date.now() - cachedRaster.timestamp < GraphController.CACHE_DURATION) {
+                    timings['total'] = Date.now() - startTime;
+                    res.setHeader('X-Timing', JSON.stringify(timings));
                     res.setHeader('Content-Type', `image/${format}`);
                     res.setHeader('Cache-Control', 'public, max-age=600');
                     return res.send(cachedRaster.data);
@@ -114,9 +124,22 @@ export class GraphController {
                 let buffer: Buffer;
 
                 if (format === 'png') {
-                    // Single static frame
+                    // Single static frame using resvg-js for fast, high-quality SVG→PNG
                     const svgData = await getSvg();
-                    buffer = await sharp(Buffer.from(svgData)).png().toBuffer();
+                    const convertStartTime = Date.now();
+                    
+                    // Use resvg-js: optimized for SVG→PNG, much faster than sharp
+                    const resvg = new Resvg(svgData, {
+                        font: {
+                            loadSystemFonts: false, // Faster - don't scan system fonts
+                            fontDirs: [],
+                        },
+                        logLevel: 'error',
+                    });
+                    
+                    const pngData = resvg.render();
+                    buffer = pngData.asPng();
+                    timings['png_convert'] = Date.now() - convertStartTime;
                 } else {
                     // Animated WebP — generate frames and encode with FFmpeg
                     const FRAME_COUNT = 20;
@@ -186,17 +209,23 @@ export class GraphController {
 
                 if (!(GraphController as any)._rasterCache) (GraphController as any)._rasterCache = new Map();
                 (GraphController as any)._rasterCache.set(rasterCacheKey, { data: buffer, timestamp: Date.now() });
+                timings['total'] = Date.now() - startTime;
+                res.setHeader('X-Timing', JSON.stringify(timings));
                 res.setHeader('Content-Type', `image/${format === 'webp' ? 'webp' : 'png'}`);
                 res.setHeader('Cache-Control', 'public, max-age=600');
                 return res.send(buffer);
             }
 
             const svg = await getSvg();
+            timings['total'] = Date.now() - startTime;
+            res.setHeader('X-Timing', JSON.stringify(timings));
             res.setHeader('Content-Type', 'image/svg+xml');
             res.setHeader('Cache-Control', 'public, max-age=600');
             res.send(svg);
         } catch (error) {
+            timings['total'] = Date.now() - startTime;
             console.error('Error generating graph:', error);
+            console.error('Timings:', timings);
             res.status(500).send(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }

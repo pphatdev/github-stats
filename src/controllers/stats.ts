@@ -38,6 +38,9 @@ export class StatsController {
     }
 
     static async getSvg(req: Request, res: Response) {
+        const startTime = Date.now();
+        const timings: { [key: string]: number } = {};
+
         try {
             const {
                 username,
@@ -102,10 +105,13 @@ export class StatsController {
                 }
 
                 const cardPromise = (async () => {
+                    const apiStartTime = Date.now();
                     const stats = await StatsController.githubClient.fetchUserStats(username, {
                         avatarMode: finalAvatarMode as 'none' | 'avatar' | 'radar'
                     });
+                    timings['github_api'] = Date.now() - apiStartTime;
 
+                    const renderStartTime = Date.now();
                     const card = CardRenderer.generateStatsCard(stats, {
                         theme: theme as string,
                         hideTitle: hide_title === 'true',
@@ -121,6 +127,7 @@ export class StatsController {
                         textColor: textColor as string | undefined,
                         titleColor: titleColor as string | undefined,
                     });
+                    timings['svg_render'] = Date.now() - renderStartTime;
 
                     StatsController.cache.set(cacheKey, { data: card, timestamp: Date.now() });
                     return card;
@@ -139,25 +146,40 @@ export class StatsController {
                 const webpCacheKey = `${cacheKey}|webp`;
                 const cachedWebp = StatsController.pngCache.get(webpCacheKey);
                 if (cachedWebp && Date.now() - cachedWebp.timestamp < StatsController.CACHE_DURATION) {
+                    timings['total'] = Date.now() - startTime;
+                    res.setHeader('X-Timing', JSON.stringify(timings));
                     res.setHeader('Content-Type', 'image/webp');
                     res.setHeader('Cache-Control', 'public, max-age=600');
                     return res.send(cachedWebp.data);
                 }
 
                 const svgCard = await getSvgCard();
-                const webpBuffer = await sharp(Buffer.from(svgCard)).webp().toBuffer();
+
+                const webpStartTime = Date.now();
+                // Sharp uses native C++ bindings for efficient SVG→WebP conversion
+                const webpBuffer = await sharp(Buffer.from(svgCard))
+                    .webp({ quality: 75, effort: 4, alphaQuality: 100 })
+                    .toBuffer();
+                timings['webp_convert'] = Date.now() - webpStartTime;
+
                 StatsController.pngCache.set(webpCacheKey, { data: webpBuffer, timestamp: Date.now() });
+                timings['total'] = Date.now() - startTime;
+                res.setHeader('X-Timing', JSON.stringify(timings));
                 res.setHeader('Content-Type', 'image/webp');
                 res.setHeader('Cache-Control', 'public, max-age=600');
                 return res.send(webpBuffer);
             }
 
             const card = await getSvgCard();
+            timings['total'] = Date.now() - startTime;
+            res.setHeader('X-Timing', JSON.stringify(timings));
             res.setHeader('Content-Type', 'image/svg+xml');
             res.setHeader('Cache-Control', 'public, max-age=600');
             res.send(card);
         } catch (error) {
+            timings['total'] = Date.now() - startTime;
             console.error('Error generating stats:', error);
+            console.error('Timings:', timings);
             res.status(500).send(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
