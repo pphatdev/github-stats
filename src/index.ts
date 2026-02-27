@@ -1,9 +1,41 @@
 import 'dotenv/config';
+
+// Add global error handlers IMMEDIATELY
+process.on('uncaughtException', (err: unknown) => {
+    try {
+        if (err instanceof Error) {
+            console.error('❌ Uncaught Exception:', err.message);
+            console.error(err.stack);
+        } else if (err === null || err === undefined) {
+            console.error('❌ Uncaught Exception: null or undefined');
+        } else if (typeof err === 'object') {
+            console.error('❌ Uncaught Exception (object):', JSON.stringify(err, null, 2));
+        } else {
+            console.error('❌ Uncaught Exception:', String(err));
+        }
+    } catch (logErr) {
+        console.error('❌ Error while logging exception:', logErr);
+    }
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason: unknown) => {
+    try {
+        if (reason instanceof Error) {
+            console.error('❌ Unhandled Rejection:', reason.message);
+            console.error(reason.stack);
+        } else {
+            console.error('❌ Unhandled Rejection:', String(reason));
+        }
+    } catch (logErr) {
+        console.error('❌ Error while logging rejection:', logErr);
+    }
+    process.exit(1);
+});
+
 import express from 'express';
 import cors from 'cors';
 import compression from 'compression';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import { GitHubClient } from './utils/github-client.js';
 import { StatsController } from './controllers/stats.js';
 import { LanguageController } from './controllers/languages.js';
@@ -26,20 +58,11 @@ app.use(compression({
     threshold: 1024,
 }));
 
-// 🔒 SECURITY: Set security headers with Helmet
-app.use(helmet({
-    contentSecurityPolicy: false, // Allow SVG badges from CDN
-}));
-
-// 🚦 RATE LIMITING: Protect API from abuse
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // limit each IP to 1000 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.',
-    skip: (req) => req.path.startsWith('/public'), // Don't rate limit static files
+// 🔒 SECURITY: Manual security headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    next();
 });
-
-app.use(limiter);
 
 // Standard middleware
 app.use(cors());
