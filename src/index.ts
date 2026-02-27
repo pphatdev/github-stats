@@ -1,6 +1,9 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { GitHubClient } from './utils/github-client.js';
 import { StatsController } from './controllers/stats.js';
 import { LanguageController } from './controllers/languages.js';
@@ -16,8 +19,32 @@ const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, '..', 'public');
 
 const app = express();
-app.use(cors());
 
+// ⚡️ PERFORMANCE: Enable gzip compression for responses
+app.use(compression({
+    level: 6,
+    threshold: 1024,
+}));
+
+// 🔒 SECURITY: Set security headers with Helmet
+app.use(helmet({
+    contentSecurityPolicy: false, // Allow SVG badges from CDN
+}));
+
+// 🚦 RATE LIMITING: Protect API from abuse
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 1000 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.',
+    skip: (req) => req.path.startsWith('/public'), // Don't rate limit static files
+});
+
+app.use(limiter);
+
+// Standard middleware
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(publicDir));
 app.use('/public', express.static(publicDir));
 
