@@ -23,7 +23,16 @@
     "stats",
     "readme",
     "svg",
-    "card"
+    "card",
+    "github",
+    "fast-stats",
+    "readme-stats",
+    "github-readme-stats",
+    "github-readme-profile",
+    "github-stats-card",
+    "github-stats-generator",
+    "dynamic-stats",
+    "readme-stats-card"
   ],
   "author": "",
   "license": "MIT",

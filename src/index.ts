@@ -13,6 +13,7 @@ import { warmupRedisCache } from './routes/redis-cached-routes.js';
 import { initializeControllers, registerRoutes } from './routes/register.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cluster from 'cluster';
 import { getRoutes } from './routes/docs.routes.js';
 
 
@@ -52,7 +53,10 @@ const APP_ENV = process.env.APP_ENV || 'development';
 const PROTOCOL = APP_ENV === 'production' ? 'https' : 'http';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
-if (!GITHUB_TOKEN) {
+// Only log warnings from worker 1 or non-cluster mode
+const shouldLog = !cluster.isWorker || cluster.worker?.id === 1;
+
+if (!GITHUB_TOKEN && shouldLog) {
     console.warn('⚠️  WARNING: GITHUB_TOKEN is not set!');
     console.warn('⚠️  You will hit rate limits without authentication.');
     console.warn('⚠️  Create a .env file with: GITHUB_TOKEN=your_token_here');
@@ -65,10 +69,12 @@ let redis_initialized = false;
     try {
         await getRedisClient();
         redis_initialized = true;
-        console.log('✅ Redis cache initialized');
+        if (shouldLog) console.log('✅ Redis cache initialized');
     } catch (error) {
-        console.warn('⚠️  Redis not available. Running with in-memory cache only.');
-        console.warn('⚠️  To enable Redis: REDIS_URL=redis://localhost:6379');
+        if (shouldLog) {
+            console.warn('⚠️  Redis not available. Running with in-memory cache only.');
+            console.warn('⚠️  To enable Redis: REDIS_URL=redis://localhost:6379');
+        }
     }
 })();
 
@@ -84,13 +90,16 @@ initializeControllers(githubClient, cache, CACHE_DURATION);
 registerRoutes(app);
 
 app.listen(PORT, () => {
-    console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}`);
-    console.log(`📊 Example: ${PROTOCOL}://localhost:${PORT}/stats?username=pphatdev`);
-    console.log(`🔧 Environment: ${APP_ENV}`);
-    console.log(`💾 Cache: ${redis_initialized ? 'Redis ✅' : 'In-Memory (Map) ⚠️'}`);
+    if (shouldLog) {
+        const workerId = cluster.isWorker ? ` (Worker ${cluster.worker?.id})` : '';
+        console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}${workerId}`);
+        console.log(`📊 Example: ${PROTOCOL}://localhost:${PORT}/stats?username=pphatdev`);
+        console.log(`🔧 Environment: ${APP_ENV}`);
+        console.log(`💾 Cache: ${redis_initialized ? 'Redis ✅' : 'In-Memory (Map) ⚠️'}`);
+    }
 
     const warmupUsername = process.env.WARMUP_USERNAME;
-    if (warmupUsername && redis_initialized) {
+    if (warmupUsername && redis_initialized && shouldLog) {
         warmupRedisCache(warmupUsername, PORT, PROTOCOL).catch((error) => {
             console.warn('⚠️  Redis warm-up failed:', error);
         });
