@@ -24,12 +24,26 @@ const themeIndex: Map<string, string> = new Map(
     Object.keys(themes).map(k => [normalizeKey(k), k])
 );
 
+/** Pre-built map: normalised key → original badgeThemes key */
+const badgeThemeIndex: Map<string, string> = new Map(
+    Object.keys(badgeThemes).map(k => [normalizeKey(k), k])
+);
+
 /** Resolve a user-supplied theme name to the actual themes key, or 'default'. */
 function resolveThemeName(name: string): string {
     // Exact match first (fast path)
     if (themes[name]) return name;
     // Normalised match (case / separator insensitive)
     const resolved = themeIndex.get(normalizeKey(name));
+    return resolved ?? 'default';
+}
+
+/** Resolve a user-supplied badge theme name to the actual badgeThemes key, or 'default'. */
+function resolveBadgeThemeName(name: string): string {
+    // Exact match first (fast path)
+    if (badgeThemes[name]) return name;
+    // Normalised match (case / separator insensitive)
+    const resolved = badgeThemeIndex.get(normalizeKey(name));
     return resolved ?? 'default';
 }
 
@@ -56,5 +70,5 @@ export function getTheme(themeName: string = 'default', customColors?: {
 }
 
 export function getBadgeTheme(themeName: string = 'default'): BadgeTheme {
-    return badgeThemes[themeName] || badgeThemes.default;
+    return badgeThemes[resolveBadgeThemeName(themeName)];
 }

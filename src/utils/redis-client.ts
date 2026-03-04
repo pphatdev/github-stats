@@ -1,6 +1,10 @@
 import { createClient, RedisClientType } from 'redis';
+import cluster from 'cluster';
 
 let redisClient: RedisClientType | null = null;
+
+// Only log from worker 1 or non-cluster mode to reduce noise
+const shouldLog = !cluster.isWorker || cluster.worker?.id === 1;
 
 /**
  * Determine if TLS should be enabled based on environment and host
@@ -28,6 +32,8 @@ function shouldEnableTLS(host: string | undefined): boolean {
  * Log connection details (sanitized for security)
  */
 function logConnectionDetails(host: string, port: number, tls: boolean): void {
+    if (!shouldLog) return;
+
     const tlsStatus = tls ? '🔒 TLS Enabled' : '⚠️  TLS Disabled';
     console.log(`📡 Redis Connection: ${host}:${port} (${tlsStatus})`);
 
@@ -65,6 +71,12 @@ function getRedisDbIndex(): number | null {
 }
 
 export async function getRedisClient(): Promise<RedisClientType> {
+    // Check if Redis is explicitly disabled
+    if (process.env.REDIS_ENABLED === 'false') {
+        if (shouldLog) console.log('⚠️  Redis is disabled (REDIS_ENABLED=false)');
+        throw new Error('Redis is disabled');
+    }
+
     if (redisClient) {
         return redisClient;
     }
@@ -94,10 +106,15 @@ export async function getRedisClient(): Promise<RedisClientType> {
             // For Redis Cloud and managed services, URL-based config often works better for TLS
             // The rediss:// protocol (with double 's') handles TLS automatically
             if (tls && host.includes('cloud.redislabs.com')) {
-                console.log(`📡 Using URL-based config for better TLS handling with Redis Cloud...`);
+                if (shouldLog) console.log(`📡 Using URL-based config for better TLS handling with Redis Cloud...`);
                 const redisUrl = buildRedisUrl(host, port, username, password, true);
                 redisClient = createClient({
                     url: redisUrl,
+                    socket: {
+                        tls: true,
+                        rejectUnauthorized: false, // Allow self-signed certs
+                        servername: host, // SNI support
+                    }
                 });
             } else {
                 // Standard socket-based config for local/non-TLS scenarios
@@ -107,9 +124,10 @@ export async function getRedisClient(): Promise<RedisClientType> {
                 };
 
                 if (tls) {
-                    socketConfig.tls = true;
-                    // TLS options for better compatibility
-                    socketConfig.rejectUnauthorized = false; // Allow self-signed certificates
+                    socketConfig.tls = {
+                        rejectUnauthorized: false, // Allow self-signed certificates
+                        servername: host, // Server Name Indication (SNI)
+                    };
                 }
 
                 redisClient = createClient({
@@ -119,33 +137,42 @@ export async function getRedisClient(): Promise<RedisClientType> {
                 });
             }
         } catch (error) {
-            console.error('❌ Failed to create Redis client with socket config:', error);
+            if (shouldLog) console.error('❌ Failed to create Redis client with socket config:', error);
             throw error;
         }
     } else {
         // URL-based configuration (simpler approach)
         const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-        console.log(`📡 Redis Connection: Using REDIS_URL environment variable`);
+        if (shouldLog) console.log(`📡 Redis Connection: Using REDIS_URL environment variable`);
 
         try {
             redisClient = createClient({
                 url: redisUrl,
             });
         } catch (error) {
-            console.error('❌ Failed to create Redis client with URL config:', error);
+            if (shouldLog) console.error('❌ Failed to create Redis client with URL config:', error);
             throw error;
         }
     }
 
     redisClient.on('error', (err) => {
-        console.error('❌ Redis Client Error:', err.message || err);
-        if (process.env.DEBUG_REDIS === 'true') {
-            console.error('Full error:', err);
+        if (shouldLog) {
+            // Only log TLS errors once to avoid spam
+            if (err.message && err.message.includes('packet length too long')) {
+                console.error('❌ Redis TLS Error: Connection configuration mismatch');
+                console.error('💡 Hint: Try disabling Redis or check your TLS settings');
+                console.error('   Set REDIS_ENABLED=false in .env to disable Redis');
+            } else {
+                console.error('❌ Redis Client Error:', err.message || err);
+            }
+            if (process.env.DEBUG_REDIS === 'true') {
+                console.error('Full error:', err);
+            }
         }
     });
-    redisClient.on('connect', () => console.log('✅ Redis Client Connected'));
-    redisClient.on('ready', () => console.log('✅ Redis Client Ready'));
-    redisClient.on('reconnecting', () => console.log('🔄 Redis Client Reconnecting...'));
+    redisClient.on('connect', () => shouldLog && console.log('✅ Redis Client Connected'));
+    redisClient.on('ready', () => shouldLog && console.log('✅ Redis Client Ready'));
+    redisClient.on('reconnecting', () => shouldLog && console.log('🔄 Redis Client Reconnecting...'));
 
     try {
         await redisClient.connect();
