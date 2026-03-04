@@ -10,25 +10,25 @@ export const badgeThemes: { [key: string]: BadgeTheme } = {
     aurora: {
         labelColor: '#c8ffd4',
         labelBackground: '#0a3026',
-        valueColor: '#020c12',
+        valueColor: '#ffffff',
         valueBackground: '#00e676',
     },
     matrix: {
         labelColor: '#39ff14',
         labelBackground: '#003300',
-        valueColor: '#000000',
+        valueColor: '#ffffff',
         valueBackground: '#00cc33',
     },
     inferno: {
         labelColor: '#ffcf77',
         labelBackground: '#3d0a00',
-        valueColor: '#0d0200',
+        valueColor: '#ffffff',
         valueBackground: '#ff4500',
     },
     ocean: {
         labelColor: '#b2f0ff',
         labelBackground: '#0a2a40',
-        valueColor: '#020d1a',
+        valueColor: '#ffffff',
         valueBackground: '#0099cc',
     },
     neon: {
@@ -46,7 +46,7 @@ export const badgeThemes: { [key: string]: BadgeTheme } = {
     galaxy: {
         labelColor: '#e9d5ff',
         labelBackground: '#1e0a40',
-        valueColor: '#05020f',
+        valueColor: '#ffffff',
         valueBackground: '#8b5cf6',
     },
     'github-dark': {
