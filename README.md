@@ -144,7 +144,7 @@ GET https://stats.pphat.top/graph?username=pphatdev&as=png
 
 ### GET /badge/:type
 
-Returns dynamic badge SVGs for various GitHub metrics.
+Returns dynamic badge SVGs for various GitHub user metrics.
 
 **Available badge types:**
 
@@ -183,6 +183,44 @@ GET https://stats.pphat.top/badge/visitors?username=pphatdev
 GET https://stats.pphat.top/badge/total-stars?username=pphatdev&theme=aurora
 GET https://stats.pphat.top/badge/followers?username=pphatdev&theme=matrix
 GET https://stats.pphat.top/badge/repositories?username=pphatdev&customLabel=Repos
+```
+
+### GET /project/:type
+
+Returns dynamic badge SVGs for repository/project-specific metrics.
+
+**Available project badge types:**
+
+| Endpoint | Description |
+|----------|-------------|
+| `/project/stars` | Repository star count |
+| `/project/forks` | Repository fork count |
+| `/project/watchers` | Repository watcher count |
+| `/project/issues` | Open issues count |
+| `/project/prs` | Open pull requests count |
+| `/project/contributors` | Contributors count |
+| `/project/size` | Repository size |
+
+Required query params:
+
+- `repo` — Repository in format `owner/repo` (e.g., `pphatdev/github-stats`)
+
+Optional query params:
+
+- `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
+- `customLabel` — override the label text
+- `labelColor` — label text color
+- `labelBackground` — label background color
+- `valueColor` — value text color
+- `valueBackground` — value background color
+
+Examples:
+
+```
+GET https://stats.pphat.top/project/stars?repo=pphatdev/github-stats
+GET https://stats.pphat.top/project/forks?repo=pphatdev/github-stats&theme=aurora
+GET https://stats.pphat.top/project/issues?repo=facebook/react&theme=matrix
+GET https://stats.pphat.top/project/contributors?repo=microsoft/vscode&customLabel=Devs
 ```
 
 ## Usage in README
@@ -237,6 +275,16 @@ Badges with theme and custom label:
 ```markdown
 ![Visitor Badge](https://stats.pphat.top/badge/visitors?username=YOUR_USERNAME&theme=aurora)
 ![Stars](https://stats.pphat.top/badge/total-stars?username=YOUR_USERNAME&theme=matrix&customLabel=Stars)
+```
+
+Project/repository badges:
+
+```markdown
+![Repo Stars](https://stats.pphat.top/project/stars?repo=OWNER/REPO)
+![Repo Forks](https://stats.pphat.top/project/forks?repo=OWNER/REPO)
+![Repo Issues](https://stats.pphat.top/project/issues?repo=OWNER/REPO)
+![Repo PRs](https://stats.pphat.top/project/prs?repo=OWNER/REPO)
+![Repo Contributors](https://stats.pphat.top/project/contributors?repo=OWNER/REPO)
 ```
 
 ## Example Themes
