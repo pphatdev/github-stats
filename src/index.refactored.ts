@@ -32,7 +32,8 @@ import { errorHandler, notFoundHandler, requestLogger, asyncHandler } from './mi
 import { StatsController } from './controllers/stats.js';
 import { LanguageController } from './controllers/languages.js';
 import { GraphController } from './controllers/graph.js';
-import { BadgeController } from './controllers/badge.js';
+import { UserBadgeController } from './controllers/user-badge.controller.js';
+import { ProjectBadgeController } from './controllers/project-badge.controller.js';
 import {
     healthCheck,
     livenessProbe,
@@ -43,6 +44,8 @@ import {
 
 // Routes
 import { registerCachedRoutes } from './routes/redis-cached-routes.js';
+import { registerUserBadgeRoutes } from './routes/user-badge.routes.js';
+import { registerProjectBadgeRoutes } from './routes/project-badge.routes.js';
 
 // Initialize logger
 const logger = createLogger({ service: 'Application' });
@@ -153,10 +156,13 @@ function setupApplication(container: ReturnType<typeof getServiceContainer>): Ap
     StatsController.initialize(githubService as any, legacyCache, config.cache.duration);
     LanguageController.initialize(githubService as any, legacyCache, config.cache.duration);
     GraphController.initialize(githubService as any, legacyCache, config.cache.duration);
-    BadgeController.initialize(githubService as any, legacyCache, config.cache.duration);
+    UserBadgeController.initialize(githubService as any, legacyCache, config.cache.duration);
+    ProjectBadgeController.initialize(githubService as any, legacyCache, config.cache.duration);
 
     // Register API routes
     registerCachedRoutes(app);
+    registerUserBadgeRoutes(app);
+    registerProjectBadgeRoutes(app);
 
     // Error handling
     app.use(notFoundHandler);

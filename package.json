@@ -11,6 +11,7 @@
     "start:cluster": "node dist/server-cluster.js",
     "start:production": "NODE_ENV=production node dist/server-cluster.js",
     "test": "jest",
+    "cache:clear": "tsx scripts/clear-redis-cache.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -52,6 +53,10 @@
     "@types/node": "^20.10.5",
     "drizzle-kit": "^0.31.9",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.3.3"
+  },
+  "overrides": {
+    "esbuild": ">=0.25.0"
   }
 }

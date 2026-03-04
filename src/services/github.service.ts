@@ -160,45 +160,118 @@ export class GitHubService extends BaseService {
         return this.executeWithLogging(`fetchUserStats(${username})`, async () => {
             return this.cachedRequest(`user-stats-${username}-${options.avatarMode}`, async () => {
                 try {
-                    // Fetch user data
-                    let user: any;
+                    // Use GraphQL to get all-time stats in a single request
+                    const query = `
+                        query($username: String!) {
+                            user(login: $username) {
+                                name
+                                login
+                                avatarUrl
+                                createdAt
+                                repositories(first: 100, ownerAffiliations: OWNER, orderBy: {field: STARGAZERS, direction: DESC}) {
+                                    totalCount
+                                    nodes {
+                                        stargazerCount
+                                        isFork
+                                    }
+                                }
+                                repositoriesContributedTo(contributionTypes: [COMMIT, PULL_REQUEST, ISSUE]) {
+                                    totalCount
+                                }
+                                pullRequests {
+                                    totalCount
+                                }
+                                issues {
+                                    totalCount
+                                }
+                            }
+                        }
+                    `;
+
+                    let userData: any;
                     try {
-                        const userResponse = await this.octokit.users.getByUsername({ username });
-                        user = userResponse.data;
+                        const response: any = await this.octokit.graphql(query, { username });
+                        userData = response.user;
                     } catch (error: any) {
-                        if (error.status === 404) {
+                        if (error.status === 404 || error.errors?.[0]?.type === 'NOT_FOUND') {
                             return this.getDefaultStats(username);
                         }
                         throw error;
                     }
 
-                    // Fetch repositories
-                    const { data: repos } = await this.octokit.repos.listForUser({
-                        username,
-                        per_page: 100,
-                        type: 'owner',
+                    if (!userData) {
+                        return this.getDefaultStats(username);
+                    }
+
+                    // Calculate total stars from repositories
+                    const totalStars = userData.repositories.nodes.reduce(
+                        (acc: number, repo: any) => acc + (repo.stargazerCount || 0), 0
+                    );
+
+                    // Count non-fork repositories
+                    const contributedTo = userData.repositories.nodes.filter((repo: any) => !repo.isFork).length;
+
+                    // Get real PR and issue counts
+                    const totalPRs = userData.pullRequests.totalCount;
+                    const totalIssues = userData.issues.totalCount;
+
+                    // Get all-time commits by summing contributions from account creation to now
+                    const createdAt = new Date(userData.createdAt);
+                    const now = new Date();
+                    let totalCommits = 0;
+
+                    // Fetch commits year by year (GitHub only allows 1 year at a time)
+                    const years: { from: Date; to: Date }[] = [];
+                    let yearStart = new Date(createdAt.getFullYear(), 0, 1);
+
+                    while (yearStart <= now) {
+                        const yearEnd = new Date(yearStart.getFullYear(), 11, 31, 23, 59, 59);
+                        years.push({
+                            from: yearStart > createdAt ? yearStart : createdAt,
+                            to: yearEnd > now ? now : yearEnd
+                        });
+                        yearStart = new Date(yearStart.getFullYear() + 1, 0, 1);
+                    }
+
+                    // Fetch all years' contributions in parallel
+                    const commitPromises = years.map(async ({ from, to }) => {
+                        const commitQuery = `
+                            query($username: String!, $from: DateTime!, $to: DateTime!) {
+                                user(login: $username) {
+                                    contributionsCollection(from: $from, to: $to) {
+                                        totalCommitContributions
+                                        restrictedContributionsCount
+                                    }
+                                }
+                            }
+                        `;
+                        try {
+                            const result: any = await this.octokit.graphql(commitQuery, {
+                                username,
+                                from: from.toISOString(),
+                                to: to.toISOString()
+                            });
+                            const collection = result.user?.contributionsCollection;
+                            return (collection?.totalCommitContributions || 0) + (collection?.restrictedContributionsCount || 0);
+                        } catch {
+                            return 0;
+                        }
                     });
 
-                    // Calculate stats from repos
-                    const totalStars = repos.reduce((acc: number, repo: any) => acc + (repo.stargazers_count || 0), 0);
-                    const contributedTo = repos.filter((repo: any) => !repo.fork).length;
-
-                    // Estimate other metrics (to avoid expensive search queries)
-                    const totalPRs = Math.max(Math.floor(user.public_repos * 0.15), user.public_repos > 0 ? 1 : 0);
-                    const totalIssues = Math.max(Math.floor(user.public_repos * 0.1), user.public_repos > 0 ? 1 : 0);
-                    const totalCommits = Math.max(user.public_repos * 10, 0);
+                    const yearlyCommits = await Promise.all(commitPromises);
+                    totalCommits = yearlyCommits.reduce((sum, count) => sum + count, 0);
 
                     // Calculate rank
                     const rank = this.calculateRank(totalStars, totalCommits, totalPRs, totalIssues);
 
                     // Format avatar URL
-                    let avatarUrl = user.avatar_url;
+                    let avatarUrl = userData.avatarUrl;
                     if (options.avatarMode !== 'none') {
-                        avatarUrl = `${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}s=130`;
+                        avatarUrl = `${userData.avatarUrl}${userData.avatarUrl.includes('?') ? '&' : '?'}s=130`;
                     }
 
                     return {
-                        name: user.name || username,
+                        name: userData.name || username,
                         avatarUrl,
                         totalStars,
                         totalCommits,

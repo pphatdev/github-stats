@@ -49,9 +49,9 @@ export class GraphController {
     static async getSvg(req: Request, res: Response) {
         const startTime = Date.now();
         const timings: { [key: string]: number } = {};
-        
+
         try {
-            const { username, theme = 'default', year, animate, size, as: outputFormat, format: formatParam, show_title, show_total_contribution, show_background, bgColor, borderColor, textColor, titleColor } = req.query;
+            const { username, theme = 'default', year, animate, size, as: outputFormat, format: formatParam, show_title = 'false', show_total_contribution = 'false', show_background = 'false', bgColor, borderColor, textColor, titleColor } = req.query;
 
             if (!username || typeof username !== 'string') {
                 return res.status(400).send('Username is required');
@@ -127,7 +127,7 @@ export class GraphController {
                     // Single static frame using resvg-js for fast, high-quality SVG→PNG
                     const svgData = await getSvg();
                     const convertStartTime = Date.now();
-                    
+
                     // Use resvg-js: optimized for SVG→PNG, much faster than sharp
                     const resvg = new Resvg(svgData, {
                         font: {
@@ -136,7 +136,7 @@ export class GraphController {
                         },
                         logLevel: 'error',
                     });
-                    
+
                     const pngData = resvg.render();
                     buffer = pngData.asPng();
                     timings['png_convert'] = Date.now() - convertStartTime;

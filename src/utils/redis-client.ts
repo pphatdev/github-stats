@@ -207,6 +207,14 @@ export const CACHE_KEYS = {
     BADGE_TOTAL_ISSUES: (username: string) => `badge:total_issues:${username}`,
     BADGE_TOTAL_PULL_REQUESTS: (username: string) => `badge:total_pull_requests:${username}`,
     BADGE_TOTAL_JOINED_YEARS: (username: string) => `badge:total_joined_years:${username}`,
+    // Project/Repository-specific badge cache keys
+    BADGE_REPO_STARS: (owner: string, repo: string) => `badge:repo_stars:${owner}:${repo}`,
+    BADGE_REPO_FORKS: (owner: string, repo: string) => `badge:repo_forks:${owner}:${repo}`,
+    BADGE_REPO_WATCHERS: (owner: string, repo: string) => `badge:repo_watchers:${owner}:${repo}`,
+    BADGE_REPO_ISSUES: (owner: string, repo: string) => `badge:repo_issues:${owner}:${repo}`,
+    BADGE_REPO_PRS: (owner: string, repo: string) => `badge:repo_prs:${owner}:${repo}`,
+    BADGE_REPO_CONTRIBUTORS: (owner: string, repo: string) => `badge:repo_contributors:${owner}:${repo}`,
+    BADGE_REPO_SIZE: (owner: string, repo: string) => `badge:repo_size:${owner}:${repo}`,
     USER_DATA: (username: string) => `user:${username}`,
 };
 

@@ -1,50 +1,20 @@
 import 'dotenv/config';
+import { getGlobalErrorHandlers, setupGracefulShutdown } from './utils/global-error.js';
 
 // Add global error handlers IMMEDIATELY
-process.on('uncaughtException', (err: unknown) => {
-    try {
-        if (err instanceof Error) {
-            console.error('❌ Uncaught Exception:', err.message);
-            console.error(err.stack);
-        } else if (err === null || err === undefined) {
-            console.error('❌ Uncaught Exception: null or undefined');
-        } else if (typeof err === 'object') {
-            console.error('❌ Uncaught Exception (object):', JSON.stringify(err, null, 2));
-        } else {
-            console.error('❌ Uncaught Exception:', String(err));
-        }
-    } catch (logErr) {
-        console.error('❌ Error while logging exception:', logErr);
-    }
-    process.exit(1);
-});
-
-process.on('unhandledRejection', (reason: unknown) => {
-    try {
-        if (reason instanceof Error) {
-            console.error('❌ Unhandled Rejection:', reason.message);
-            console.error(reason.stack);
-        } else {
-            console.error('❌ Unhandled Rejection:', String(reason));
-        }
-    } catch (logErr) {
-        console.error('❌ Error while logging rejection:', logErr);
-    }
-    process.exit(1);
-});
+getGlobalErrorHandlers();
 
 import express from 'express';
 import cors from 'cors';
 import compression from 'compression';
 import { GitHubClient } from './utils/github-client.js';
-import { StatsController } from './controllers/stats.js';
-import { LanguageController } from './controllers/languages.js';
-import { GraphController } from './controllers/graph.js';
-import { BadgeController } from './controllers/badge.js';
-import { getRedisClient, closeRedisClient } from './utils/redis-client.js';
-import { registerCachedRoutes } from './routes/redis-cached-routes.js';
+import { getRedisClient } from './utils/redis-client.js';
+import { warmupRedisCache } from './routes/redis-cached-routes.js';
+import { initializeControllers, registerRoutes } from './routes/register.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getRoutes } from './routes/docs.routes.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,10 +23,7 @@ const publicDir = path.join(__dirname, '..', 'public');
 const app = express();
 
 // ⚡️ PERFORMANCE: Enable gzip compression for responses
-app.use(compression({
-    level: 6,
-    threshold: 1024,
-}));
+app.use(compression({ level: 6, threshold: 1024, }));
 
 // 🔒 SECURITY: Manual security headers
 app.use((req, res, next) => {
@@ -73,71 +40,10 @@ app.use('/public', express.static(publicDir));
 
 const staticRoots = ['/', '/public'];
 
-type RouteInfo = {
-    method: string;
-    path: string;
-    requiredParams?: string[];
-    optionalParams?: string[];
-    payload?: string | null;
-    example?: string;
-};
-
-const routeDocs: Record<string, Omit<RouteInfo, 'method' | 'path'>> = {
-    'GET /stats': StatsController.routeDocs,
-    'GET /languages': LanguageController.routeDocs,
-    'GET /graph': GraphController.routeDocs,
-    'GET /badge/visitors': BadgeController.routeDocs.visitors,
-    'GET /badge/repositories': BadgeController.routeDocs.repositories,
-    'GET /badge/organization': BadgeController.routeDocs.organization,
-    'GET /badge/languages': BadgeController.routeDocs.languages,
-    'GET /badge/followers': BadgeController.routeDocs.followers,
-    'GET /badge/total-stars': BadgeController.routeDocs['total-stars'],
-    'GET /badge/total-contributors': BadgeController.routeDocs['total-contributors'],
-    'GET /badge/total-commits': BadgeController.routeDocs['total-commits'],
-    'GET /badge/total-code-reviews': BadgeController.routeDocs['total-code-reviews'],
-    'GET /badge/total-issues': BadgeController.routeDocs['total-issues'],
-    'GET /badge/total-pull-requests': BadgeController.routeDocs['total-pull-requests'],
-    'GET /badge/total-joined-years': BadgeController.routeDocs['total-joined-years'],
-};
-
-const getRoutes = (): RouteInfo[] => {
-    const routes: RouteInfo[] = [];
-    const router = (app as { _router?: { stack?: Array<{ route?: { path?: string; methods?: Record<string, boolean> } } | { name?: string; handle?: { stack?: Array<{ route?: { path?: string; methods?: Record<string, boolean> } }> } }> } })._router;
-    const stack = router?.stack ?? [];
-
-    for (const layer of stack) {
-        if ('route' in layer && layer.route) {
-            const routePath = layer.route.path ?? '';
-            const methods = Object.keys(layer.route.methods ?? {}).filter((method) => layer.route?.methods?.[method]);
-            for (const method of methods) {
-                const routeKey = `${method.toUpperCase()} ${routePath}`;
-                routes.push({ method: method.toUpperCase(), path: routePath, ...routeDocs[routeKey] });
-            }
-        } else if ('name' in layer && layer.name === 'router' && layer.handle?.stack) {
-            for (const nestedLayer of layer.handle.stack) {
-                if (nestedLayer.route) {
-                    const routePath = nestedLayer.route.path ?? '';
-                    const methods = Object.keys(nestedLayer.route.methods ?? {}).filter((method) => nestedLayer.route?.methods?.[method]);
-                    for (const method of methods) {
-                        const routeKey = `${method.toUpperCase()} ${routePath}`;
-                        routes.push({ method: method.toUpperCase(), path: routePath, ...routeDocs[routeKey] });
-                    }
-                }
-            }
-        }
-    }
-
-    routes.sort((a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method));
-    return routes;
-};
-
 app.get('/', (_req, res) => {
     res.json({
-        routes: getRoutes(),
-        staticAssets: {
-            roots: staticRoots,
-            example: '/sitemap.xml'
-        }
+        routes: getRoutes(app),
+        staticAssets: { roots: staticRoots, example: '/sitemap.xml' }
     });
 });
 
@@ -170,19 +76,16 @@ const githubClient = new GitHubClient(GITHUB_TOKEN);
 
 // Cache to reduce API calls
 const cache = new Map<string, { data: string; timestamp: number }>();
-const CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 hours (increased from 20 minutes for better hit rate)
+// 2 hours (increased from 20 minutes for better hit rate)
+const CACHE_DURATION = 2 * 60 * 60 * 1000;
 
-// Initialize controllers
-StatsController.initialize(githubClient, cache, CACHE_DURATION);
-LanguageController.initialize(githubClient, cache, CACHE_DURATION);
-GraphController.initialize(githubClient, cache, CACHE_DURATION);
-BadgeController.initialize(githubClient, cache, CACHE_DURATION);
-
-registerCachedRoutes(app);
+// Initialize controllers and register routes
+initializeControllers(githubClient, cache, CACHE_DURATION);
+registerRoutes(app);
 
 app.listen(PORT, () => {
     console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}`);
-    console.log(`📊 Example: ${PROTOCOL}://localhost:${PORT}/stats?username=pphatdev&theme=dark`);
+    console.log(`📊 Example: ${PROTOCOL}://localhost:${PORT}/stats?username=pphatdev`);
     console.log(`🔧 Environment: ${APP_ENV}`);
     console.log(`💾 Cache: ${redis_initialized ? 'Redis ✅' : 'In-Memory (Map) ⚠️'}`);
 
@@ -195,49 +98,4 @@ app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
-    console.log('\n🛑 Shutting down gracefully...');
-    await closeRedisClient();
-    process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-    console.log('\n🛑 Shutting down gracefully...');
-    await closeRedisClient();
-    process.exit(0);
-});
-
-async function warmupRedisCache(username: string, port: string | number, protocol: string): Promise<void> {
-    const baseUrl = `${protocol}://localhost:${port}`;
-    const query = `?username=${encodeURIComponent(username)}`;
-    const urls = [
-        `${baseUrl}/stats${query}`,
-        `${baseUrl}/languages${query}`,
-        `${baseUrl}/graph${query}`,
-        `${baseUrl}/badge/visitors${query}`,
-        `${baseUrl}/badge/repositories${query}`,
-        `${baseUrl}/badge/organization${query}`,
-        `${baseUrl}/badge/languages${query}`,
-        `${baseUrl}/badge/followers${query}`,
-        `${baseUrl}/badge/total-stars${query}`,
-        `${baseUrl}/badge/total-contributors${query}`,
-        `${baseUrl}/badge/total-commits${query}`,
-        `${baseUrl}/badge/total-code-reviews${query}`,
-        `${baseUrl}/badge/total-issues${query}`,
-        `${baseUrl}/badge/total-pull-requests${query}`,
-        `${baseUrl}/badge/total-joined-years${query}`,
-    ];
-
-    await Promise.all(
-        urls.map(async (url) => {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Warm-up failed: ${url} (${response.status})`);
-                }
-            } catch (error) {
-                console.warn(`⚠️  Warm-up request failed: ${url}`, error);
-            }
-        })
-    );
-}
+setupGracefulShutdown();
