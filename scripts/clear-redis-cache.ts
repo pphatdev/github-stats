@@ -67,33 +67,45 @@ async function clearDatabaseCache(options: ClearOptions): Promise<void> {
         const sqlPattern = pattern === '*' ? '%' : pattern.replace(/\*/g, '%');
         const isAllPattern = pattern === '*';
 
-        // Clear badges table
-        let badgeCount: number;
+        // Get badges to update (preserve visitors count!)
+        let badgeRecords: { username: string; visitors: number }[];
         if (isAllPattern) {
-            const countResult = db.select({ count: sql<number>`count(*)` }).from(badges).get();
-            badgeCount = countResult?.count ?? 0;
+            badgeRecords = db.select({ username: badges.username, visitors: badges.visitors }).from(badges).all();
         } else {
-            const countResult = db.select({ count: sql<number>`count(*)` }).from(badges)
-                .where(like(badges.username, sqlPattern)).get();
-            badgeCount = countResult?.count ?? 0;
+            badgeRecords = db.select({ username: badges.username, visitors: badges.visitors }).from(badges)
+                .where(like(badges.username, sqlPattern)).all();
         }
 
-        console.log(`📊 Found ${badgeCount} badge record(s) matching pattern`);
+        console.log(`📊 Found ${badgeRecords.length} badge record(s) matching pattern`);
+        console.log(`   ⚠️  Visitors count will be PRESERVED (real data)`);
 
         if (dryRun) {
-            console.log('🔍 Dry run mode - records that would be deleted:');
-            const records = isAllPattern
-                ? db.select({ username: badges.username }).from(badges).all()
-                : db.select({ username: badges.username }).from(badges)
-                    .where(like(badges.username, sqlPattern)).all();
-            records.forEach((r, i) => console.log(`   ${i + 1}. badges: ${r.username}`));
-        } else if (badgeCount > 0) {
-            if (isAllPattern) {
-                db.delete(badges).run();
-            } else {
-                db.delete(badges).where(like(badges.username, sqlPattern)).run();
+            console.log('🔍 Dry run mode - cached fields that would be reset:');
+            badgeRecords.forEach((r, i) => console.log(`   ${i + 1}. ${r.username} (visitors: ${r.visitors} - preserved)`));
+        } else if (badgeRecords.length > 0) {
+            // Reset all cached fields but KEEP visitors count
+            for (const record of badgeRecords) {
+                db.update(badges)
+                    .set({
+                        repositories: null,
+                        organization: null,
+                        languages: null,
+                        followers: null,
+                        total_stars: null,
+                        total_contributors: null,
+                        total_commits: null,
+                        total_code_reviews: null,
+                        total_issues: null,
+                        total_pull_requests: null,
+                        total_joined_years: null,
+                        // visitors: PRESERVED - not touched!
+                        updated_at: null,
+                    })
+                    .where(sql`${badges.username} = ${record.username}`)
+                    .run();
             }
-            console.log(`✅ Deleted ${badgeCount} badge record(s)`);
+            console.log(`✅ Reset cached fields for ${badgeRecords.length} badge record(s)`);
+            console.log(`   ✅ Visitors count preserved for all records`);
         }
 
         // Optionally clear visitor logs
@@ -209,8 +221,10 @@ Available cache key patterns (Redis):
   user:*               - User data cache
 
 Database tables:
-  badges               - Cached badge statistics per user
+  badges               - Cached badge statistics (visitors count PRESERVED)
   visitor_logs         - Visitor tracking logs (--include-logs to clear)
+
+Note: Visitor counts are NEVER deleted - they are real data, not cache.
 `);
 }
 
