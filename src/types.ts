@@ -1,3 +1,7 @@
+// Re-export badge types from the dedicated badge types file
+export type { BadgeType, UserBadgeType, ProjectBadgeType, BadgeTheme, BadgeOptions, BadgeRouteDoc } from './types/badge.types.js';
+export { BADGE_OPTIONAL_PARAMS } from './types/badge.types.js';
+
 export interface GitHubStats {
     name: string;
     avatarUrl: string;
@@ -34,44 +38,6 @@ export interface Theme {
     fontFamily?: string;
     /** URL to the woff2 font file for @font-face embedding */
     fontUrl?: string;
-}
-
-export interface BadgeTheme {
-    labelColor: string;
-    labelBackground: string;
-    valueColor: string;
-    valueBackground: string;
-}
-
-export type BadgeType =
-    | 'visitors'
-    | 'repositories'
-    | 'organization'
-    | 'languages'
-    | 'followers'
-    | 'total-stars'
-    | 'total-contributors'
-    | 'total-commits'
-    | 'total-code-reviews'
-    | 'total-issues'
-    | 'total-pull-requests'
-    | 'total-joined-years';
-
-export interface BadgeOptions {
-    /** Badge metric type to display */
-    type: BadgeType;
-    /** Theme name */
-    theme?: string;
-    /** Override label background color */
-    labelBackground?: string;
-    /** Override label text color */
-    labelColor?: string;
-    /** Override value background color */
-    valueBackground?: string;
-    /** Override value text color */
-    valueColor?: string;
-    /** Custom label text (overrides the default derived from type) */
-    customLabel?: string;
 }
 
 export interface ThemeOverrides {

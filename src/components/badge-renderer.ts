@@ -69,6 +69,36 @@ const BADGE_CONFIGS: Record<BadgeType, BadgeConfig> = {
         iconPath: 'M 2 3 L 12 3 L 12 12 L 2 12 Z M 2 6 L 12 6 M 5 1.5 L 5 4 M 9 1.5 L 9 4 M 5 8.5 L 5 10 M 7 8.5 L 9 8.5',
         formatValue: (n) => `${n} yr${n !== 1 ? 's' : ''}`,
     },
+    // Project/Repository-specific badges
+    'repo-stars': {
+        label: 'Stars',
+        iconPath: 'M 4.808 4.281 l -3.722 0.540 l -0.066 0.013 a 0.583 0.583 0 0 0 -0.257 0.982 l 2.696 2.624 l -0.636 3.707 l -0.008 0.064 a 0.583 0.583 0 0 0 0.854 0.551 l 3.328 -1.750 l 3.321 1.750 l 0.058 0.027 a 0.583 0.583 0 0 0 0.789 -0.642 l -0.636 -3.707 l 2.697 -2.625 l 0.046 -0.050 a 0.583 0.583 0 0 0 -0.369 -0.945 l -3.722 -0.540 l -1.663 -3.372 a 0.583 0.583 0 0 0 -1.047 0 l -1.664 3.372 z',
+    },
+    'repo-forks': {
+        label: 'Forks',
+        iconPath: 'M 3.5 2 A 1.5 1.5 0 1 1 3.49 2 M 3.5 12 A 1.5 1.5 0 1 1 3.49 12 M 10.5 2 A 1.5 1.5 0 1 1 10.49 2 M 3.5 3.5 L 3.5 10.5 M 10.5 3.5 L 10.5 6 Q 10.5 7.5 7 7.5 L 3.5 7.5',
+    },
+    'repo-watchers': {
+        label: 'Watchers',
+        iconPath: 'M 1 7 Q 7 1.5 13 7 Q 7 12.5 1 7 Z M 7 5 A 2 2 0 1 1 6.99 5',
+    },
+    'repo-issues': {
+        label: 'Issues',
+        iconPath: 'M 7 1 A 6 6 0 1 1 6.99 1 M 7 5 L 7 7.5 M 7 10 L 7 10.2',
+    },
+    'repo-prs': {
+        label: 'Pull Reqs',
+        iconPath: 'M 3 2 A 1.5 1.5 0 1 1 2.99 2 M 3 3.5 L 3 12.5 M 11 2 A 1.5 1.5 0 1 1 10.99 2 M 11 3.5 L 11 9.5 M 11 11 A 1.5 1.5 0 1 1 10.99 11 M 3 9 Q 3 13 9 13 L 9.5 13',
+    },
+    'repo-contributors': {
+        label: 'Contributors',
+        iconPath: 'M 2.917 4.083 a 2.333 2.333 0 1 0 4.667 0 a 2.333 2.333 0 1 0 -4.667 0 M 1.75 12.25 v -1.167 a 2.333 2.333 0 0 1 2.333 -2.333 h 2.333 a 2.333 2.333 0 0 1 2.333 2.333 v 1.167 M 9.333 1.826 a 2.333 2.333 0 0 1 0 4.521 M 12.25 12.25 v -1.167 a 2.333 2.333 0 0 0 -1.75 -2.246',
+    },
+    'repo-size': {
+        label: 'Size',
+        iconPath: 'M 2 4 L 12 4 L 12 10 L 2 10 Z M 4 7 L 10 7 M 4 4 L 4 10 M 10 4 L 10 10',
+        formatValue: (n) => n >= 1024 ? `${(n / 1024).toFixed(1)} MB` : `${n} KB`,
+    },
 };
 
 export class BadgeRenderer {
@@ -119,6 +149,35 @@ export class BadgeRenderer {
 
     static totalJoinedYears(value: number, options: Omit<BadgeOptions, 'type'> = {}): string {
         return BadgeRenderer._render(BADGE_CONFIGS['total-joined-years'], 'total-joined-years', value, options);
+    }
+
+    // Project/Repository-specific badge renderers
+    static repoStars(value: number, options: Omit<BadgeOptions, 'type'> = {}): string {
+        return BadgeRenderer._render(BADGE_CONFIGS['repo-stars'], 'repo-stars', value, options);
+    }
+
+    static repoForks(value: number, options: Omit<BadgeOptions, 'type'> = {}): string {
+        return BadgeRenderer._render(BADGE_CONFIGS['repo-forks'], 'repo-forks', value, options);
+    }
+
+    static repoWatchers(value: number, options: Omit<BadgeOptions, 'type'> = {}): string {
+        return BadgeRenderer._render(BADGE_CONFIGS['repo-watchers'], 'repo-watchers', value, options);
+    }
+
+    static repoIssues(value: number, options: Omit<BadgeOptions, 'type'> = {}): string {
+        return BadgeRenderer._render(BADGE_CONFIGS['repo-issues'], 'repo-issues', value, options);
+    }
+
+    static repoPrs(value: number, options: Omit<BadgeOptions, 'type'> = {}): string {
+        return BadgeRenderer._render(BADGE_CONFIGS['repo-prs'], 'repo-prs', value, options);
+    }
+
+    static repoContributors(value: number, options: Omit<BadgeOptions, 'type'> = {}): string {
+        return BadgeRenderer._render(BADGE_CONFIGS['repo-contributors'], 'repo-contributors', value, options);
+    }
+
+    static repoSize(value: number, options: Omit<BadgeOptions, 'type'> = {}): string {
+        return BadgeRenderer._render(BADGE_CONFIGS['repo-size'], 'repo-size', value, options);
     }
 
     /**

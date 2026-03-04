@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { db } from '../db/index.js';
 import { badges, visitorLogs } from '../db/schema.js';
 import { sql, eq } from 'drizzle-orm';
-import { GitHubClient } from '../utils/github-client.js';
+import { GitHubClient, RepoBadgeType } from '../utils/github-client.js';
 import { BadgeRenderer } from '../components/badge-renderer.js';
 import type { BadgeType, BadgeOptions } from '../types.js';
 
@@ -16,8 +16,11 @@ const COMMON_OPTIONAL_PARAMS = [
     'valueBackground',
 ];
 
-/** Maps a non-visitor BadgeType to the matching badges table column key. */
-const TYPE_TO_COLUMN: Record<Exclude<BadgeType, 'visitors'>, keyof typeof badges.$inferSelect> = {
+/** User-based badge types that have corresponding database columns */
+type UserBadgeType = Exclude<BadgeType, 'visitors' | RepoBadgeType>;
+
+/** Maps a user-based BadgeType to the matching badges table column key. */
+const TYPE_TO_COLUMN: Record<UserBadgeType, keyof typeof badges.$inferSelect> = {
     'repositories': 'repositories',
     'organization': 'organization',
     'languages': 'languages',
@@ -50,6 +53,14 @@ export class BadgeController {
         'total-issues': { requiredParams: ['username'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/total-issues?username=pphatdev' },
         'total-pull-requests': { requiredParams: ['username'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/total-pull-requests?username=pphatdev' },
         'total-joined-years': { requiredParams: ['username'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/total-joined-years?username=pphatdev' },
+        // Project/Repository-specific badge routes
+        'repo-stars': { requiredParams: ['owner', 'repo'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/repo-stars?owner=pphatdev&repo=github-stats' },
+        'repo-forks': { requiredParams: ['owner', 'repo'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/repo-forks?owner=pphatdev&repo=github-stats' },
+        'repo-watchers': { requiredParams: ['owner', 'repo'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/repo-watchers?owner=pphatdev&repo=github-stats' },
+        'repo-issues': { requiredParams: ['owner', 'repo'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/repo-issues?owner=pphatdev&repo=github-stats' },
+        'repo-prs': { requiredParams: ['owner', 'repo'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/repo-prs?owner=pphatdev&repo=github-stats' },
+        'repo-contributors': { requiredParams: ['owner', 'repo'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/repo-contributors?owner=pphatdev&repo=github-stats' },
+        'repo-size': { requiredParams: ['owner', 'repo'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/repo-size?owner=pphatdev&repo=github-stats' },
     };
 
     static initialize(
@@ -104,7 +115,7 @@ export class BadgeController {
     private static async renderGitHubBadge(
         res: Response,
         username: string,
-        type: Exclude<BadgeType, 'visitors'>,
+        type: UserBadgeType,
         options: BadgeOptions,
     ) {
         const cacheKey = BadgeController.buildCacheKey(username, options);
@@ -353,6 +364,176 @@ export class BadgeController {
             await BadgeController.renderGitHubBadge(res, username, 'total-joined-years', BadgeController.parseOptions(req, 'total-joined-years'));
         } catch (err) {
             console.error('BadgeController.getTotalJoinedYears:', err);
+            res.status(500).send(`Error: ${err instanceof Error ? err.message : err}`);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Project/Repository-specific badge endpoints
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /** Validate owner and repo params; sends 400 and returns null on failure. */
+    private static requireOwnerRepo(req: Request, res: Response): { owner: string; repo: string } | null {
+        const { owner, repo } = req.query;
+        if (!owner || typeof owner !== 'string') {
+            res.status(400).send('owner is required');
+            return null;
+        }
+        if (!repo || typeof repo !== 'string') {
+            res.status(400).send('repo is required');
+            return null;
+        }
+        return { owner, repo };
+    }
+
+    /** Parse options for repo badges - use repo name as default label context */
+    private static parseRepoOptions(req: Request, type: BadgeType): BadgeOptions {
+        const { theme, customLabel, labelColor, labelBackground, valueColor, valueBackground, repo } = req.query;
+        return {
+            type,
+            theme: typeof theme === 'string' ? theme : undefined,
+            customLabel: typeof customLabel === 'string' ? customLabel : undefined,
+            labelColor: typeof labelColor === 'string' ? labelColor : undefined,
+            labelBackground: typeof labelBackground === 'string' ? labelBackground : undefined,
+            valueColor: typeof valueColor === 'string' ? valueColor : undefined,
+            valueBackground: typeof valueBackground === 'string' ? valueBackground : undefined,
+        };
+    }
+
+    /** Build a stable cache key from owner, repo, badge type, and display options. */
+    private static buildRepoCacheKey(owner: string, repo: string, options: BadgeOptions): string {
+        return [
+            owner,
+            repo,
+            options.type,
+            options.theme ?? 'default',
+            options.customLabel ?? '',
+            options.labelColor ?? '',
+            options.labelBackground ?? '',
+            options.valueColor ?? '',
+            options.valueBackground ?? '',
+        ].join('|');
+    }
+
+    /** Render a repository-specific badge. */
+    private static async renderRepoBadge(
+        res: Response,
+        owner: string,
+        repo: string,
+        type: RepoBadgeType,
+        options: BadgeOptions,
+    ) {
+        const cacheKey = BadgeController.buildRepoCacheKey(owner, repo, options);
+
+        // 1. In-memory SVG cache hit
+        const cached = BadgeController.cache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < BadgeController.CACHE_DURATION) {
+            res.setHeader('Content-Type', 'image/svg+xml');
+            res.setHeader('Cache-Control', 'public, max-age=600');
+            return res.send(cached.data);
+        }
+
+        // 2. Deduplicate in-flight requests for the same key
+        let pending = BadgeController.pendingRequests.get(cacheKey);
+        if (!pending) {
+            pending = (async () => {
+                // Fetch from GitHub
+                const value = await BadgeController.githubClient.fetchRepoBadgeValue(owner, repo, type);
+                const svg = BadgeRenderer.generateBadge(value, options);
+                BadgeController.cache.set(cacheKey, { data: svg, timestamp: Date.now() });
+                return svg;
+            })();
+
+            BadgeController.pendingRequests.set(cacheKey, pending);
+            pending.finally(() => BadgeController.pendingRequests.delete(cacheKey));
+        }
+
+        const svg = await pending;
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'public, max-age=600');
+        return res.send(svg);
+    }
+
+    /** GET /badge/repo-stars */
+    static async getRepoStars(req: Request, res: Response) {
+        try {
+            const params = BadgeController.requireOwnerRepo(req, res);
+            if (!params) return;
+            await BadgeController.renderRepoBadge(res, params.owner, params.repo, 'repo-stars', BadgeController.parseRepoOptions(req, 'repo-stars'));
+        } catch (err) {
+            console.error('BadgeController.getRepoStars:', err);
+            res.status(500).send(`Error: ${err instanceof Error ? err.message : err}`);
+        }
+    }
+
+    /** GET /badge/repo-forks */
+    static async getRepoForks(req: Request, res: Response) {
+        try {
+            const params = BadgeController.requireOwnerRepo(req, res);
+            if (!params) return;
+            await BadgeController.renderRepoBadge(res, params.owner, params.repo, 'repo-forks', BadgeController.parseRepoOptions(req, 'repo-forks'));
+        } catch (err) {
+            console.error('BadgeController.getRepoForks:', err);
+            res.status(500).send(`Error: ${err instanceof Error ? err.message : err}`);
+        }
+    }
+
+    /** GET /badge/repo-watchers */
+    static async getRepoWatchers(req: Request, res: Response) {
+        try {
+            const params = BadgeController.requireOwnerRepo(req, res);
+            if (!params) return;
+            await BadgeController.renderRepoBadge(res, params.owner, params.repo, 'repo-watchers', BadgeController.parseRepoOptions(req, 'repo-watchers'));
+        } catch (err) {
+            console.error('BadgeController.getRepoWatchers:', err);
+            res.status(500).send(`Error: ${err instanceof Error ? err.message : err}`);
+        }
+    }
+
+    /** GET /badge/repo-issues */
+    static async getRepoIssues(req: Request, res: Response) {
+        try {
+            const params = BadgeController.requireOwnerRepo(req, res);
+            if (!params) return;
+            await BadgeController.renderRepoBadge(res, params.owner, params.repo, 'repo-issues', BadgeController.parseRepoOptions(req, 'repo-issues'));
+        } catch (err) {
+            console.error('BadgeController.getRepoIssues:', err);
+            res.status(500).send(`Error: ${err instanceof Error ? err.message : err}`);
+        }
+    }
+
+    /** GET /badge/repo-prs */
+    static async getRepoPrs(req: Request, res: Response) {
+        try {
+            const params = BadgeController.requireOwnerRepo(req, res);
+            if (!params) return;
+            await BadgeController.renderRepoBadge(res, params.owner, params.repo, 'repo-prs', BadgeController.parseRepoOptions(req, 'repo-prs'));
+        } catch (err) {
+            console.error('BadgeController.getRepoPrs:', err);
+            res.status(500).send(`Error: ${err instanceof Error ? err.message : err}`);
+        }
+    }
+
+    /** GET /badge/repo-contributors */
+    static async getRepoContributors(req: Request, res: Response) {
+        try {
+            const params = BadgeController.requireOwnerRepo(req, res);
+            if (!params) return;
+            await BadgeController.renderRepoBadge(res, params.owner, params.repo, 'repo-contributors', BadgeController.parseRepoOptions(req, 'repo-contributors'));
+        } catch (err) {
+            console.error('BadgeController.getRepoContributors:', err);
+            res.status(500).send(`Error: ${err instanceof Error ? err.message : err}`);
+        }
+    }
+
+    /** GET /badge/repo-size */
+    static async getRepoSize(req: Request, res: Response) {
+        try {
+            const params = BadgeController.requireOwnerRepo(req, res);
+            if (!params) return;
+            await BadgeController.renderRepoBadge(res, params.owner, params.repo, 'repo-size', BadgeController.parseRepoOptions(req, 'repo-size'));
+        } catch (err) {
+            console.error('BadgeController.getRepoSize:', err);
             res.status(500).send(`Error: ${err instanceof Error ? err.message : err}`);
         }
     }

@@ -54,6 +54,11 @@ export function cacheMiddleware(options: CacheMiddlewareOptions) {
 
         const cacheKey = options.keyGenerator(req);
 
+        // Skip caching if no valid cache key
+        if (!cacheKey) {
+            return next();
+        }
+
         try {
             // Try to get from cache
             const cachedResponse = await getCacheValue<any>(cacheKey);
