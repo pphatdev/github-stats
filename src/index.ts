@@ -85,7 +85,7 @@ registerRoutes(app);
 
 app.listen(PORT, () => {
     console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}`);
-    console.log(`📊 Example: ${PROTOCOL}://localhost:${PORT}/stats?username=pphatdev&theme=dark`);
+    console.log(`📊 Example: ${PROTOCOL}://localhost:${PORT}/stats?username=pphatdev`);
     console.log(`🔧 Environment: ${APP_ENV}`);
     console.log(`💾 Cache: ${redis_initialized ? 'Redis ✅' : 'In-Memory (Map) ⚠️'}`);
 
