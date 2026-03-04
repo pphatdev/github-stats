@@ -169,20 +169,19 @@ Required query params:
 
 Optional query params:
 
-- `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
+- Incoming
+
+<!-- - `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
 - `customLabel` — override the label text
 - `labelColor` — label text color
 - `labelBackground` — label background color
 - `valueColor` — value text color
-- `valueBackground` — value background color
+- `valueBackground` — value background color -->
 
 Examples:
 
 ```
 GET https://stats.pphat.top/badge/visitors?username=pphatdev
-GET https://stats.pphat.top/badge/total-stars?username=pphatdev&theme=aurora
-GET https://stats.pphat.top/badge/followers?username=pphatdev&theme=matrix
-GET https://stats.pphat.top/badge/repositories?username=pphatdev&customLabel=Repos
 ```
 
 ### GET /project/:type
@@ -207,20 +206,19 @@ Required query params:
 
 Optional query params:
 
-- `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
+- Incoming
+
+<!-- - `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
 - `customLabel` — override the label text
 - `labelColor` — label text color
 - `labelBackground` — label background color
 - `valueColor` — value text color
-- `valueBackground` — value background color
+- `valueBackground` — value background color -->
 
 Examples:
 
 ```
 GET https://stats.pphat.top/project/stars?repo=pphatdev/github-stats
-GET https://stats.pphat.top/project/forks?repo=pphatdev/github-stats&theme=aurora
-GET https://stats.pphat.top/project/issues?repo=facebook/react&theme=matrix
-GET https://stats.pphat.top/project/contributors?repo=microsoft/vscode&customLabel=Devs
 ```
 
 ## Usage in README
