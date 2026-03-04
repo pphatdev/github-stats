@@ -11,9 +11,9 @@ const H = 26;
 const ICON_SIZE = 12;
 const ICON_PAD_L = 7;
 const ICON_GAP = 13;
-const LABEL_CHARW = 6.5;
+const LABEL_CHARW = 7.5; // Orbitron bold 9.5px + 0.8px letter-spacing (from .badge-text)
 const LABEL_PAD_R = 9;
-const VALUE_CHARW = 8;
+const VALUE_CHARW = 9.5; // Orbitron bold 12px + 0.8px letter-spacing (from .badge-text)
 const VALUE_PAD_H = 12;
 const ICON_SCALE = (ICON_SIZE / 14).toFixed(4);
 const ICON_TOP = ((H - ICON_SIZE) / 2).toFixed(1);
@@ -215,6 +215,7 @@ export class BadgeRenderer {
         const labelBg = rc(options.labelBackground, badgeTheme.labelBackground);
         const valueColor = rc(options.valueColor, badgeTheme.valueColor);
         const valueBg = rc(options.valueBackground, badgeTheme.valueBackground);
+        const iconColor = rc(options.iconColor, labelColor);
 
         const fontName = theme.fontName || 'Orbitron';
         const fontFamily = theme.fontFamily || `'${fontName}', 'Ubuntu', sans-serif`;
@@ -222,15 +223,76 @@ export class BadgeRenderer {
         const labelText = (options.customLabel ?? config.label).toUpperCase();
         const displayValue = config.formatValue ? config.formatValue(value) : value.toLocaleString();
 
+
+        // Dimensions
+        const showIcon = !options.hideIcon;
+        const iconSpace = showIcon ? (ICON_PAD_L + ICON_SIZE + ICON_GAP) : LABEL_PAD_R;
         const labelTextW = Math.ceil(labelText.length * LABEL_CHARW);
-        const labelSecW = ICON_PAD_L + ICON_SIZE + ICON_GAP + labelTextW + LABEL_PAD_R;
+        const labelSecW = iconSpace + labelTextW + LABEL_PAD_R;
         const valueTextW = Math.ceil(displayValue.length * VALUE_CHARW);
         const valueSecW = VALUE_PAD_H + valueTextW + VALUE_PAD_H;
-        const totalWidth = labelSecW + valueSecW;
+        const contentWidth = labelSecW + valueSecW;
 
-        const labelTextX = (ICON_PAD_L + ICON_SIZE + ICON_GAP + labelTextW / 2).toFixed(1);
-        const valueTextX = (labelSecW + valueSecW / 2).toFixed(1);
+        // Add padding for corner brackets
+        const margin = 4;
+        const totalWidth = contentWidth + (margin * 2);
+        const totalHeight = H + (margin * 2);
+        const cornerLen = 8; // Fixed size for consistent appearance
+        const strokeW = 1;
+        const contentX = margin;
+        const contentY = margin;
 
-        return `<svg width="${totalWidth}" height="${H}" viewBox="0 0 ${totalWidth} ${H}" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glow-${type}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="clip-${type}"><rect width="${totalWidth}" height="${H}" rx="4"/></clipPath></defs><style>@font-face{font-family:'${fontName}';font-style:normal;font-weight:400 900;font-display:swap;src:url(/fonts/orbitron.woff2) format('woff2')}.badge-text{font-family:${fontFamily};font-weight:700;letter-spacing:.8px;text-transform:uppercase}</style><rect width="${totalWidth}" height="${H}" rx="4" fill="${valueBg}" stroke="${theme.borderColor}" stroke-width="1"/><path clip-path="url(#clip-${type})" d="M 0 0 H ${labelSecW} V ${H} H 0 Z" fill="${labelBg}"/><g transform="translate(${ICON_PAD_L},${ICON_TOP}) scale(${ICON_SCALE})"><path d="${config.iconPath}" stroke="${labelColor}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".9"/></g><text x="${labelTextX}" y="${TEXT_Y}" text-anchor="middle" class="badge-text" fill="${labelColor}" font-size="9.5">${labelText}</text><line x1="${labelSecW}" y1="5" x2="${labelSecW}" y2="${H - 5}" stroke="${theme.borderColor}" stroke-width="1" opacity=".35"/><text x="${valueTextX}" y="${TEXT_Y}" text-anchor="middle" class="badge-text" fill="${valueColor}" font-size="12" filter="url(#glow-${type})">${displayValue}</text></svg>`;
+        const labelTextX = (contentX + iconSpace + labelTextW / 2).toFixed(1);
+        const valueTextX = (contentX + labelSecW + valueSecW / 2).toFixed(1);
+        const textY = (contentY + H / 2 + 4).toFixed(1);
+        const iconX = (contentX + ICON_PAD_L).toFixed(1);
+        const iconY = (contentY + Number(ICON_TOP)).toFixed(1);
+
+        // Icon SVG element
+        const icon = showIcon ? `
+            <g transform="translate(${iconX}, ${iconY}) scale(${ICON_SCALE})">
+                <path d="${config.iconPath}" fill="${iconColor}" stroke="none"/>
+            </g>
+        ` : '';
+
+        // Corner brackets - clean L-shapes at each corner with theme colors
+        const brackets = options.hideFrame ? '' : `
+            <rect x="0" y="${totalHeight - cornerLen}" width="${strokeW}" height="${cornerLen}" fill="${labelColor}"/>
+            <rect x="0" y="${totalHeight - strokeW}" width="${cornerLen}" height="${strokeW}" fill="${labelColor}"/>
+
+            <rect x="${totalWidth - strokeW}" y="${totalHeight - cornerLen}" width="${strokeW}" height="${cornerLen}" fill="${labelColor}"/>
+            <rect x="${totalWidth - cornerLen}" y="${totalHeight - strokeW}" width="${cornerLen}" height="${strokeW}" fill="${labelColor}"/>
+
+            <rect x="0" y="0" width="${strokeW}" height="${cornerLen}" fill="${labelColor}"/>
+            <rect x="0" y="0" width="${cornerLen}" height="${strokeW}" fill="${labelColor}"/>
+
+            <rect x="${totalWidth - strokeW}" y="0" width="${strokeW}" height="${cornerLen}" fill="${labelColor}"/>
+            <rect x="${totalWidth - cornerLen}" y="0" width="${cornerLen}" height="${strokeW}" fill="${labelColor}"/>
+        `;
+
+        return `
+            <svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter id="glow-${type}" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+                        <feMerge>
+                            <feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <clipPath id="clip-${type}">
+                        <rect x="${contentX}" y="${contentY}" width="${contentWidth}" height="${H}"/>
+                    </clipPath>
+                </defs>
+                <style>@font-face{font-family:'${fontName}';font-style:normal;font-weight:400 900;font-display:swap;src:url(/fonts/orbitron.woff2) format('woff2')}.badge-text{font-family:${fontFamily};font-weight:700;letter-spacing:.8px;text-transform:uppercase}</style>
+                <g clip-path="url(#clip-${type})">
+                    <rect x="${contentX}" y="${contentY}" width="${contentWidth}" height="${H}" fill="${valueBg}"/>
+                    <rect x="${contentX}" y="${contentY}" width="${labelSecW}" height="${H}" fill="${labelBg}"/>
+                </g>
+                ${icon}
+                <text x="${labelTextX}" y="${textY}" text-anchor="middle" class="badge-text" fill="${labelColor}" font-size="9.5">${labelText}</text>
+                <text x="${valueTextX}" y="${textY}" text-anchor="middle" class="badge-text" fill="${valueColor}" font-size="12" filter="url(#glow-${type})">${displayValue}</text>
+            ${brackets}
+            </svg>
+        `;
     }
 }

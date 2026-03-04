@@ -75,7 +75,7 @@ export class BadgeController {
 
     /** Parse common display options from query params. */
     private static parseOptions(req: Request, type: BadgeType): BadgeOptions {
-        const { theme, customLabel, labelColor, labelBackground, valueColor, valueBackground } = req.query;
+        const { theme, customLabel, labelColor, labelBackground, valueColor, valueBackground, hideFrame = 'true', hideIcon = 'false' } = req.query;
         return {
             type,
             theme: typeof theme === 'string' ? theme : undefined,
@@ -84,6 +84,8 @@ export class BadgeController {
             labelBackground: typeof labelBackground === 'string' ? labelBackground : undefined,
             valueColor: typeof valueColor === 'string' ? valueColor : undefined,
             valueBackground: typeof valueBackground === 'string' ? valueBackground : undefined,
+            ...(hideFrame === 'true' ? { hideFrame: true } : {}),
+            ...(hideIcon === 'true' ? { hideIcon: true } : {}),
         };
     }
 
