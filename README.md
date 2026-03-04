@@ -169,19 +169,24 @@ Required query params:
 
 Optional query params:
 
-- Incoming
-
-<!-- - `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
+- `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
 - `customLabel` — override the label text
-- `labelColor` — label text color
-- `labelBackground` — label background color
-- `valueColor` — value text color
-- `valueBackground` — value background color -->
+- `labelColor` — label text color (hex without #, e.g., `ff5733`)
+- `labelBackground` — label background color (hex without #)
+- `iconColor` — icon color (hex without #)
+- `valueColor` — value text color (hex without #)
+- `valueBackground` — value background color (hex without #)
+- `hideFrame` — hide corner bracket frame (`true` | `false`, default: `false`)
+- `hideIcon` — hide badge icon (`true` | `false`, default: `false`)
 
 Examples:
 
 ```
 GET https://stats.pphat.top/badge/visitors?username=pphatdev
+GET https://stats.pphat.top/badge/total-stars?username=pphatdev&theme=ocean
+GET https://stats.pphat.top/badge/repositories?username=pphatdev&hideFrame=true
+GET https://stats.pphat.top/badge/followers?username=pphatdev&hideIcon=true&theme=neon
+GET https://stats.pphat.top/badge/total-commits?username=pphatdev&hideFrame=true&hideIcon=true
 ```
 
 ### GET /project/:type
@@ -206,19 +211,23 @@ Required query params:
 
 Optional query params:
 
-- Incoming
-
-<!-- - `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
+- `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
 - `customLabel` — override the label text
-- `labelColor` — label text color
-- `labelBackground` — label background color
-- `valueColor` — value text color
-- `valueBackground` — value background color -->
+- `labelColor` — label text color (hex without #, e.g., `ff5733`)
+- `labelBackground` — label background color (hex without #)
+- `iconColor` — icon color (hex without #)
+- `valueColor` — value text color (hex without #)
+- `valueBackground` — value background color (hex without #)
+- `hideFrame` — hide corner bracket frame (`true` | `false`, default: `false`)
+- `hideIcon` — hide badge icon (`true` | `false`, default: `false`)
 
 Examples:
 
 ```
 GET https://stats.pphat.top/project/stars?repo=pphatdev/github-stats
+GET https://stats.pphat.top/project/forks?repo=pphatdev/github-stats&theme=aurora
+GET https://stats.pphat.top/project/issues?repo=pphatdev/github-stats&hideFrame=true
+GET https://stats.pphat.top/project/contributors?repo=pphatdev/github-stats&hideIcon=true
 ```
 
 ## Usage in README
@@ -273,6 +282,27 @@ Badges with theme and custom label:
 ```markdown
 ![Visitor Badge](https://stats.pphat.top/badge/visitors?username=YOUR_USERNAME&theme=aurora)
 ![Stars](https://stats.pphat.top/badge/total-stars?username=YOUR_USERNAME&theme=matrix&customLabel=Stars)
+```
+
+Minimal badges (no frame, no icon):
+
+```markdown
+![Visitor Badge](https://stats.pphat.top/badge/visitors?username=YOUR_USERNAME&hideFrame=true&hideIcon=true)
+![Total Stars](https://stats.pphat.top/badge/total-stars?username=YOUR_USERNAME&hideFrame=true&hideIcon=true&theme=ocean)
+```
+
+Badges without frame (clean border):
+
+```markdown
+![Repositories](https://stats.pphat.top/badge/repositories?username=YOUR_USERNAME&hideFrame=true)
+![Followers](https://stats.pphat.top/badge/followers?username=YOUR_USERNAME&hideFrame=true&theme=neon)
+```
+
+Badges without icon (text focus):
+
+```markdown
+![Languages](https://stats.pphat.top/badge/languages?username=YOUR_USERNAME&hideIcon=true)
+![Commits](https://stats.pphat.top/badge/total-commits?username=YOUR_USERNAME&hideIcon=true&theme=matrix)
 ```
 
 Project/repository badges:
