@@ -4,12 +4,12 @@
 
 <div align="center" style="margin-top: 20px;">
 
-![Portfolio](https://stats.pphat.top/badge/visitors?username=pphatdev&theme=ocean&valueColor=ffffff)
-![Portfolio](https://stats.pphat.top/badge/repositories?username=pphatdev&theme=ocean&valueColor=ffffff)
-![Portfolio](https://stats.pphat.top/badge/languages?username=pphatdev&theme=ocean&valueColor=ffffff)
-![Portfolio](https://stats.pphat.top/badge/followers?username=pphatdev&theme=ocean&valueColor=ffffff)
-![Portfolio](https://stats.pphat.top/badge/total-stars?username=pphatdev&theme=ocean&valueColor=ffffff)
-![Portfolio](https://stats.pphat.top/badge/total-contributors?username=pphatdev&theme=ocean&valueColor=ffffff)
+![Portfolio](https://stats.pphat.top/badge/visitors?username=pphatdev&theme=ocean)
+![Portfolio](https://stats.pphat.top/badge/repositories?username=pphatdev&theme=ocean)
+![Portfolio](https://stats.pphat.top/badge/languages?username=pphatdev&theme=ocean)
+![Portfolio](https://stats.pphat.top/badge/followers?username=pphatdev&theme=ocean)
+![Portfolio](https://stats.pphat.top/badge/total-stars?username=pphatdev&theme=ocean)
+![Portfolio](https://stats.pphat.top/badge/total-contributors?username=pphatdev&theme=ocean)
 </div>
 
 <h1 align="center">Fast GitHub Stats Graph 🚀</h1>
@@ -506,3 +506,4 @@ WORKERS=4 npm run start:cluster
 ## License
 
 MIT. See LICENSE.
+
