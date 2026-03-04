@@ -2,7 +2,7 @@ import { BadgeTheme } from '../../types.js';
 
 export const badgeThemes: { [key: string]: BadgeTheme } = {
     default: {
-        labelColor: "#ffffff",
+        labelColor: "#c0a3fb",
         labelBackground: "#333333",
         valueColor: "#ffffff",
         valueBackground: "#4c1a8a"
@@ -34,7 +34,7 @@ export const badgeThemes: { [key: string]: BadgeTheme } = {
     neon: {
         labelColor: '#ff99ee',
         labelBackground: '#3d0050',
-        valueColor: '#0a000f',
+        valueColor: '#ffffff',
         valueBackground: '#cc00ff',
     },
     solar: {
@@ -50,9 +50,9 @@ export const badgeThemes: { [key: string]: BadgeTheme } = {
         valueBackground: '#8b5cf6',
     },
     'github-dark': {
-        labelColor: '#c9d1d9',
+        labelColor: '#8ad095',
         labelBackground: '#21262d',
-        valueColor: '#0d1117',
+        valueColor: '#ffffff',
         valueBackground: '#39d353',
     },
 };
