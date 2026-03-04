@@ -223,7 +223,7 @@ export class GitHubService extends BaseService {
                     // Fetch commits year by year (GitHub only allows 1 year at a time)
                     const years: { from: Date; to: Date }[] = [];
                     let yearStart = new Date(createdAt.getFullYear(), 0, 1);
-                    
+
                     while (yearStart <= now) {
                         const yearEnd = new Date(yearStart.getFullYear(), 11, 31, 23, 59, 59);
                         years.push({

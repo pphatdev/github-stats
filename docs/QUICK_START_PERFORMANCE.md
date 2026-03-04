@@ -46,7 +46,7 @@ REDIS_PASSWORD=your_password
 
 ### 3. Set Cache TTL
 ```env
-CACHE_DURATION=600  # 10 minutes
+CACHE_DURATION=7200000  # 2 hours in milliseconds
 ```
 
 ## 📈 Monitoring

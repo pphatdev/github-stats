@@ -35,7 +35,10 @@ We welcome feature suggestions! Please create an issue with:
 
 To add a new theme:
 
-1. Edit `src/themes.ts`
+1. Edit the appropriate file in `src/utils/themes/`:
+   - `base.ts` - General-purpose themes (stats, languages)
+   - `graph.ts` - Graph/heatmap optimized themes
+   - `badge.ts` - Badge-specific themes
 2. Test the theme with `?theme=yourtheme`
 3. Submit a PR with a screenshot
 
@@ -45,6 +48,9 @@ To add a new theme:
 # Install dependencies
 npm install
 
+# Setup database
+npm run db:push
+
 # Run in development mode
 npm run dev
 
@@ -53,6 +59,9 @@ npm run build
 
 # Run production build
 npm start
+
+# Run in cluster mode (production)
+npm run start:cluster
 ```
 
 ## Code Style
