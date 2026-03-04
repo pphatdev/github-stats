@@ -204,6 +204,90 @@
           "query": [{ "key": "username", "value": "pphatdev" }]
         }
       }
+    },
+    {
+      "name": "Project Badge - Stars",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/project/stars?repo=pphatdev/github-stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["project", "stars"],
+          "query": [{ "key": "repo", "value": "pphatdev/github-stats" }]
+        }
+      }
+    },
+    {
+      "name": "Project Badge - Forks",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/project/forks?repo=pphatdev/github-stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["project", "forks"],
+          "query": [{ "key": "repo", "value": "pphatdev/github-stats" }]
+        }
+      }
+    },
+    {
+      "name": "Project Badge - Watchers",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/project/watchers?repo=pphatdev/github-stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["project", "watchers"],
+          "query": [{ "key": "repo", "value": "pphatdev/github-stats" }]
+        }
+      }
+    },
+    {
+      "name": "Project Badge - Issues",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/project/issues?repo=pphatdev/github-stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["project", "issues"],
+          "query": [{ "key": "repo", "value": "pphatdev/github-stats" }]
+        }
+      }
+    },
+    {
+      "name": "Project Badge - PRs",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/project/prs?repo=pphatdev/github-stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["project", "prs"],
+          "query": [{ "key": "repo", "value": "pphatdev/github-stats" }]
+        }
+      }
+    },
+    {
+      "name": "Project Badge - Contributors",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/project/contributors?repo=pphatdev/github-stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["project", "contributors"],
+          "query": [{ "key": "repo", "value": "pphatdev/github-stats" }]
+        }
+      }
+    },
+    {
+      "name": "Project Badge - Size",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/project/size?repo=pphatdev/github-stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["project", "size"],
+          "query": [{ "key": "repo", "value": "pphatdev/github-stats" }]
+        }
+      }
     }
   ],
   "variable": [
