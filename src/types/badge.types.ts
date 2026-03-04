@@ -48,12 +48,18 @@ export interface BadgeOptions {
     labelBackground?: string;
     /** Override label text color */
     labelColor?: string;
+    /** Override icon color */
+    iconColor?: string;
     /** Override value background color */
     valueBackground?: string;
     /** Override value text color */
     valueColor?: string;
     /** Custom label text (overrides the default derived from type) */
     customLabel?: string;
+    /** Hide the corner bracket frame (default: false) */
+    hideFrame?: boolean;
+    /** Hide the icon (default: false) */
+    hideIcon?: boolean;
 }
 
 /** Common optional parameters for badge routes */
@@ -62,6 +68,7 @@ export const BADGE_OPTIONAL_PARAMS = [
     'customLabel',
     'labelColor',
     'labelBackground',
+    'iconColor',
     'valueColor',
     'valueBackground',
 ] as const;

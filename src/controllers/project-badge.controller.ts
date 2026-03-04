@@ -17,43 +17,43 @@ export class ProjectBadgeController {
     static routeDocs: Record<ProjectBadgeType, BadgeRouteDoc> = {
         'repo-stars': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/stars?repo=pphatdev/github-stats'
         },
         'repo-forks': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/forks?repo=pphatdev/github-stats'
         },
         'repo-watchers': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/watchers?repo=pphatdev/github-stats'
         },
         'repo-issues': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/issues?repo=pphatdev/github-stats'
         },
         'repo-prs': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/prs?repo=pphatdev/github-stats'
         },
         'repo-contributors': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/contributors?repo=pphatdev/github-stats'
         },
         'repo-size': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/size?repo=pphatdev/github-stats'
         },
@@ -89,13 +89,14 @@ export class ProjectBadgeController {
 
     /** Parse options for project badges */
     private static parseOptions(req: Request, type: ProjectBadgeType): BadgeOptions {
-        const { theme, customLabel, labelColor, labelBackground, valueColor, valueBackground } = req.query;
+        const { theme, customLabel, labelColor, labelBackground, iconColor, valueColor, valueBackground } = req.query;
         return {
             type,
             theme: typeof theme === 'string' ? theme : undefined,
             customLabel: typeof customLabel === 'string' ? customLabel : undefined,
             labelColor: typeof labelColor === 'string' ? labelColor : undefined,
             labelBackground: typeof labelBackground === 'string' ? labelBackground : undefined,
+            iconColor: typeof iconColor === 'string' ? iconColor : undefined,
             valueColor: typeof valueColor === 'string' ? valueColor : undefined,
             valueBackground: typeof valueBackground === 'string' ? valueBackground : undefined,
         };
@@ -112,6 +113,7 @@ export class ProjectBadgeController {
             options.customLabel ?? '',
             options.labelColor ?? '',
             options.labelBackground ?? '',
+            options.iconColor ?? '',
             options.valueColor ?? '',
             options.valueBackground ?? '',
         ].join('|');

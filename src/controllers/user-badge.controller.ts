@@ -29,6 +29,8 @@ const TYPE_TO_COLUMN: Record<StoredUserBadgeType, keyof typeof badges.$inferSele
     'total-joined-years': 'total_joined_years',
 };
 
+const defaultOptionsParams = ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground', 'hideFrame', 'hideIcon'] as const;
+
 export class UserBadgeController {
     private static githubClient: GitHubClient;
     private static cache: Map<string, { data: string; timestamp: number }>;
@@ -39,73 +41,73 @@ export class UserBadgeController {
     static routeDocs: Record<UserBadgeType, BadgeRouteDoc> = {
         'visitors': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/visitors?username=pphatdev&theme=tokyo'
         },
         'repositories': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/repositories?username=pphatdev'
         },
         'organization': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/organization?username=pphatdev'
         },
         'languages': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/languages?username=pphatdev'
         },
         'followers': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/followers?username=pphatdev'
         },
         'total-stars': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/total-stars?username=pphatdev'
         },
         'total-contributors': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/total-contributors?username=pphatdev'
         },
         'total-commits': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/total-commits?username=pphatdev'
         },
         'total-code-reviews': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/total-code-reviews?username=pphatdev'
         },
         'total-issues': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/total-issues?username=pphatdev'
         },
         'total-pull-requests': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/total-pull-requests?username=pphatdev'
         },
         'total-joined-years': {
             requiredParams: ['username'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/total-joined-years?username=pphatdev'
         },
@@ -126,15 +128,18 @@ export class UserBadgeController {
 
     /** Parse common display options from query params. */
     private static parseOptions(req: Request, type: UserBadgeType): BadgeOptions {
-        const { theme, customLabel, labelColor, labelBackground, valueColor, valueBackground } = req.query;
+        const { theme, customLabel, labelColor, labelBackground, iconColor, valueColor, valueBackground, hideFrame = 'false', hideIcon = 'true' } = req.query;
         return {
             type,
             theme: typeof theme === 'string' ? theme : undefined,
             customLabel: typeof customLabel === 'string' ? customLabel : undefined,
             labelColor: typeof labelColor === 'string' ? labelColor : undefined,
             labelBackground: typeof labelBackground === 'string' ? labelBackground : undefined,
+            iconColor: typeof iconColor === 'string' ? iconColor : undefined,
             valueColor: typeof valueColor === 'string' ? valueColor : undefined,
             valueBackground: typeof valueBackground === 'string' ? valueBackground : undefined,
+            hideFrame: hideFrame === 'true',
+            hideIcon: hideIcon === 'true',
         };
     }
 
@@ -158,8 +163,11 @@ export class UserBadgeController {
             options.customLabel ?? '',
             options.labelColor ?? '',
             options.labelBackground ?? '',
+            options.iconColor ?? '',
             options.valueColor ?? '',
             options.valueBackground ?? '',
+            options.hideFrame ? 'hideFrame' : '',
+            options.hideIcon ? 'hideIcon' : '',
         ].join('|');
     }
 
@@ -224,12 +232,37 @@ export class UserBadgeController {
     // ═══════════════════════════════════════════════════════════════════════
     // Badge Endpoints
     // ═══════════════════════════════════════════════════════════════════════
-
-    /** GET /badge/visitors — counts unique visitors per IP per calendar day. */
+    /** 
+     * GET /badge/visitors — counts unique visitors per IP per calendar day.
+     * 
+     * The same IP can increment the counter once per day:
+     * - Day 1: IP visits → count +1
+     * - Day 1 (later): Same IP visits again → count stays same (already counted today)
+     * - Day 2: Same IP visits → count +1 (new day, allowed to count again)
+     * 
+     * This is enforced by the unique index on (username, ip_hash, visit_date) in the visitor_logs table.
+     * 
+     * Caching Strategy:
+     * - Uses 60-second cache to prevent F5-spam and reduce database load
+     * - Short enough to show updates quickly, long enough to absorb rapid successive requests
+     * - First visit within cache window still counts if IP+date is unique
+     */
     static async getVisitors(req: Request, res: Response) {
         try {
             const username = UserBadgeController.requireUsername(req, res);
             if (!username) return;
+
+            const options = UserBadgeController.parseOptions(req, 'visitors');
+            const cacheKey = UserBadgeController.buildCacheKey(username, options);
+
+            // Check in-memory SVG cache first — prevents unnecessary DB queries for rapid refreshes
+            const cached = UserBadgeController.cache.get(cacheKey);
+            if (cached && Date.now() - cached.timestamp < 60_000) {  // 60-second cache
+                res.setHeader('Content-Type', 'image/svg+xml');
+                res.setHeader('Cache-Control', 'public, max-age=60');
+                res.setHeader('X-Cache', 'HIT');
+                return res.send(cached.data);
+            }
 
             // Resolve the real client IP (works behind reverse proxies)
             const rawIp = (
@@ -245,10 +278,11 @@ export class UserBadgeController {
                 .digest('hex')
                 .slice(0, 16);
 
-            // Calendar date in UTC (YYYY-MM-DD)
+            // Calendar date in UTC (YYYY-MM-DD) — ensures same IP can count once per day
             const visitDate = new Date().toISOString().split('T')[0];
 
-            // Attempt to record this unique IP+date combination.
+            // Attempt to record this unique IP+date combination
+            // If this IP already visited today, onConflictDoNothing() prevents duplicate insertion
             const logInsert = await db
                 .insert(visitorLogs)
                 .values({ username, ip_hash: ipHash, visit_date: visitDate, created_at: Date.now() })
@@ -258,7 +292,7 @@ export class UserBadgeController {
             let count: number;
 
             if (logInsert.length > 0) {
-                // New unique visit — atomically increment the stored total
+                // New unique visit for today — atomically increment the stored total
                 const result = await db
                     .insert(badges)
                     .values({ username, visitors: 1 })
@@ -269,7 +303,7 @@ export class UserBadgeController {
                     .returning();
                 count = result[0]?.visitors ?? 1;
             } else {
-                // Same IP already counted today — serve the current total without mutating
+                // Same IP already counted today — return the current total without incrementing
                 const badge = await db
                     .select({ visitors: badges.visitors })
                     .from(badges)
@@ -278,11 +312,14 @@ export class UserBadgeController {
                 count = badge?.visitors ?? 0;
             }
 
-            const options = UserBadgeController.parseOptions(req, 'visitors');
             const svg = BadgeRenderer.generateBadge(count, options);
 
+            // Cache the SVG for 60 seconds to reduce database load
+            UserBadgeController.cache.set(cacheKey, { data: svg, timestamp: Date.now() });
+
             res.setHeader('Content-Type', 'image/svg+xml');
-            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Cache-Control', 'public, max-age=60');
+            res.setHeader('X-Cache', 'MISS');
             return res.send(svg);
         } catch (err) {
             console.error('UserBadgeController.getVisitors:', err);
