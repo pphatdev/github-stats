@@ -205,8 +205,8 @@ let globalLogger: Logger | null = null;
  */
 export function getLogger(context?: LogContext): Logger {
     if (!globalLogger) {
-        const level = process.env.LOG_LEVEL as LogLevel || 
-                     (process.env.NODE_ENV === 'production' ? LogLevel.INFO : LogLevel.DEBUG);
+        const level = process.env.LOG_LEVEL as LogLevel ||
+            (process.env.NODE_ENV === 'production' ? LogLevel.INFO : LogLevel.DEBUG);
         globalLogger = new Logger({}, level);
     }
 

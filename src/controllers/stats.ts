@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import { GitHubClient } from '../utils/github-client.js';
 import { CardRenderer } from '../components/card-renderer.js';
+import { createLogger } from '../common/logger.js';
 import sharp from 'sharp';
+
+const logger = createLogger({ controller: 'StatsController' });
+
 export class StatsController {
     private static githubClient: GitHubClient;
     private static cache: Map<string, { data: string; timestamp: number }>;
@@ -178,8 +182,7 @@ export class StatsController {
             res.send(card);
         } catch (error) {
             timings['total'] = Date.now() - startTime;
-            console.error('Error generating stats:', error);
-            console.error('Timings:', timings);
+            logger.error('Error generating stats', error as Error, { timings });
             res.status(500).send(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }

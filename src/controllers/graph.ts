@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { GitHubClient } from '../utils/github-client.js';
 import { GraphRenderer } from '../components/graph-renderer.js';
+import { createLogger } from '../common/logger.js';
 import sharp from 'sharp';
 import { Resvg } from '@resvg/resvg-js';
 import { spawn } from 'child_process';
@@ -13,6 +14,8 @@ const ffmpegPath = _require('ffmpeg-static') as string;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const publicDir = join(__dirname, '..', '..', 'public');
+
+const logger = createLogger({ controller: 'GraphController' });
 
 export class GraphController {
     private static githubClient: GitHubClient;
@@ -224,8 +227,7 @@ export class GraphController {
             res.send(svg);
         } catch (error) {
             timings['total'] = Date.now() - startTime;
-            console.error('Error generating graph:', error);
-            console.error('Timings:', timings);
+            logger.error('Error generating graph', error as Error, { timings });
             res.status(500).send(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }

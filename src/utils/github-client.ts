@@ -39,6 +39,14 @@ export class GitHubClient {
         }
     }
 
+    /**
+     * Clear all caches
+     */
+    clearCache(): void {
+        this.requestCache.clear();
+        this.pendingRequests.clear();
+    }
+
     // Return default stats for user not found
     private getDefaultStats(username: string): GitHubStats {
         return {
@@ -289,7 +297,6 @@ export class GitHubClient {
                 };
             });
         } catch (error: any) {
-            console.error('Error fetching contributions:', error);
             throw new Error(`Failed to fetch contributions for ${username}: ${error.message}`);
         }
     }

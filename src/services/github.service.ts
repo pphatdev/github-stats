@@ -14,6 +14,9 @@ import {
 } from '../common/errors.js';
 import { getConfig } from '../config/index.js';
 
+/** Project/Repository-specific badge types */
+export type RepoBadgeType = 'repo-stars' | 'repo-forks' | 'repo-watchers' | 'repo-issues' | 'repo-prs' | 'repo-contributors' | 'repo-size';
+
 /**
  * GitHub service for interacting with GitHub API
  */
@@ -22,6 +25,7 @@ export class GitHubService extends BaseService {
     private requestCache: Map<string, { data: any; timestamp: number }>;
     private deduplication: RequestDeduplicationService;
     private config: ReturnType<typeof getConfig>;
+    private cleanupInterval?: NodeJS.Timeout;
 
     constructor(token?: string) {
         super('GitHubService');
@@ -35,7 +39,7 @@ export class GitHubService extends BaseService {
         this.deduplication = new RequestDeduplicationService();
 
         // Clear expired cache entries periodically
-        setInterval(() => this.cleanupCache(), 10 * 60 * 1000); // Every 10 minutes
+        this.cleanupInterval = setInterval(() => this.cleanupCache(), 10 * 60 * 1000); // Every 10 minutes
     }
 
     /**
@@ -188,16 +192,14 @@ export class GitHubService extends BaseService {
                         }
                     `;
 
-                    let userData: any;
-                    try {
-                        const response: any = await this.octokit.graphql(query, { username });
-                        userData = response.user;
-                    } catch (error: any) {
+                    const response: any = await this.octokit.graphql(query, { username }).catch((error: any) => {
                         if (error.status === 404 || error.errors?.[0]?.type === 'NOT_FOUND') {
-                            return this.getDefaultStats(username);
+                            return { user: null };
                         }
                         throw error;
-                    }
+                    });
+
+                    const userData = response.user;
 
                     if (!userData) {
                         return this.getDefaultStats(username);
@@ -281,7 +283,7 @@ export class GitHubService extends BaseService {
                         rank,
                     };
                 } catch (error: any) {
-                    this.handleGitHubError(error, username);
+                    return this.handleGitHubError(error, username);
                 }
             });
         });
@@ -312,10 +314,23 @@ export class GitHubService extends BaseService {
                         .map(([name, count]) => ({ name, count }))
                         .sort((a, b) => b.count - a.count);
                 } catch (error: any) {
-                    this.handleGitHubError(error, username);
+                    return this.handleGitHubError(error, username);
                 }
             });
         });
+    }
+
+    /**
+     * Parse contribution level from GitHub API
+     */
+    private parseContributionLevel(level: string): number {
+        switch (level) {
+            case 'FIRST_QUARTILE': return 1;
+            case 'SECOND_QUARTILE': return 2;
+            case 'THIRD_QUARTILE': return 3;
+            case 'FOURTH_QUARTILE': return 4;
+            default: return 0;
+        }
     }
 
     /**
@@ -355,9 +370,21 @@ export class GitHubService extends BaseService {
                         to
                     });
 
-                    return response.user.contributionsCollection.contributionCalendar;
+                    const calendar = response.user.contributionsCollection.contributionCalendar;
+
+                    return {
+                        username,
+                        totalContributions: calendar.totalContributions,
+                        weeks: calendar.weeks.map((week: any) =>
+                            week.contributionDays.map((day: any) => ({
+                                date: day.date,
+                                count: day.contributionCount,
+                                level: this.parseContributionLevel(day.contributionLevel)
+                            }))
+                        )
+                    };
                 } catch (error: any) {
-                    this.handleGitHubError(error, username);
+                    return this.handleGitHubError(error, username);
                 }
             });
         });
@@ -367,49 +394,169 @@ export class GitHubService extends BaseService {
      * Fetch badge value
      */
     async fetchBadgeValue(username: string, type: Exclude<BadgeType, 'visitors'>): Promise<number> {
+        const key = `badge-${type}-${username}`;
+
         return this.executeWithLogging(`fetchBadgeValue(${username}, ${type})`, async () => {
-            return this.cachedRequest(`badge-${username}-${type}`, async () => {
-                try {
-                    const { data: user } = await this.octokit.users.getByUsername({ username });
+            switch (type) {
+                // ── profile fields (single user request) ──────────────────────
+                case 'repositories':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.users.getByUsername({ username });
+                        return data.public_repos;
+                    });
 
-                    switch (type) {
-                        case 'repositories':
-                            return user.public_repos || 0;
-                        case 'followers':
-                            return user.followers || 0;
-                        case 'organization':
-                            return user.public_gists || 0; // Approximation
-                        default:
-                            // For other types, fetch stats
-                            const stats = await this.fetchUserStats(username, { avatarMode: 'none' });
+                case 'followers':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.users.getByUsername({ username });
+                        return data.followers;
+                    });
 
-                            switch (type) {
-                                case 'languages':
-                                    const langs = await this.fetchUserLanguages(username);
-                                    return langs.length;
-                                case 'total-stars':
-                                    return stats.totalStars;
-                                case 'total-commits':
-                                    return stats.totalCommits;
-                                case 'total-issues':
-                                    return stats.totalIssues;
-                                case 'total-pull-requests':
-                                    return stats.totalPRs;
-                                case 'total-contributors':
-                                    return stats.contributedTo;
-                                case 'total-code-reviews':
-                                    return Math.floor(stats.totalPRs * 0.5); // Estimate
-                                case 'total-joined-years':
-                                    const joinedYear = new Date(user.created_at).getFullYear();
-                                    return new Date().getFullYear() - joinedYear;
-                                default:
-                                    return 0;
-                            }
-                    }
-                } catch (error: any) {
-                    this.handleGitHubError(error, username);
+                case 'total-joined-years':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.users.getByUsername({ username });
+                        const joinedYear = new Date(data.created_at).getFullYear();
+                        return new Date().getFullYear() - joinedYear;
+                    });
+
+                // ── organization membership ────────────────────────────────────
+                case 'organization':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.orgs.listForUser({ username, per_page: 100 });
+                        return data.length;
+                    });
+
+                // ── derived from repo list ─────────────────────────────────────
+                case 'languages': {
+                    const langs = await this.fetchUserLanguages(username);
+                    return langs.length;
                 }
-            });
+
+                case 'total-stars':
+                    return this.cachedRequest(key, async () => {
+                        const { data: repos } = await this.octokit.repos.listForUser({
+                            username, per_page: 100, type: 'owner',
+                        });
+                        return repos.reduce((acc, r) => acc + (r.stargazers_count ?? 0), 0);
+                    });
+
+                case 'total-contributors':
+                    return this.cachedRequest(key, async () => {
+                        // Fetch top-10 most-starred repos to keep API calls manageable
+                        const { data: repos } = await this.octokit.repos.listForUser({
+                            username, per_page: 10, type: 'owner', sort: 'pushed', direction: 'desc',
+                        });
+                        const unique = new Set<string>();
+                        for (const repo of repos) {
+                            try {
+                                const { data: contribs } = await this.octokit.repos.listContributors({
+                                    owner: username, repo: repo.name, per_page: 100,
+                                });
+                                contribs.forEach(c => c.login && unique.add(c.login));
+                            } catch { /* non-critical – skip unavailable repos */ }
+                        }
+                        return unique.size;
+                    });
+
+                // ── search API ────────────────────────────────────────────────
+                case 'total-commits':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.search.commits({
+                            q: `author:${username}`, per_page: 1,
+                        });
+                        return data.total_count;
+                    });
+
+                case 'total-code-reviews':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.search.issuesAndPullRequests({
+                            q: `reviewed-by:${username} type:pr`, per_page: 1,
+                        });
+                        return data.total_count;
+                    });
+
+                case 'total-issues':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.search.issuesAndPullRequests({
+                            q: `author:${username} type:issue`, per_page: 1,
+                        });
+                        return data.total_count;
+                    });
+
+                case 'total-pull-requests':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.search.issuesAndPullRequests({
+                            q: `author:${username} type:pr`, per_page: 1,
+                        });
+                        return data.total_count;
+                    });
+
+                default:
+                    throw new Error(`Unknown badge type: ${type}`);
+            }
+        });
+    }
+
+    /**
+     * Fetch the numeric value for a given repository/project badge type.
+     * Requires both owner and repo name.
+     */
+    async fetchRepoBadgeValue(owner: string, repo: string, type: RepoBadgeType): Promise<number> {
+        const key = `repo-badge-${type}-${owner}-${repo}`;
+
+        return this.executeWithLogging(`fetchRepoBadgeValue(${owner}/${repo}, ${type})`, async () => {
+            switch (type) {
+                case 'repo-stars':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.repos.get({ owner, repo });
+                        return data.stargazers_count;
+                    });
+
+                case 'repo-forks':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.repos.get({ owner, repo });
+                        return data.forks_count;
+                    });
+
+                case 'repo-watchers':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.repos.get({ owner, repo });
+                        return data.subscribers_count;
+                    });
+
+                case 'repo-issues':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.repos.get({ owner, repo });
+                        return data.open_issues_count;
+                    });
+
+                case 'repo-prs':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.search.issuesAndPullRequests({
+                            q: `repo:${owner}/${repo} type:pr state:open`,
+                            per_page: 1,
+                        });
+                        return data.total_count;
+                    });
+
+                case 'repo-contributors':
+                    return this.cachedRequest(key, async () => {
+                        const response = await this.octokit.repos.listContributors({
+                            owner,
+                            repo,
+                            per_page: 100,
+                        });
+                        return response.data.length;
+                    });
+
+                case 'repo-size':
+                    return this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.repos.get({ owner, repo });
+                        return data.size; // Size in KB
+                    });
+
+                default:
+                    throw new Error(`Unknown repo badge type: ${type}`);
+            }
         });
     }
 
@@ -429,5 +576,18 @@ export class GitHubService extends BaseService {
             size: this.requestCache.size,
             pendingRequests: this.deduplication.getPendingCount(),
         };
+    }
+
+    /**
+     * Cleanup resources and stop background tasks
+     * Call this when the service is no longer needed to prevent memory leaks
+     */
+    destroy(): void {
+        if (this.cleanupInterval) {
+            clearInterval(this.cleanupInterval);
+            this.cleanupInterval = undefined;
+        }
+        this.clearCache();
+        this.logger.info('GitHub service destroyed');
     }
 }
