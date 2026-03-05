@@ -14,73 +14,53 @@
 
 <h1 align="center">Fast GitHub Stats Graph 🚀</h1>
 
-Generate dynamic GitHub stats and language cards for README embeds.
-
-
-## ⚡ Performance Features
-
-**Ultimate Speed Edition** - Optimized for maximum performance:
-
-- 🚀 **8x Faster**: Cluster mode utilizes all CPU cores
-- ⚡ **10x Quicker Response**: Average 50ms (was 500ms)
-- 💾 **90% Smaller**: Response compression (45KB → 5KB)
-- 🔥 **95%+ Cache Hit Rate**: Multi-tier caching (Memory → Redis)
-- 🎯 **Zero Duplicate Requests**: Smart request coalescing
-- 📊 **Production Ready**: Rate limiting, security headers, monitoring
-
-**Quick Start (High Performance Mode):**
-```bash
-npm run build
-npm run start:cluster  # Use all CPU cores
-```
-
-📚 **Full Performance Guide**: [docs/PERFORMANCE.md](docs/PERFORMANCE.md)
+Create beautiful, real-time GitHub stats cards, badges, and contribution graphs that are easy to customize and perfect for your profile README or project docs.
 
 ## Endpoints
 
-### GET /
+### `GET /stats`
 
-Returns JSON describing the live route list and static asset roots.
+Returns an SVG Statistic card or pie chart for a user.
 
 Example:
 
 ```
-GET https://stats.pphat.top/
+GET https://stats.pphat.top/stats?username=pphatdev
 ```
-
-### GET /stats
-
-Returns an SVG (default) or WebP stats card for a user.
-
 Required query params:
 
 - username
 
 Optional query params:
 
-- theme
-- hide_title
-- hide_border
-- hide_rank
-- show_icons
-- avatar_mode (none | avatar | radar)
-- show_avatar (legacy alias, true sets avatar_mode=avatar)
-- custom_title
-- data_border_style (solid | frame)
-- data_border_frame (in | out)
-- bgColor
-- borderColor
-- textColor
-- titleColor
-- format (svg | webp)
+| Param | Description |
+|-------|-------------|
+| `theme` | Theme preset |
+| `hide_title` | Hide title (`true`/`false`) |
+| `hide_border` | Hide border (`true`/`false`) |
+| `hide_rank` | Hide rank (`true`/`false`) |
+| `show_icons` | Show icons (`true`/`false`) |
+| `avatar_mode` | Avatar mode: `none` / `avatar` / `radar` |
+| `show_avatar` | Legacy alias; `true` sets `avatar_mode=avatar` |
+| `custom_title` | Custom card title |
+| `data_border_style` | Border style: `solid` / `frame` |
+| `data_border_frame` | Border frame position: `in` / `out` |
+| `bgColor` | Background color |
+| `borderColor` | Border color |
+| `textColor` | Text color |
+| `titleColor` | Title color |
+| `format` | Output format: `svg` / `webp` |
 
 Example:
 
+![GitHub Stats](https://stats.pphat.top/stats?username=pphatdev&avatar_mode=radar)
+
+
 ```
-GET https://stats.pphat.top/stats?username=pphatdev&theme=dark
+GET https://stats.pphat.top/stats?username=pphatdev&avatar_mode=radar
 ```
 
-### GET /languages
+### `GET /languages`
 
 Returns an SVG languages card or pie chart for a user.
 
@@ -90,24 +70,28 @@ Required query params:
 
 Optional query params:
 
-- theme
-- show_info
-- top
-- variant
-- type (card | pie)
-- bgColor
-- borderColor
-- textColor
-- titleColor
-- format
+| Param | Description |
+|-------|-------------|
+| `theme` | Theme preset |
+| `show_info` | Show extra language info |
+| `top` | Limit number of top languages |
+| `variant` | Card variant style |
+| `type` | Output style: `card` / `pie` |
+| `bgColor` | Background color |
+| `borderColor` | Border color |
+| `textColor` | Text color |
+| `titleColor` | Title color |
+| `format` | Output format |
 
 Example:
 
+![Languages](https://stats.pphat.top/languages?username=pphatdev)
+
 ```
-GET https://stats.pphat.top/languages?username=pphatdev&theme=default
+GET https://stats.pphat.top/languages?username=pphatdev
 ```
 
-### GET /graph
+### `GET /graph`
 
 Returns an SVG activity graph for a user for a specific year or the last 365 days.
 
@@ -117,20 +101,24 @@ Required query params:
 
 Optional query params:
 
-- `theme` — see [Graph Themes](#graph-themes) below
-- `year` — 4-digit year (default: last 365 days)
-- `animate` — cell animation mode: `glow` (default) | `wave` | `pulse` | `none`
-- `size` — canvas size preset: `default` (1200×600) | `small` (800×400) | `medium` (1000×500) | `large` (1400×700)
-- `show_title` — show/hide the username + year heading (`true` default, `false` centers remaining content)
-- `show_total_contribution` — show/hide the contributions subtitle (`true` default, `false` also shrinks SVG height to fit content)
-- `show_background` — show/hide the background gradient, stars, and grid lines (`true` default, `false` makes bg transparent and shrinks SVG width to fit only the cells with 10px margin)
-- `as` — output format: `svg` (default) | `gif` (animated) | `webp` (animated) | `png` (static)
-- `bgColor`
-- `borderColor`
-- `textColor`
-- `titleColor`
+| Param | Description |
+|-------|-------------|
+| `theme` | Theme preset (see [Graph Themes](#graph-themes)) |
+| `year` | 4-digit year (default: last 365 days) |
+| `animate` | Animation mode: `glow` (default), `wave`, `pulse`, `none` |
+| `size` | Canvas preset: `default`, `small`, `medium`, `large` |
+| `show_title` | Show/hide username + year heading |
+| `show_total_contribution` | Show/hide contribution subtitle |
+| `show_background` | Show/hide background gradient, stars, and grid |
+| `as` | Output format: `svg` (default), `gif`, `webp`, `png` |
+| `bgColor` | Background color |
+| `borderColor` | Border color |
+| `textColor` | Text color |
+| `titleColor` | Title color |
 
 Example:
+
+![Graph](https://stats.pphat.top/graph?username=pphatdev)
 
 ```
 GET https://stats.pphat.top/graph?username=pphatdev&year=2024
@@ -142,7 +130,7 @@ GET https://stats.pphat.top/graph?username=pphatdev&theme=matrix&animate=pulse&a
 GET https://stats.pphat.top/graph?username=pphatdev&as=png
 ```
 
-### GET /badge/:type
+### `GET /badge/:type`
 
 Returns dynamic badge SVGs for various GitHub user metrics.
 
@@ -169,17 +157,29 @@ Required query params:
 
 Optional query params:
 
-- `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
-- `customLabel` — override the label text
-- `labelColor` — label text color (hex without #, e.g., `ff5733`)
-- `labelBackground` — label background color (hex without #)
-- `iconColor` — icon color (hex without #)
-- `valueColor` — value text color (hex without #)
-- `valueBackground` — value background color (hex without #)
-- `hideFrame` — hide corner bracket frame (`true` | `false`, default: `false`)
-- `hideIcon` — hide badge icon (`true` | `false`, default: `false`)
+| Param | Description |
+|-------|-------------|
+| `theme` | Badge theme: `default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark` |
+| `customLabel` | Override label text |
+| `labelColor` | Label text color (hex without `#`, e.g. `ff5733`) |
+| `labelBackground` | Label background color (hex without `#`) |
+| `iconColor` | Icon color (hex without `#`) |
+| `valueColor` | Value text color (hex without `#`) |
+| `valueBackground` | Value background color (hex without `#`) |
+| `hideFrame` | Hide corner bracket frame (`true`/`false`, default `false`) |
+| `hideIcon` | Hide badge icon (`true`/`false`, default `false`) |
 
 Examples:
+
+![Visitors](https://stats.pphat.top/badge/visitors?username=pphatdev)
+![Total Stars](https://stats.pphat.top/badge/total-stars?username=pphatdev)
+![Repositories](https://stats.pphat.top/badge/repositories?username=pphatdev)
+![Followers](https://stats.pphat.top/badge/followers?username=pphatdev)
+![Total Commits](https://stats.pphat.top/badge/total-commits?username=pphatdev)
+![Total Code Reviews](https://stats.pphat.top/badge/total-code-reviews?username=pphatdev)
+![Total Issues](https://stats.pphat.top/badge/total-issues?username=pphatdev)
+![Total Pull Requests](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev)
+![Total Joined Years](https://stats.pphat.top/badge/total-joined-years?username=pphatdev)
 
 ```
 GET https://stats.pphat.top/badge/visitors?username=pphatdev
@@ -189,7 +189,7 @@ GET https://stats.pphat.top/badge/followers?username=pphatdev&hideIcon=true&them
 GET https://stats.pphat.top/badge/total-commits?username=pphatdev&hideFrame=true&hideIcon=true
 ```
 
-### GET /project/:type
+### `GET /project/:type`
 
 Returns dynamic badge SVGs for repository/project-specific metrics.
 
@@ -211,17 +211,26 @@ Required query params:
 
 Optional query params:
 
-- `theme` — badge theme (`default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark`)
-- `customLabel` — override the label text
-- `labelColor` — label text color (hex without #, e.g., `ff5733`)
-- `labelBackground` — label background color (hex without #)
-- `iconColor` — icon color (hex without #)
-- `valueColor` — value text color (hex without #)
-- `valueBackground` — value background color (hex without #)
-- `hideFrame` — hide corner bracket frame (`true` | `false`, default: `false`)
-- `hideIcon` — hide badge icon (`true` | `false`, default: `false`)
+| Param | Description |
+|-------|-------------|
+| `theme` | Badge theme: `default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark` |
+| `customLabel` | Override label text |
+| `labelColor` | Label text color (hex without `#`, e.g. `ff5733`) |
+| `labelBackground` | Label background color (hex without `#`) |
+| `iconColor` | Icon color (hex without `#`) |
+| `valueColor` | Value text color (hex without `#`) |
+| `valueBackground` | Value background color (hex without `#`) |
+| `hideFrame` | Hide corner bracket frame (`true`/`false`, default `false`) |
+| `hideIcon` | Hide badge icon (`true`/`false`, default `false`) |
 
 Examples:
+
+![Repo Stars](https://stats.pphat.top/project/stars?repo=pphatdev/github-stats)
+![Repo Forks](https://stats.pphat.top/project/forks?repo=pphatdev/github-stats)
+![Repo Issues](https://stats.pphat.top/project/issues?repo=pphatdev/github-stats)
+![Repo PRs](https://stats.pphat.top/project/prs?repo=pphatdev/github-stats)
+![Repo Contributors](https://stats.pphat.top/project/contributors?repo=pphatdev/github-stats)
+![Repo Size](https://stats.pphat.top/project/size?repo=pphatdev/github-stats)
 
 ```
 GET https://stats.pphat.top/project/stars?repo=pphatdev/github-stats
@@ -336,9 +345,10 @@ Use the `theme` query param. A few previews:
 
 ### All Available Themes (50+)
 
-**Dark Themes:** `default` · `dark` · `radical` · `merko` · `gruvbox` · `tokyonight` · `onedark` · `cobalt` · `synthwave` · `highcontrast` · `dracula` · `prussian` · `monokai` · `vue` · `vue-dark` · `shades-of-purple` · `nightowl` · `buefy-dark` · `blue-green` · `algolia` · `great-gatsby` · `darcula` · `bear` · `solarized-dark` · `chartreuse-dark` · `nord` · `gotham` · `material-palenight` · `vision-friendly-dark` · `ayu-mirage` · `midnight-purple` · `calm` · `omni` · `react` · `jolly` · `maroongold` · `yeblu` · `blueberry` · `slateorange` · `kacho_ga` · `outrun` · `ocean_dark` · `city_lights` · `github_dark` · `discord_old_blurple` · `aura_dark` · `panda` · `noctis_minimus` · `cobalt2` · `swift` · `aura` · `apprentice` · `moltack` · `codeSTACKr` · `rose_pine`
-
-**Light Themes:** `solarized-light` · `graywhite` · `flag-india`
+| Category | Themes |
+|----------|--------|
+| Dark | `default`, `dark`, `radical`, `merko`, `gruvbox`, `tokyonight`, `onedark`, `cobalt`, `synthwave`, `highcontrast`, `dracula`, `prussian`, `monokai`, `vue`, `vue-dark`, `shades-of-purple`, `nightowl`, `buefy-dark`, `blue-green`, `algolia`, `great-gatsby`, `darcula`, `bear`, `solarized-dark`, `chartreuse-dark`, `nord`, `gotham`, `material-palenight`, `vision-friendly-dark`, `ayu-mirage`, `midnight-purple`, `calm`, `omni`, `react`, `jolly`, `maroongold`, `yeblu`, `blueberry`, `slateorange`, `kacho_ga`, `outrun`, `ocean_dark`, `city_lights`, `github_dark`, `discord_old_blurple`, `aura_dark`, `panda`, `noctis_minimus`, `cobalt2`, `swift`, `aura`, `apprentice`, `moltack`, `codeSTACKr`, `rose_pine` |
+| Light | `solarized-light`, `graywhite`, `flag-india` |
 
 Full theme list is in [src/utils/themes](src/utils/themes).
 
@@ -379,113 +389,9 @@ All available themes: `aurora` · `matrix` · `inferno` · `ocean` · `neon` · 
 
 ## Development
 
-### Prerequisites
+Development setup was moved to: [docs/how-to/DEVELOPMENT.md](docs/how-to/DEVELOPMENT.md)
 
-- Node.js 18+ (LTS recommended)
-- GitHub Personal Access Token (recommended for higher rate limits)
-- Redis (optional, for multi-tier caching)
-- SQLite (bundled, no setup needed)
-
-### Setup
-
-```bash
-npm install
-```
-
-Create a `.env` file:
-
-```env
-# Required
-GITHUB_TOKEN=your_github_personal_access_token
-
-# Server
-PORT=3000
-APP_ENV=development   # development | production
-HOST=localhost
-
-# Cache (optional)
-CACHE_DURATION=7200000        # 2 hours in ms
-GITHUB_CACHE_TTL=1800000      # 30 min in ms
-WARMUP_USERNAME=pphatdev      # Pre-warm cache on startup
-
-# Redis (optional - falls back to in-memory cache if not set)
-REDIS_ENABLED=true
-REDIS_URL=redis://localhost:6379
-# Or use individual settings:
-# REDIS_HOST=localhost
-# REDIS_PORT=6379
-# REDIS_USERNAME=default
-# REDIS_PASSWORD=your_password
-# REDIS_DB=0
-# REDIS_TLS=false
-
-# Database
-DATABASE_URL=./data/stats.db  # SQLite database path
-
-# Monitoring
-ENABLE_METRICS=true
-DEBUG=false
-```
-
-### Database Setup
-
-The project uses Drizzle ORM with SQLite. Run migrations:
-
-```bash
-# Generate migration files
-npm run db:generate
-
-# Apply migrations
-npm run db:migrate
-
-# Or push schema directly (development)
-npm run db:push
-
-# Open Drizzle Studio (database GUI)
-npm run db:studio
-```
-
-### Running
-
-**Development mode** (with hot reload):
-
-```bash
-npm run dev
-```
-
-**Build and run**:
-
-```bash
-npm run build
-npm start
-```
-
-**Production cluster mode** (multi-core):
-
-```bash
-npm run build
-npm run start:cluster      # Uses all CPU cores
-npm run start:production   # Production mode with all optimizations
-
-# Specify worker count
-WORKERS=4 npm run start:cluster
-```
-
-### Available Scripts
-
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Compile TypeScript to JavaScript |
-| `npm start` | Start single-process server |
-| `npm run start:cluster` | Start multi-core cluster server |
-| `npm run start:production` | Production mode with all optimizations |
-| `npm run db:generate` | Generate Drizzle migration files |
-| `npm run db:migrate` | Apply database migrations |
-| `npm run db:push` | Push schema changes directly |
-| `npm run db:studio` | Open Drizzle Studio GUI |
-| `npm run cache:clear` | Clear Redis cache |
-| `npm test` | Run tests |
+Route-by-route demos with option examples: [docs/how-to/routes/README.md](docs/how-to/routes/README.md)
 
 ## Architecture
 
