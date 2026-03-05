@@ -3,6 +3,7 @@ import { LanguageController } from "../controllers/languages.js";
 import { StatsController } from "../controllers/stats.js";
 import { getProjectBadgeRouteDocs } from "./project-badge.routes.js";
 import { getUserBadgeRouteDocs } from "./user-badge.routes.js";
+import { getIconsRouteDocs } from "./icons.routes.js";
 
 type RouteInfo = {
     method: string;
@@ -21,6 +22,8 @@ const routeDocs: Record<string, Omit<RouteInfo, 'method' | 'path'>> = {
     ...getUserBadgeRouteDocs(),
     // Project badge routes
     ...getProjectBadgeRouteDocs(),
+    // Icons routes
+    ...getIconsRouteDocs(),
 };
 
 export const getRoutes = (app: Express.Application): RouteInfo[] => {

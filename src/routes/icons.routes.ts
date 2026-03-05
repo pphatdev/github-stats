@@ -6,14 +6,7 @@ import type { Application } from 'express';
 import { IconsController } from '../controllers/icons.controller.js';
 
 /**
- * Register icon-related HTTP routes on the provided Express application.
- *
- * Registers the following routes:
- * - GET /icons/demo → demo page
- * - GET /icons → list all icons
- * - GET /icons/:name → retrieve a specific icon (accepts `/icons/name` and `/icons/name.svg`)
- *
- * @param app - The Express application instance to attach routes to
+ * Register icons routes
  */
 export function registerIconsRoutes(app: Application): void {
     // Demo page - must come before the :name route to avoid conflicts
@@ -27,12 +20,7 @@ export function registerIconsRoutes(app: Application): void {
 }
 
 /**
- * Provide documentation entries for the icon-related HTTP routes.
- *
- * @returns An object mapping HTTP method and path strings to the corresponding route documentation entries from `IconsController.routeDocs` for:
- * - `GET /icons`
- * - `GET /icons/:name`
- * - `GET /icons/demo`
+ * Get route documentation for icons
  */
 export function getIconsRouteDocs(): Record<string, typeof IconsController.routeDocs[keyof typeof IconsController.routeDocs]> {
     return {
