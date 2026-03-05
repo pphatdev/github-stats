@@ -9,6 +9,7 @@ import { registerCachedRoutes } from './redis-cached-routes.js';
 import { registerUserBadgeRoutes } from './user-badge.routes.js';
 import { registerProjectBadgeRoutes } from './project-badge.routes.js';
 import { registerBadgeCacheRoutes } from './badge-cache.routes.js';
+import { registerIconsRoutes } from './icons.routes.js';
 
 // Cache type
 type CacheMap = Map<string, { data: string; timestamp: number }>;
@@ -29,11 +30,14 @@ export function initializeControllers(
 }
 
 /**
- * Register all application routes
+ * Register all application routes on the given Express app.
+ *
+ * @param app - The Express application instance to attach routes to
  */
 export function registerRoutes(app: Express): void {
     registerCachedRoutes(app);
     registerUserBadgeRoutes(app);
     registerProjectBadgeRoutes(app);
     registerBadgeCacheRoutes(app);
+    registerIconsRoutes(app);
 }
