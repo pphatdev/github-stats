@@ -143,8 +143,8 @@ export const CACHE_TTL_STRATEGIES = {
     VISITORS: 60, // 1 minute
 
     // Frequently updated data
-    FOLLOWERS: 30 * 60, // 30 minutes
-    TOTAL_COMMITS: 30 * 60, // 30 minutes
+    FOLLOWERS: 10 * 60, // 10 minutes
+    TOTAL_COMMITS: 10 * 60, // 10 minutes
 
     // Moderately updated data
     REPOSITORIES: 2 * 60 * 60, // 2 hours
@@ -155,9 +155,9 @@ export const CACHE_TTL_STRATEGIES = {
     LANGUAGES: 6 * 60 * 60, // 6 hours
 
     // Project badges (GitHub API frequently updated)
-    REPO_STARS: 30 * 60, // 30 minutes
-    REPO_FORKS: 2 * 60 * 60, // 2 hours
-    REPO_WATCHERS: 2 * 60 * 60, // 2 hours
+    REPO_STARS: 10 * 60, // 10 minutes
+    REPO_FORKS: 10 * 60, // 10 minutes
+    REPO_WATCHERS: 10 * 60, // 10 minutes
 };
 
 /**
