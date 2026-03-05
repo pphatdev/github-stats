@@ -1,0 +1,44 @@
+<svg width="48" height="48" viewBox="-2.4 -2.4 28.8 28.8" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        @keyframes popup {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            85% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        @keyframes float {
+            0%, 100% {
+                filter: drop-shadow(0 0 8px rgba(100, 100, 100, 0.3));
+            }
+            25% {
+                filter: drop-shadow(0 0 12px rgba(100, 100, 100, 0.5));
+            }
+            50% {
+                filter: drop-shadow(0 0 15px rgba(100, 100, 100, 0.6));
+            }
+            75% {
+                filter: drop-shadow(0 0 12px rgba(100, 100, 100, 0.5));
+            }
+        }
+        #warp-logo {
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, float 3s ease-in-out 0.6s infinite;
+            transform-origin: center;
+        }
+    </style>
+    <g id="warp-logo">
+    <title>Warp</title><path d="M12.035 2.723h9.253A2.712 2.712 0 0 1 24 5.435v10.529a2.712 2.712 0 0 1-2.712 2.713H8.047Zm-1.681 2.6L6.766 19.677h5.598l-.399 1.6H2.712A2.712 2.712 0 0 1 0 18.565V8.036a2.712 2.712 0 0 1 2.712-2.712Z" fill="#646464"/>
+    </g>
+</svg>
