@@ -1,0 +1,44 @@
+<svg width="48" height="48" viewBox="-2.4 -2.4 28.8 28.8" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        @keyframes popup {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            85% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        @keyframes float {
+            0%, 100% {
+                filter: drop-shadow(0 0 8px rgba(65, 184, 131, 0.3));
+            }
+            25% {
+                filter: drop-shadow(0 0 12px rgba(65, 184, 131, 0.5));
+            }
+            50% {
+                filter: drop-shadow(0 0 15px rgba(65, 184, 131, 0.6));
+            }
+            75% {
+                filter: drop-shadow(0 0 12px rgba(65, 184, 131, 0.5));
+            }
+        }
+        #vuetify-logo {
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, float 3s ease-in-out 0.6s infinite;
+            transform-origin: center;
+        }
+    </style>
+    <g id="vuetify-logo">
+    <title>Vuetify</title><path d="M6.312 12.564 12.636 1.2H0l6.312 11.364ZM14.94 1.2 7.464 14.64 12 22.8 24 1.2h-9.06Zm4.98 2.4L12 17.856l-1.788-3.216L16.344 3.6h3.576ZM6.312 7.62 4.08 3.6h4.476L6.312 7.62Z" fill="#41B883"/>
+    </g>
+</svg>
