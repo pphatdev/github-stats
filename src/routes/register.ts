@@ -8,6 +8,7 @@ import { ProjectBadgeController } from '../controllers/project-badge.controller.
 import { registerCachedRoutes } from './redis-cached-routes.js';
 import { registerUserBadgeRoutes } from './user-badge.routes.js';
 import { registerProjectBadgeRoutes } from './project-badge.routes.js';
+import { registerBadgeCacheRoutes } from './badge-cache.routes.js';
 
 // Cache type
 type CacheMap = Map<string, { data: string; timestamp: number }>;
@@ -34,4 +35,5 @@ export function registerRoutes(app: Express): void {
     registerCachedRoutes(app);
     registerUserBadgeRoutes(app);
     registerProjectBadgeRoutes(app);
+    registerBadgeCacheRoutes(app);
 }

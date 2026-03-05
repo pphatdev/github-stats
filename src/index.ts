@@ -9,6 +9,7 @@ import cors from 'cors';
 import compression from 'compression';
 import { GitHubClient } from './utils/github-client.js';
 import { getRedisClient } from './utils/redis-client.js';
+import { getBadgeCacheService } from './services/badge-cache.service.js';
 import { warmupRedisCache } from './routes/redis-cached-routes.js';
 import { initializeControllers, registerRoutes } from './routes/register.js';
 import path from 'path';
@@ -65,6 +66,8 @@ if (!GITHUB_TOKEN && shouldLog) {
 
 // Initialize Redis (optional - falls back gracefully if not available)
 let redis_initialized = false;
+let badgeCache_initialized = false;
+
 (async () => {
     try {
         await getRedisClient();
@@ -74,6 +77,17 @@ let redis_initialized = false;
         if (shouldLog) {
             console.warn('⚠️  Redis not available. Running with in-memory cache only.');
             console.warn('⚠️  To enable Redis: REDIS_URL=redis://localhost:6379');
+        }
+    }
+
+    // Initialize badge cache service (uses Redis if available)
+    try {
+        await getBadgeCacheService();
+        badgeCache_initialized = true;
+        if (shouldLog) console.log('✅ Persistent badge cache initialized');
+    } catch (error) {
+        if (shouldLog) {
+            console.warn('⚠️  Badge cache initialization failed. Using in-memory only.');
         }
     }
 })();
@@ -95,7 +109,7 @@ app.listen(PORT, () => {
         console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}${workerId}`);
         console.log(`📊 Example: ${PROTOCOL}://localhost:${PORT}/stats?username=pphatdev`);
         console.log(`🔧 Environment: ${APP_ENV}`);
-        console.log(`💾 Cache: ${redis_initialized ? 'Redis ✅' : 'In-Memory (Map) ⚠️'}`);
+        console.log(`💾 Cache: Redis ${redis_initialized ? '✅' : '⚠️'} | Badges ${badgeCache_initialized ? '✅' : '⚠️'}`);
     }
 
     const warmupUsername = process.env.WARMUP_USERNAME;

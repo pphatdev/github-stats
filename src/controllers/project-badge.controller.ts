@@ -1,10 +1,12 @@
 /**
  * Project Badge Controller
  * Handles repository/project-specific badge endpoints
+ * Features: Redis persistent caching, request deduplication, GitHub API optimization
  */
 import { Request, Response } from 'express';
 import { GitHubClient, RepoBadgeType } from '../utils/github-client.js';
 import { BadgeRenderer } from '../components/badge-renderer.js';
+import { getBadgeCacheServiceSync } from '../services/badge-cache.service.js';
 import type { BadgeOptions, ProjectBadgeType, BadgeRouteDoc, BADGE_OPTIONAL_PARAMS } from '../types/badge.types.js';
 
 export class ProjectBadgeController {
@@ -119,7 +121,20 @@ export class ProjectBadgeController {
         ].join('|');
     }
 
-    /** Render a repository-specific badge. */
+    /** Convert BadgeOptions to Record for Redis caching */
+    private static optionsToRecord(options: BadgeOptions): Record<string, string | boolean | undefined> {
+        return {
+            theme: options.theme,
+            customLabel: options.customLabel,
+            labelColor: options.labelColor,
+            labelBackground: options.labelBackground,
+            iconColor: options.iconColor,
+            valueColor: options.valueColor,
+            valueBackground: options.valueBackground,
+        };
+    }
+
+    /** Render a repository-specific badge with Redis caching. */
     private static async renderBadge(
         res: Response,
         owner: string,
@@ -128,23 +143,50 @@ export class ProjectBadgeController {
         options: BadgeOptions,
     ) {
         const cacheKey = ProjectBadgeController.buildCacheKey(owner, repo, options);
+        const badgeService = getBadgeCacheServiceSync();
+        const optionsRecord = ProjectBadgeController.optionsToRecord(options);
 
-        // 1. In-memory SVG cache hit
+        // 1. Check Redis persistent cache first
+        if (badgeService?.isReady()) {
+            const redisCached = await badgeService.getProjectBadgeSVG(owner, repo, type, optionsRecord);
+            if (redisCached) {
+                res.setHeader('Content-Type', 'image/svg+xml');
+                res.setHeader('Cache-Control', 'public, max-age=600');
+                res.setHeader('X-Cache', 'REDIS');
+                return res.send(redisCached.svg);
+            }
+        }
+
+        // 2. Check in-memory SVG cache hit
         const cached = ProjectBadgeController.cache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < ProjectBadgeController.CACHE_DURATION) {
             res.setHeader('Content-Type', 'image/svg+xml');
             res.setHeader('Cache-Control', 'public, max-age=600');
+            res.setHeader('X-Cache', 'MEMORY');
             return res.send(cached.data);
         }
 
-        // 2. Deduplicate in-flight requests for the same key
+        // 3. Deduplicate in-flight requests for the same key
         let pending = ProjectBadgeController.pendingRequests.get(cacheKey);
         if (!pending) {
             pending = (async () => {
                 // Fetch from GitHub
                 const value = await ProjectBadgeController.githubClient.fetchRepoBadgeValue(owner, repo, type);
                 const svg = BadgeRenderer.generateBadge(value, options);
+                
+                // Cache in both layers
                 ProjectBadgeController.cache.set(cacheKey, { data: svg, timestamp: Date.now() });
+                
+                // Cache in Redis
+                if (badgeService?.isReady()) {
+                    await badgeService.setProjectBadgeSVG(owner, repo, type, optionsRecord, {
+                        svg,
+                        value,
+                        timestamp: Date.now(),
+                        dbTimestamp: Date.now(),
+                    });
+                }
+                
                 return svg;
             })();
 
@@ -155,6 +197,7 @@ export class ProjectBadgeController {
         const svg = await pending;
         res.setHeader('Content-Type', 'image/svg+xml');
         res.setHeader('Cache-Control', 'public, max-age=600');
+        res.setHeader('X-Cache', 'MISS');
         return res.send(svg);
     }
 

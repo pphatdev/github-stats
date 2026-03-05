@@ -1,6 +1,7 @@
 /**
  * User Badge Controller
  * Handles user-specific badge endpoints (require username parameter)
+ * Features: Redis persistent caching with intelligent TTL, request deduplication
  */
 import crypto from 'node:crypto';
 import { Request, Response } from 'express';
@@ -9,6 +10,7 @@ import { badges, visitorLogs } from '../db/schema.js';
 import { sql, eq } from 'drizzle-orm';
 import { GitHubClient } from '../utils/github-client.js';
 import { BadgeRenderer } from '../components/badge-renderer.js';
+import { getBadgeCacheServiceSync } from '../services/badge-cache.service.js';
 import type { BadgeOptions, UserBadgeType, BadgeRouteDoc } from '../types/badge.types.js';
 
 /** User badge types that have corresponding database columns (excludes 'visitors') */
@@ -171,7 +173,22 @@ export class UserBadgeController {
         ].join('|');
     }
 
-    /** Render a GitHub-data badge — in-memory → DB → GitHub API cache chain. */
+    /** Convert BadgeOptions to Record for Redis caching */
+    private static optionsToRecord(options: BadgeOptions): Record<string, string | boolean | undefined> {
+        return {
+            theme: options.theme,
+            customLabel: options.customLabel,
+            labelColor: options.labelColor,
+            labelBackground: options.labelBackground,
+            iconColor: options.iconColor,
+            valueColor: options.valueColor,
+            valueBackground: options.valueBackground,
+            hideFrame: options.hideFrame,
+            hideIcon: options.hideIcon,
+        };
+    }
+
+    /** Render a GitHub-data badge — Redis → In-memory → DB → GitHub API cache chain. */
     private static async renderGitHubBadge(
         res: Response,
         username: string,
@@ -179,43 +196,77 @@ export class UserBadgeController {
         options: BadgeOptions,
     ) {
         const cacheKey = UserBadgeController.buildCacheKey(username, options);
+        const badgeService = getBadgeCacheServiceSync();
+        const optionsRecord = UserBadgeController.optionsToRecord(options);
 
-        // 1. In-memory SVG cache hit
+        // 1. Check Redis persistent cache first
+        if (badgeService?.isReady()) {
+            const redisCached = await badgeService.getUserBadgeSVG(username, type, optionsRecord);
+            if (redisCached) {
+                res.setHeader('Content-Type', 'image/svg+xml');
+                res.setHeader('Cache-Control', 'public, max-age=600');
+                res.setHeader('X-Cache', 'REDIS');
+                return res.send(redisCached.svg);
+            }
+        }
+
+        // 2. Check in-memory SVG cache
         const cached = UserBadgeController.cache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < UserBadgeController.CACHE_DURATION) {
             res.setHeader('Content-Type', 'image/svg+xml');
             res.setHeader('Cache-Control', 'public, max-age=600');
+            res.setHeader('X-Cache', 'MEMORY');
             return res.send(cached.data);
         }
 
-        // 2. Deduplicate in-flight requests for the same key
+        // 3. Deduplicate in-flight requests for the same key
         let pending = UserBadgeController.pendingRequests.get(cacheKey);
         if (!pending) {
             pending = (async () => {
                 const col = TYPE_TO_COLUMN[type];
 
-                // 3. Check DB cache
+                // 4. Check DB cache
                 const row = await db.select().from(badges).where(eq(badges.username, username)).get();
                 const isStale = !row?.updated_at || (Date.now() - row.updated_at) > UserBadgeController.CACHE_DURATION;
                 const dbValue = row?.[col] as number | null | undefined;
+                let dbTimestamp = row?.updated_at ?? Date.now();
 
                 let value: number;
                 if (!isStale && dbValue != null) {
                     value = dbValue;
                 } else {
-                    // 4. Fetch from GitHub and persist
+                    // 5. Fetch from GitHub and persist
                     value = await UserBadgeController.githubClient.fetchBadgeValue(username, type);
-                    await db
+                    const result = await db
                         .insert(badges)
                         .values({ username, [col]: value, updated_at: Date.now() })
                         .onConflictDoUpdate({
                             target: badges.username,
                             set: { [col]: value, updated_at: Date.now() },
-                        });
+                        })
+                        .returning();
+
+                    // Update timestamp to latest
+                    if (result[0]?.updated_at) {
+                        dbTimestamp = result[0].updated_at;
+                    }
                 }
 
                 const svg = BadgeRenderer.generateBadge(value, options);
+
+                // Cache in both layers
                 UserBadgeController.cache.set(cacheKey, { data: svg, timestamp: Date.now() });
+
+                // Cache in Redis with intelligent TTL
+                if (badgeService?.isReady()) {
+                    await badgeService.setUserBadgeSVG(username, type, optionsRecord, {
+                        svg,
+                        value,
+                        timestamp: Date.now(),
+                        dbTimestamp,
+                    });
+                }
+
                 return svg;
             })();
 
@@ -226,6 +277,7 @@ export class UserBadgeController {
         const svg = await pending;
         res.setHeader('Content-Type', 'image/svg+xml');
         res.setHeader('Cache-Control', 'public, max-age=600');
+        res.setHeader('X-Cache', 'MISS');
         return res.send(svg);
     }
 
@@ -243,9 +295,9 @@ export class UserBadgeController {
      * This is enforced by the unique index on (username, ip_hash, visit_date) in the visitor_logs table.
      * 
      * Caching Strategy:
-     * - Uses 60-second cache to prevent F5-spam and reduce database load
-     * - Short enough to show updates quickly, long enough to absorb rapid successive requests
-     * - First visit within cache window still counts if IP+date is unique
+     * - Redis cache for rendered SVG (10 minutes)
+     * - In-memory cache for rapid F5 spam (60 seconds)
+     * - Short TTL ensures visitor counts update frequently
      */
     static async getVisitors(req: Request, res: Response) {
         try {
@@ -254,13 +306,26 @@ export class UserBadgeController {
 
             const options = UserBadgeController.parseOptions(req, 'visitors');
             const cacheKey = UserBadgeController.buildCacheKey(username, options);
+            const badgeService = getBadgeCacheServiceSync();
+            const optionsRecord = UserBadgeController.optionsToRecord(options);
 
-            // Check in-memory SVG cache first — prevents unnecessary DB queries for rapid refreshes
+            // 1. Check Redis persistent cache first
+            if (badgeService?.isReady()) {
+                const redisCached = await badgeService.getUserBadgeSVG(username, 'visitors', optionsRecord);
+                if (redisCached) {
+                    res.setHeader('Content-Type', 'image/svg+xml');
+                    res.setHeader('Cache-Control', 'public, max-age=60');
+                    res.setHeader('X-Cache', 'REDIS');
+                    return res.send(redisCached.svg);
+                }
+            }
+
+            // 2. Check in-memory SVG cache first — prevents unnecessary DB queries for rapid refreshes
             const cached = UserBadgeController.cache.get(cacheKey);
             if (cached && Date.now() - cached.timestamp < 60_000) {  // 60-second cache
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', 'public, max-age=60');
-                res.setHeader('X-Cache', 'HIT');
+                res.setHeader('X-Cache', 'MEMORY');
                 return res.send(cached.data);
             }
 
@@ -290,32 +355,45 @@ export class UserBadgeController {
                 .returning();
 
             let count: number;
+            let dbTimestamp = Date.now();
 
             if (logInsert.length > 0) {
                 // New unique visit for today — atomically increment the stored total
                 const result = await db
                     .insert(badges)
-                    .values({ username, visitors: 1 })
+                    .values({ username, visitors: 1, updated_at: Date.now() })
                     .onConflictDoUpdate({
                         target: badges.username,
-                        set: { visitors: sql`${badges.visitors} + 1` },
+                        set: { visitors: sql`${badges.visitors} + 1`, updated_at: Date.now() },
                     })
                     .returning();
                 count = result[0]?.visitors ?? 1;
+                dbTimestamp = result[0]?.updated_at ?? Date.now();
             } else {
                 // Same IP already counted today — return the current total without incrementing
                 const badge = await db
-                    .select({ visitors: badges.visitors })
+                    .select({ visitors: badges.visitors, updated_at: badges.updated_at })
                     .from(badges)
                     .where(eq(badges.username, username))
                     .get();
                 count = badge?.visitors ?? 0;
+                dbTimestamp = badge?.updated_at ?? Date.now();
             }
 
             const svg = BadgeRenderer.generateBadge(count, options);
 
-            // Cache the SVG for 60 seconds to reduce database load
+            // Cache the SVG in both layers
             UserBadgeController.cache.set(cacheKey, { data: svg, timestamp: Date.now() });
+
+            // Cache in Redis with short TTL for frequent updates
+            if (badgeService?.isReady()) {
+                await badgeService.setUserBadgeSVG(username, 'visitors', optionsRecord, {
+                    svg,
+                    value: count,
+                    timestamp: Date.now(),
+                    dbTimestamp,
+                }, 60); // 60 seconds for visitors (shorter for freshness)
+            }
 
             res.setHeader('Content-Type', 'image/svg+xml');
             res.setHeader('Cache-Control', 'public, max-age=60');
