@@ -19,6 +19,9 @@ const dbPath = path.join(__dirname, '../../data/stats.db');
 const migrationsFolder = path.join(__dirname, '../../drizzle');
 
 const sqlite = new Database(dbPath);
+// Enable WAL mode for better concurrent access
+sqlite.pragma('journal_mode = WAL');
+sqlite.pragma('busy_timeout = 5000'); // Wait up to 5 seconds if database is locked
 export const db = drizzle(sqlite, { schema });
 
 // Run all pending Drizzle migrations on startup
