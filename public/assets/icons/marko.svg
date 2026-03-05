@@ -1,0 +1,44 @@
+<svg width="48" height="48" viewBox="-2.4 -2.4 28.8 28.8" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        @keyframes popup {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            85% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        @keyframes float {
+            0%, 100% {
+                filter: drop-shadow(0 0 8px rgba(100, 100, 100, 0.3));
+            }
+            25% {
+                filter: drop-shadow(0 0 12px rgba(100, 100, 100, 0.5));
+            }
+            50% {
+                filter: drop-shadow(0 0 15px rgba(100, 100, 100, 0.6));
+            }
+            75% {
+                filter: drop-shadow(0 0 12px rgba(100, 100, 100, 0.5));
+            }
+        }
+        #marko-logo {
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, float 3s ease-in-out 0.6s infinite;
+            transform-origin: center;
+        }
+    </style>
+    <g id="marko-logo">
+    <title>Marko</title><path d="M15.4 5.46h-3.39l-2.3 3.77L7.4 5.46H4l-4 6.55 4 6.53h3.39l-4-6.54L5.7 8.23 8.01 12h3.39l2.31-3.78L16.03 12l-4.01 6.54h3.39l4-6.54zm4.6 0h-3.39l4 6.54-4.01 6.54h3.39L24 12z" fill="#646464"/>
+    </g>
+</svg>
