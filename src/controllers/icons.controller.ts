@@ -51,8 +51,31 @@ export class IconsController {
      */
     static async getIcon(req: Request, res: Response): Promise<void> {
         try {
-            const iconName = req.params.name.replace('.svg', '');
-            const iconPath = path.join(IconsController.iconsDir, `${iconName}.svg`);
+            // Strip trailing .svg extension
+            const iconName = req.params.name.replace(/\.svg$/, '');
+            
+            // Validate icon name against strict regex (alphanumeric, dots, underscores, hyphens only)
+            const validFilenameRegex = /^[a-zA-Z0-9._-]+$/;
+            if (!validFilenameRegex.test(iconName)) {
+                res.status(400).json({
+                    error: 'Invalid icon name',
+                    message: 'Icon name must contain only alphanumeric characters, dots, underscores, and hyphens'
+                });
+                return;
+            }
+
+            // Resolve paths to prevent path traversal
+            const resolvedIconsDir = path.resolve(IconsController.iconsDir);
+            const iconPath = path.resolve(IconsController.iconsDir, `${iconName}.svg`);
+
+            // Ensure the resolved path is contained within the icons directory
+            if (!iconPath.startsWith(resolvedIconsDir + path.sep) && iconPath !== resolvedIconsDir) {
+                res.status(400).json({
+                    error: 'Invalid icon path',
+                    message: 'Icon path must be within the icons directory'
+                });
+                return;
+            }
 
             // Check if icon exists
             try {
