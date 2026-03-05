@@ -1,4 +1,4 @@
-<svg width="48" height="48" viewBox="-2.4 -2.4 28.8 28.8" xmlns="http://www.w3.org/2000/svg">
+<svg width="48" height="48" viewBox="-3.84 -3.84 31.68 31.68" xmlns="http://www.w3.org/2000/svg">
     <style>
         @keyframes popup {
             0% {
@@ -39,6 +39,6 @@
         }
     </style>
     <g id="ethereum-logo">
-    <title>Ethereum</title><path d="M11.944 17.97L4.58 13.62 11.943 24l7.37-10.38-7.372 4.35h.003zM12.056 0L4.69 12.223l7.365 4.354 7.365-4.35L12.056 0z" fill="#646464"/>
+    <title>Ethereum</title><path d="M11.944 17.97L4.58 13.62 11.943 24l7.37-10.38-7.372 4.35h.003zM12.056 0L4.69 12.223l7.365 4.354 7.365-4.35L12.056 0z" fill="#61DAFB"/>
     </g>
 </svg>
