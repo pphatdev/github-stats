@@ -16,21 +16,28 @@ export class IconsController {
     private static iconsCache: string[] | null = null;
 
     /**
+     * Load and cache icon list
+     */
+    private static async loadIconsList(): Promise<string[]> {
+        if (!IconsController.iconsCache) {
+            const files = await fs.readdir(IconsController.iconsDir);
+            IconsController.iconsCache = files
+                .filter(file => file.endsWith('.svg'))
+                .map(file => file.replace('.svg', ''));
+        }
+        return IconsController.iconsCache;
+    }
+
+    /**
      * Get all available icons
      */
     static async getAllIcons(_req: Request, res: Response): Promise<void> {
         try {
-            // Use cache if available
-            if (!IconsController.iconsCache) {
-                const files = await fs.readdir(IconsController.iconsDir);
-                IconsController.iconsCache = files
-                    .filter(file => file.endsWith('.svg'))
-                    .map(file => file.replace('.svg', ''));
-            }
+            const icons = await IconsController.loadIconsList();
 
             res.json({
-                count: IconsController.iconsCache.length,
-                icons: IconsController.iconsCache,
+                count: icons.length,
+                icons: icons,
                 base_url: '/icons',
                 examples: {
                     get_icon: '/icons/react',
@@ -53,7 +60,7 @@ export class IconsController {
         try {
             // Strip trailing .svg extension
             const iconName = req.params.name.replace(/\.svg$/, '');
-            
+
             // Validate icon name against strict regex (alphanumeric, dots, underscores, hyphens only)
             const validFilenameRegex = /^[a-zA-Z0-9._-]+$/;
             if (!validFilenameRegex.test(iconName)) {
@@ -106,11 +113,8 @@ export class IconsController {
      */
     static async getDemoPage(_req: Request, res: Response): Promise<void> {
         try {
-            // Get all icon names
-            const files = await fs.readdir(IconsController.iconsDir);
-            const icons = files
-                .filter(file => file.endsWith('.svg'))
-                .map(file => file.replace('.svg', ''));
+            // Get all icon names using shared helper
+            const icons = await IconsController.loadIconsList();
 
             // Generate HTML using view
             const html = generateIconsDemoHTML({ icons });

@@ -10,7 +10,13 @@ export interface IconsDemoViewProps {
 }
 
 const IconsDemoComponent: React.FC<IconsDemoViewProps> = ({ icons }) => {
-    const iconsJSON = JSON.stringify(icons);
+    // Safely escape JSON for HTML embedding to prevent XSS
+    const iconsJSON = JSON.stringify(icons)
+        .replace(/</g, '\\u003c')
+        .replace(/>/g, '\\u003e')
+        .replace(/&/g, '\\u0026')
+        .replace(/\u2028/g, '\\u2028')
+        .replace(/\u2029/g, '\\u2029');
 
     // Generate script content with proper escaping
     const scriptContent = `
@@ -30,7 +36,8 @@ const IconsDemoComponent: React.FC<IconsDemoViewProps> = ({ icons }) => {
             copyBtn.title = 'Copy Markdown URL';
             copyBtn.onclick = (e) => {
                 e.stopPropagation();
-                const markdownUrl = '![icon-' + icon + '](https://stats.pphat.top/assets/icons/' + icon + '.svg)';
+                const origin = window.location.origin || 'https://stats.pphat.top';
+                const markdownUrl = '![icon-' + icon + '](' + origin + '/assets/icons/' + icon + '.svg)';
                 navigator.clipboard.writeText(markdownUrl).then(() => {
                     copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
                     copyBtn.classList.add('copied');
@@ -44,16 +51,15 @@ const IconsDemoComponent: React.FC<IconsDemoViewProps> = ({ icons }) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'icon-wrapper';
 
-            // Fetch and render SVG inline
-            fetch('/assets/icons/' + icon + '.svg')
-                .then(response => response.text())
-                .then(svgContent => {
-                    wrapper.innerHTML = svgContent;
-                })
-                .catch(() => {
-                    wrapper.innerHTML = '❌';
-                    wrapper.style.fontSize = '32px';
-                });
+            // Use img element to safely display SVG
+            const img = document.createElement('img');
+            img.src = '/assets/icons/' + icon + '.svg';
+            img.alt = icon;
+            img.onerror = () => {
+                wrapper.innerHTML = '❌';
+                wrapper.style.fontSize = '32px';
+            };
+            wrapper.appendChild(img);
 
             const name = document.createElement('div');
             name.className = 'icon-name';
@@ -87,6 +93,14 @@ const IconsDemoComponent: React.FC<IconsDemoViewProps> = ({ icons }) => {
 
             stats.textContent = visibleCount + ' of ' + icons.length + ' icons' + (searchTerm ? ' (filtered)' : '');
         });
+
+        // Reload button functionality
+        const reloadBtn = document.querySelector('.reload-btn');
+        if (reloadBtn) {
+            reloadBtn.addEventListener('click', () => {
+                window.location.reload();
+            });
+        }
     `;
 
     return (
@@ -317,7 +331,7 @@ const IconsDemoComponent: React.FC<IconsDemoViewProps> = ({ icons }) => {
                     <div className="grid" id="iconGrid"></div>
                     <div className="stats" id="stats"></div>
                 </div>
-                <button className="reload-btn" onClick={() => window.location.reload()}>
+                <button className="reload-btn">
                     🔄 Replay Animations
                 </button>
 
