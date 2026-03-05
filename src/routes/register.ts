@@ -30,7 +30,9 @@ export function initializeControllers(
 }
 
 /**
- * Register all application routes
+ * Register all application routes on the given Express app.
+ *
+ * @param app - The Express application instance to attach routes to
  */
 export function registerRoutes(app: Express): void {
     registerCachedRoutes(app);
