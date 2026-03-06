@@ -19,6 +19,7 @@ export class IconsController {
     private static pendingLoads: Map<string, Promise<string>> = new Map();
     private static readonly MAX_CACHE_ITEMS = 2000;
     private static readonly HTTP_CACHE_CONTROL = 'public, max-age=31536000, immutable';
+    private static readonly COLOR_REGEX = /^(#[0-9A-Fa-f]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|[a-zA-Z]+|currentColor)$/;
 
     /**
      * Load and cache icon list
@@ -67,6 +68,61 @@ export class IconsController {
     }
 
     /**
+     * Validate color parameter
+     */
+    private static isValidColor(color: string): boolean {
+        return IconsController.COLOR_REGEX.test(color);
+    }
+
+    /**
+     * Apply color to SVG content
+     * Only replaces currentColor values to preserve intentional color choices
+     */
+    private static applySvgColor(svgContent: string, color: string): string {
+        // Replace fill="currentColor" with the specified color
+        let result = svgContent.replace(/fill="currentColor"/gi, `fill="${color}"`);
+        result = result.replace(/fill='currentColor'/gi, `fill='${color}'`);
+
+        // Replace stroke="currentColor" with the specified color
+        result = result.replace(/stroke="currentColor"/gi, `stroke="${color}"`);
+        result = result.replace(/stroke='currentColor'/gi, `stroke='${color}'`);
+
+        return result;
+    }
+
+    /**
+     * Apply foreground color to SVG content
+     * Only replaces colors on elements with data-foreground attribute
+     */
+    private static applyForegroundColor(svgContent: string, color: string): string {
+        // Match complete elements with data-foreground attribute
+        let result = svgContent.replace(
+            /<([^>]+data-foreground[^>]*)>/gi,
+            (match) => {
+                // Within this element, replace all fill and stroke attributes
+                let modified = match.replace(/fill="[^"]*"/gi, `fill="${color}"`);
+                modified = modified.replace(/stroke="[^"]*"/gi, `stroke="${color}"`);
+                return modified;
+            }
+        );
+
+        return result;
+    }
+
+    /**
+     * Generate cache key with optional color parameters
+     */
+    private static generateCacheKey(iconName: string, color?: string, foreground?: string): string {
+        if (color && foreground) {
+            return `${iconName}:c:${color}:fg:${foreground}`;
+        }
+        if (foreground) {
+            return `${iconName}:fg:${foreground}`;
+        }
+        return color ? `${iconName}:${color}` : iconName;
+    }
+
+    /**
      * Get all available icons
      */
     static async getAllIcons(_req: Request, res: Response): Promise<void> {
@@ -99,6 +155,26 @@ export class IconsController {
         try {
             // Strip trailing .svg extension
             const iconName = req.params.name.replace(/\.svg$/, '');
+
+            // Extract optional color parameters
+            const colorParam = req.query.color as string | undefined;
+            const foregroundParam = req.query.foreground as string | undefined;
+
+            if (colorParam && !IconsController.isValidColor(colorParam)) {
+                res.status(400).json({
+                    error: 'Invalid color parameter',
+                    message: 'Color must be a valid hex color (#RGB, #RRGGBB, #RRGGBBAA), rgb/rgba, hsl/hsla, named color, or currentColor'
+                });
+                return;
+            }
+
+            if (foregroundParam && !IconsController.isValidColor(foregroundParam)) {
+                res.status(400).json({
+                    error: 'Invalid foreground parameter',
+                    message: 'Foreground must be a valid hex color (#RGB, #RRGGBB, #RRGGBBAA), rgb/rgba, hsl/hsla, named color, or currentColor'
+                });
+                return;
+            }
 
             // Validate icon name against strict regex (alphanumeric, dots, underscores, hyphens only)
             const validFilenameRegex = /^[a-zA-Z0-9._-]+$/;
@@ -135,8 +211,11 @@ export class IconsController {
                 return;
             }
 
+            // Generate cache key including color parameters
+            const cacheKey = IconsController.generateCacheKey(iconName, colorParam, foregroundParam);
+
             // Check in-memory SVG cache first
-            const cached = IconsController.svgCache.get(iconName);
+            const cached = IconsController.svgCache.get(cacheKey);
             if (cached) {
                 // ETag validation for 304 responses
                 if (req.headers['if-none-match'] === cached.etag) {
@@ -148,15 +227,25 @@ export class IconsController {
                 return;
             }
 
-            // Deduplicate concurrent loads of the same icon
-            let pending = IconsController.pendingLoads.get(iconName);
+            // Deduplicate concurrent loads of the same icon (without color modification)
+            const baseIconCacheKey = IconsController.generateCacheKey(iconName);
+            let pending = IconsController.pendingLoads.get(baseIconCacheKey);
             if (!pending) {
                 pending = fs.readFile(iconPath, 'utf-8');
-                IconsController.pendingLoads.set(iconName, pending);
-                pending.finally(() => IconsController.pendingLoads.delete(iconName));
+                IconsController.pendingLoads.set(baseIconCacheKey, pending);
+                pending.finally(() => IconsController.pendingLoads.delete(baseIconCacheKey));
             }
 
-            const iconContent = await pending;
+            let iconContent = await pending;
+
+            // Apply color transformations if requested
+            if (colorParam) {
+                iconContent = IconsController.applySvgColor(iconContent, colorParam);
+            }
+            if (foregroundParam) {
+                iconContent = IconsController.applyForegroundColor(iconContent, foregroundParam);
+            }
+
             const etag = IconsController.createWeakEtag(iconContent);
 
             // ETag validation for 304 responses
@@ -165,8 +254,8 @@ export class IconsController {
                 return;
             }
 
-            // Cache SVG content
-            IconsController.svgCache.set(iconName, { content: iconContent, etag, timestamp: Date.now() });
+            // Cache SVG content (including color-modified versions)
+            IconsController.svgCache.set(cacheKey, { content: iconContent, etag, timestamp: Date.now() });
             IconsController.maybePruneCache();
 
             IconsController.setImageHeaders(res, etag);
@@ -212,9 +301,9 @@ export class IconsController {
         },
         'icons-get': {
             requiredParams: ['name'],
-            optionalParams: [],
-            payload: 'Returns the SVG content of the specified icon',
-            example: '/icons/react.svg or /icons/typescript'
+            optionalParams: ['color', 'foreground'],
+            payload: 'Returns the SVG content of the specified icon, optionally with custom colors. Use "color" to replace currentColor, "foreground" to target elements with data-foreground attribute',
+            example: '/icons/react.svg or /icons/typescript?color=%23FF0000 or /icons/github?color=blue or /icons/html?foreground=%23FF0000 or /icons/react?color=%230088CC&foreground=%23FF0000'
         },
         'icons-demo': {
             requiredParams: [],
