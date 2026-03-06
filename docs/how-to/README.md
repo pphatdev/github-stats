@@ -20,16 +20,17 @@ This folder contains comprehensive guides on how to use each API route available
 - **[Development Guide](./DEVELOPMENT.md)** - Local setup, environment variables, database, and run scripts
 
 ### 🧪 Route-by-Route Demos
-- **[Route Demo Index](./routes/README.md)** - One file per route with demo examples for each option
+- **[Route Demo Index](../example/README.md)** - One file per route with demo examples for each option
 
 ## Overview
 
 The GitHub Stats API provides multiple endpoints for:
 
 1. **Statistics Rendering** - Generate detailed stats cards and visualizations
-2. **User Badges** - Create individual badge components for specific metrics
-3. **Project Badges** - Repository-specific metric badges
-4. **Cache Management** - Monitor cache health and performance
+2. **Icon Delivery** - List and serve reusable SVG icons with optional recoloring
+3. **User Badges** - Create individual badge components for specific metrics
+4. **Project Badges** - Repository-specific metric badges
+5. **Cache Management** - Monitor cache health and performance
 
 ## Base URL
 

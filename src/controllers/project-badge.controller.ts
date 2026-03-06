@@ -14,6 +14,8 @@ export class ProjectBadgeController {
     private static cache: Map<string, { data: string; timestamp: number }>;
     private static CACHE_DURATION: number;
     private static pendingRequests: Map<string, Promise<string>> = new Map();
+    private static readonly MAX_CACHE_ITEMS = 5000;
+    private static readonly HTTP_CACHE_CONTROL = 'public, max-age=600, s-maxage=1800, stale-while-revalidate=86400';
 
     /** Route documentation for project badges */
     static routeDocs: Record<ProjectBadgeType, BadgeRouteDoc> = {
@@ -72,6 +74,19 @@ export class ProjectBadgeController {
         this.githubClient = githubClient;
         this.cache = cache;
         this.CACHE_DURATION = cacheDuration;
+    }
+
+    private static maybePruneCache(): void {
+        if (ProjectBadgeController.cache.size <= ProjectBadgeController.MAX_CACHE_ITEMS) {
+            return;
+        }
+        const overflowCount = ProjectBadgeController.cache.size - ProjectBadgeController.MAX_CACHE_ITEMS;
+        let removed = 0;
+        for (const key of ProjectBadgeController.cache.keys()) {
+            ProjectBadgeController.cache.delete(key);
+            removed += 1;
+            if (removed >= overflowCount) break;
+        }
     }
 
     /** Validate and parse repo param (format: owner/repo); sends 400 and returns null on failure. */
