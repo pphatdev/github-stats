@@ -30,6 +30,6 @@
         }
     </style>
     <g id="kotlin-logo">
-    <title>Kotlin</title><path fill="#7F52FF" d="M24 24H0V0h24L12 12Z" />
+    <title>Kotlin</title><path fill="currentColor" d="M24 24H0V0h24L12 12Z" />
     </g>
 </svg>
