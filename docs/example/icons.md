@@ -48,6 +48,8 @@ List available SVG icons or fetch a single icon.
 ![icon-fastapi](https://stats.pphat.top/icons/fastapi?color=white&glow=true&glowColor=white)
 ![icon-hugo](https://stats.pphat.top/icons/hugo?color=white&glow=true&glowColor=white)
 
+List available SVG icons or fetch a single icon.
+
 ## Routes
 
 - `/icons` - Returns JSON metadata and icon names
@@ -120,3 +122,4 @@ Icon not found:
 ```bash
 curl "https://stats.pphat.top/icons/not-a-real-icon"
 ```
+
