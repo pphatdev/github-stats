@@ -42,6 +42,49 @@ To add a new theme:
 2. Test the theme with `?theme=yourtheme`
 3. Submit a PR with a screenshot
 
+### Adding or Updating Icons
+
+To add a new icon or update an existing one in `public/assets/icons/`:
+
+1. **Format Requirements**:
+   - SVG format only
+   - Width and height: `48x48`
+   - Use consistent margins via viewBox (typically 8-12px)
+   - Example: `viewBox="-10 -10 44 44"` for 10px margin
+
+2. **Animation**:
+   Add the popup animation style:
+   ```xml
+   <style>
+       @keyframes popup {
+           0% {
+               opacity: 0;
+               transform: scale(0);
+           }
+           100% {
+               opacity: 1;
+               transform: scale(1);
+           }
+       }
+       #iconname-logo {
+           animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+       }
+   </style>
+   ```
+
+3. **Structure**:
+   - Wrap paths in a `<g>` element with unique id: `<g id="iconname-logo">`
+   - Use `fill="currentColor"` for main paths to support theming
+   - Include optional `<title>` tag for accessibility
+
+4. **File Naming**:
+   - Use lowercase with hyphens: `icon-name.svg`
+   - Match the technology/framework name
+
+5. **Testing**:
+   - Verify the icon displays correctly in the icons gallery
+   - Test with different themes to ensure colors work properly
+
 ## Development Setup
 
 ```bash
