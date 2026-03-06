@@ -37,7 +37,7 @@ function respondWithCached(res: Response, cached: unknown) {
 /**
  * Express middleware for caching GET requests responses
  * Usage example:
- * app.get('/api/stats', 
+ * app.get('/api/stats',
  *   cacheMiddleware({
  *     keyGenerator: (req) => `stats:${req.query.username}`,
  *     ttl: 3600
