@@ -39,6 +39,8 @@ export class BadgeController {
     private static cache: Map<string, { data: string; timestamp: number }>;
     private static CACHE_DURATION: number;
     private static pendingRequests: Map<string, Promise<string>> = new Map();
+    private static readonly MAX_CACHE_ITEMS = 5000;
+    private static readonly HTTP_CACHE_CONTROL = 'public, max-age=600, s-maxage=1800, stale-while-revalidate=86400';
 
     static routeDocs = {
         visitors: { requiredParams: ['username'], optionalParams: COMMON_OPTIONAL_PARAMS, payload: null, example: '/badge/visitors?username=pphatdev&theme=tokyo' },
@@ -71,6 +73,19 @@ export class BadgeController {
         this.githubClient = githubClient;
         this.cache = cache;
         this.CACHE_DURATION = cacheDuration;
+    }
+
+    private static maybePruneCache(): void {
+        if (BadgeController.cache.size <= BadgeController.MAX_CACHE_ITEMS) {
+            return;
+        }
+        const overflowCount = BadgeController.cache.size - BadgeController.MAX_CACHE_ITEMS;
+        let removed = 0;
+        for (const key of BadgeController.cache.keys()) {
+            BadgeController.cache.delete(key);
+            removed += 1;
+            if (removed >= overflowCount) break;
+        }
     }
 
     /** Parse common display options from query params. */
@@ -126,7 +141,7 @@ export class BadgeController {
         const cached = BadgeController.cache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < BadgeController.CACHE_DURATION) {
             res.setHeader('Content-Type', 'image/svg+xml');
-            res.setHeader('Cache-Control', 'public, max-age=600');
+            res.setHeader('Cache-Control', BadgeController.HTTP_CACHE_CONTROL);
             return res.send(cached.data);
         }
 
