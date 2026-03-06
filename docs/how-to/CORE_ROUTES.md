@@ -1,11 +1,14 @@
 # Core Statistics Routes
 
-These routes provide comprehensive GitHub user statistics visualizations including stats cards, language breakdowns, and contribution graphs.
+These routes provide comprehensive GitHub user statistics visualizations, contribution graphs, and reusable SVG icons.
 
 ## Table of Contents
 - [GET /stats](#get-stats-user-statistics-card)
 - [GET /languages](#get-languages-language-breakdown)
 - [GET /graph](#get-graph-contribution-graph)
+- [GET /icons (list)](#get-icons---list-available-icons)
+- [GET /icons/:name (svg)](#get-iconsname---get-an-icon-svg)
+- [GET /icons/demo (gallery)](#get-iconsdemo---icons-gallery-page)
 
 ---
 
@@ -240,6 +243,113 @@ curl "http://localhost:3000/graph?username=pphatdev&custom_title=My%20Contributi
 
 ---
 
+## GET /icons - List Available Icons
+
+Returns the list of all available icon names and related helper routes.
+
+### Endpoint
+```
+GET /icons
+```
+
+### Required Parameters
+
+None.
+
+### Optional Parameters
+
+None.
+
+### Response
+**Content-Type:** `application/json`
+
+Returns JSON containing:
+- Total icon count
+- `icons` array with all icon names
+- Example helper endpoints (`/icons/:name`, `/icons/:name.svg`, `/icons/demo`)
+
+### Example
+
+```bash
+curl "http://localhost:3000/icons"
+```
+
+---
+
+## GET /icons/:name - Get an Icon (SVG)
+
+Returns a single SVG icon by name. Supports both `/icons/:name` and `/icons/:name.svg`.
+
+### Endpoints
+```
+GET /icons/:name
+GET /icons/:name.svg
+```
+
+### Required Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `name` | string | Icon name from `/icons` list | `react` |
+
+### Optional Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `color` | string | Replaces `currentColor` fill/stroke values |
+| `foreground` | string | Recolors elements marked with `data-foreground` |
+
+### Response
+**Content-Type:** `image/svg+xml`
+
+Returns SVG content for the requested icon.
+
+### Examples
+
+```bash
+curl "http://localhost:3000/icons/react"
+curl "http://localhost:3000/icons/react.svg"
+curl "http://localhost:3000/icons/typescript?color=%23FF0000"
+curl "http://localhost:3000/icons/html?foreground=%230088CC"
+curl "http://localhost:3000/icons/react?color=%230088CC&foreground=%23FF0000"
+```
+
+---
+
+## GET /icons/demo - Icons Gallery Page
+
+Returns an interactive HTML page previewing all available icons.
+
+### Endpoint
+```
+GET /icons/demo
+```
+
+### Required Parameters
+
+None.
+
+### Optional Parameters
+
+None.
+
+### Response
+**Content-Type:** `text/html`
+
+### Example
+
+```bash
+curl "http://localhost:3000/icons/demo"
+```
+
+Open in browser:
+
+```text
+http://localhost:3000/icons/demo
+```
+
+---
+
 ## General Notes
 
 ### Error Handling
@@ -318,3 +428,4 @@ Consider increasing cache TTL or investigating Redis connection.
 - [User Badge Routes](./USER_BADGES.md) - Individual badge endpoints
 - [Project Badge Routes](./PROJECT_BADGES.md) - Repository-specific badges
 - [Cache Monitoring Guide](./CACHE_MONITORING.md) - Health and performance checks
+- [Route-by-Route Demos](../example/README.md) - Quick visual examples for each route

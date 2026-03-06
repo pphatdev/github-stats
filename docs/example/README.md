@@ -7,6 +7,7 @@ This folder contains one file per route, with demo examples for each available o
 - [GET /stats](./stats.md)
 - [GET /languages](./languages.md)
 - [GET /graph](./graph.md)
+- [GET /icons and /icons/:name](./icons.md)
 - [GET /badge/:type](./badge-user.md)
 - [GET /project/:type](./project.md)
 

@@ -15,7 +15,10 @@ export function registerIconsRoutes(app: Application): void {
     // List all icons
     app.get('/icons', IconsController.getAllIcons);
 
-    // Get specific icon (supports both /icons/name and /icons/name.svg)
+    // Explicit .svg route for clearer route discovery/docs output
+    app.get('/icons/:name.svg', IconsController.getIcon);
+
+    // Get specific icon by name
     app.get('/icons/:name', IconsController.getIcon);
 }
 
@@ -25,6 +28,7 @@ export function registerIconsRoutes(app: Application): void {
 export function getIconsRouteDocs(): Record<string, typeof IconsController.routeDocs[keyof typeof IconsController.routeDocs]> {
     return {
         'GET /icons': IconsController.routeDocs['icons-list'],
+        'GET /icons/:name.svg': IconsController.routeDocs['icons-get'],
         'GET /icons/:name': IconsController.routeDocs['icons-get'],
         'GET /icons/demo': IconsController.routeDocs['icons-demo'],
     };

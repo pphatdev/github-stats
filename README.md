@@ -130,6 +130,36 @@ GET https://stats.pphat.top/graph?username=pphatdev&theme=matrix&animate=pulse&a
 GET https://stats.pphat.top/graph?username=pphatdev&as=png
 ```
 
+### `GET /icons` and `GET /icons/:name`
+
+Provides reusable SVG icons: list all icon names, fetch an icon by name, and preview the icon gallery demo page.
+
+Routes:
+
+- `/icons` - Returns JSON list of available icons
+- `/icons/:name` - Returns icon SVG by name (e.g. `/icons/react`)
+- `/icons/:name.svg` - Same as above with explicit extension
+- `/icons/demo` - Interactive icons demo page
+
+Optional query params for `/icons/:name`:
+
+| Param | Description |
+|-------|-------------|
+| `color` | Replaces `currentColor` values in icon fill/stroke |
+| `foreground` | Recolors elements marked with `data-foreground` |
+
+Examples:
+
+```text
+GET https://stats.pphat.top/icons
+GET https://stats.pphat.top/icons/react
+GET https://stats.pphat.top/icons/react.svg
+GET https://stats.pphat.top/icons/typescript?color=%23FF0000
+GET https://stats.pphat.top/icons/html?foreground=%230088CC
+GET https://stats.pphat.top/icons/react?color=%230088CC&foreground=%23FF0000
+GET https://stats.pphat.top/icons/demo
+```
+
 ### `GET /badge/:type`
 
 Returns dynamic badge SVGs for various GitHub user metrics.
@@ -391,7 +421,7 @@ All available themes: `aurora` · `matrix` · `inferno` · `ocean` · `neon` · 
 
 Development setup was moved to: [docs/how-to/DEVELOPMENT.md](docs/how-to/DEVELOPMENT.md)
 
-Route-by-route demos with option examples: [docs/how-to/routes/README.md](docs/how-to/routes/README.md)
+Route-by-route demos with option examples: [docs/example/README.md](docs/example/README.md)
 
 ## Architecture
 
