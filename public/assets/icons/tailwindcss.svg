@@ -1,44 +1,35 @@
-<svg width="48" height="48" viewBox="-3.84 -3.84 31.68 31.68" xmlns="http://www.w3.org/2000/svg">
-    <style>
+<svg width="48" height="48" viewBox="-10.2941 -10.2941 44.5884 44.5884" xmlns="http://www.w3.org/2000/svg">
+            <style>
         @keyframes popup {
             0% {
                 opacity: 0;
                 transform: scale(0);
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            70% {
-                transform: scale(0.9);
-            }
-            85% {
-                transform: scale(1.05);
             }
             100% {
                 opacity: 1;
                 transform: scale(1);
             }
         }
-        @keyframes float {
-            0%, 100% {
-                filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.3));
-            }
-            25% {
-                filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));
-            }
-            50% {
-                filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.6));
-            }
-            75% {
-                filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));
-            }
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-2px, -2px) rotate(-1deg); }
+            20% { transform: translate(2px, 2px) rotate(1deg); }
+            30% { transform: translate(-2px, 2px) rotate(-1deg); }
+            40% { transform: translate(2px, -2px) rotate(1deg); }
+            50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
+            60% { transform: translate(1px, -1px) rotate(0.5deg); }
+            70% { transform: translate(-2px, 0) rotate(-1deg); }
+            80% { transform: translate(2px, 0) rotate(1deg); }
+            90% { transform: translate(-1px, -1px) rotate(-0.5deg); }
         }
         #tailwindcss-logo {
-            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, float 3s ease-in-out 0.6s infinite;
-            transform-origin: center;
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        #tailwindcss-logo:hover {
+            animation: shake 0.5s ease-in-out infinite;
         }
     </style>
     <g id="tailwindcss-logo">
-    <title>Tailwind CSS</title><path d="M12.001,4.8c-3.2,0-5.2,1.6-6,4.8c1.2-1.6,2.6-2.2,4.2-1.8c0.913,0.228,1.565,0.89,2.288,1.624 C13.666,10.618,15.027,12,18.001,12c3.2,0,5.2-1.6,6-4.8c-1.2,1.6-2.6,2.2-4.2,1.8c-0.913-0.228-1.565-0.89-2.288-1.624 C16.337,6.182,14.976,4.8,12.001,4.8z M6.001,12c-3.2,0-5.2,1.6-6,4.8c1.2-1.6,2.6-2.2,4.2-1.8c0.913,0.228,1.565,0.89,2.288,1.624 c1.177,1.194,2.538,2.576,5.512,2.576c3.2,0,5.2-1.6,6-4.8c-1.2,1.6-2.6,2.2-4.2,1.8c-0.913-0.228-1.565-0.89-2.288-1.624 C10.337,13.382,8.976,12,6.001,12z" fill="#38BDF8"/>
+    <title>Tailwind CSS</title><path fill="#38BDF8" d="M12.001,4.8c-3.2,0-5.2,1.6-6,4.8c1.2-1.6,2.6-2.2,4.2-1.8c0.913,0.228,1.565,0.89,2.288,1.624 C13.666,10.618,15.027,12,18.001,12c3.2,0,5.2-1.6,6-4.8c-1.2,1.6-2.6,2.2-4.2,1.8c-0.913-0.228-1.565-0.89-2.288-1.624 C16.337,6.182,14.976,4.8,12.001,4.8z M6.001,12c-3.2,0-5.2,1.6-6,4.8c1.2-1.6,2.6-2.2,4.2-1.8c0.913,0.228,1.565,0.89,2.288,1.624 c1.177,1.194,2.538,2.576,5.512,2.576c3.2,0,5.2-1.6,6-4.8c-1.2,1.6-2.6,2.2-4.2,1.8c-0.913-0.228-1.565-0.89-2.288-1.624 C10.337,13.382,8.976,12,6.001,12z" />
     </g>
 </svg>

@@ -1,44 +1,35 @@
-<svg width="48" height="48" viewBox="-3.84 -3.84 31.68 31.68" xmlns="http://www.w3.org/2000/svg">
-    <style>
+<svg width="48" height="48" viewBox="-10.2941 -10.2941 44.5884 44.5884" xmlns="http://www.w3.org/2000/svg">
+            <style>
         @keyframes popup {
             0% {
                 opacity: 0;
                 transform: scale(0);
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            70% {
-                transform: scale(0.9);
-            }
-            85% {
-                transform: scale(1.05);
             }
             100% {
                 opacity: 1;
                 transform: scale(1);
             }
         }
-        @keyframes float {
-            0%, 100% {
-                filter: drop-shadow(0 0 8px rgba(0, 150, 57, 0.3));
-            }
-            25% {
-                filter: drop-shadow(0 0 12px rgba(0, 150, 57, 0.5));
-            }
-            50% {
-                filter: drop-shadow(0 0 15px rgba(0, 150, 57, 0.6));
-            }
-            75% {
-                filter: drop-shadow(0 0 12px rgba(0, 150, 57, 0.5));
-            }
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-2px, -2px) rotate(-1deg); }
+            20% { transform: translate(2px, 2px) rotate(1deg); }
+            30% { transform: translate(-2px, 2px) rotate(-1deg); }
+            40% { transform: translate(2px, -2px) rotate(1deg); }
+            50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
+            60% { transform: translate(1px, -1px) rotate(0.5deg); }
+            70% { transform: translate(-2px, 0) rotate(-1deg); }
+            80% { transform: translate(2px, 0) rotate(1deg); }
+            90% { transform: translate(-1px, -1px) rotate(-0.5deg); }
         }
         #nginx-logo {
-            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, float 3s ease-in-out 0.6s infinite;
-            transform-origin: center;
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        #nginx-logo:hover {
+            animation: shake 0.5s ease-in-out infinite;
         }
     </style>
     <g id="nginx-logo">
-    <title>NGINX</title><path d="M12 0L1.605 6v12L12 24l10.395-6V6L12 0zm6 16.59c0 .705-.646 1.29-1.529 1.29-.631 0-1.351-.255-1.801-.81l-6-7.141v6.66c0 .721-.57 1.29-1.274 1.29H7.32c-.721 0-1.29-.6-1.29-1.29V7.41c0-.705.63-1.29 1.5-1.29.646 0 1.38.255 1.83.81l5.97 7.141V7.41c0-.721.6-1.29 1.29-1.29h.075c.72 0 1.29.6 1.29 1.29v9.18H18z" fill="#009639"/>
+    <title>NGINX</title><path fill="#009639" d="M12 0L1.605 6v12L12 24l10.395-6V6L12 0zm6 16.59c0 .705-.646 1.29-1.529 1.29-.631 0-1.351-.255-1.801-.81l-6-7.141v6.66c0 .721-.57 1.29-1.274 1.29H7.32c-.721 0-1.29-.6-1.29-1.29V7.41c0-.705.63-1.29 1.5-1.29.646 0 1.38.255 1.83.81l5.97 7.141V7.41c0-.721.6-1.29 1.29-1.29h.075c.72 0 1.29.6 1.29 1.29v9.18H18z" />
     </g>
 </svg>

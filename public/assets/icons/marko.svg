@@ -1,44 +1,35 @@
-<svg width="48" height="48" viewBox="-3.84 -3.84 31.68 31.68" xmlns="http://www.w3.org/2000/svg">
-    <style>
+<svg width="48" height="48" viewBox="-10.2941 -10.2941 44.5884 44.5884" xmlns="http://www.w3.org/2000/svg">
+            <style>
         @keyframes popup {
             0% {
                 opacity: 0;
                 transform: scale(0);
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            70% {
-                transform: scale(0.9);
-            }
-            85% {
-                transform: scale(1.05);
             }
             100% {
                 opacity: 1;
                 transform: scale(1);
             }
         }
-        @keyframes float {
-            0%, 100% {
-                filter: drop-shadow(0 0 8px rgba(100, 100, 100, 0.3));
-            }
-            25% {
-                filter: drop-shadow(0 0 12px rgba(100, 100, 100, 0.5));
-            }
-            50% {
-                filter: drop-shadow(0 0 15px rgba(100, 100, 100, 0.6));
-            }
-            75% {
-                filter: drop-shadow(0 0 12px rgba(100, 100, 100, 0.5));
-            }
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-2px, -2px) rotate(-1deg); }
+            20% { transform: translate(2px, 2px) rotate(1deg); }
+            30% { transform: translate(-2px, 2px) rotate(-1deg); }
+            40% { transform: translate(2px, -2px) rotate(1deg); }
+            50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
+            60% { transform: translate(1px, -1px) rotate(0.5deg); }
+            70% { transform: translate(-2px, 0) rotate(-1deg); }
+            80% { transform: translate(2px, 0) rotate(1deg); }
+            90% { transform: translate(-1px, -1px) rotate(-0.5deg); }
         }
         #marko-logo {
-            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, float 3s ease-in-out 0.6s infinite;
-            transform-origin: center;
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        #marko-logo:hover {
+            animation: shake 0.5s ease-in-out infinite;
         }
     </style>
     <g id="marko-logo">
-    <title>Marko</title><path d="M15.4 5.46h-3.39l-2.3 3.77L7.4 5.46H4l-4 6.55 4 6.53h3.39l-4-6.54L5.7 8.23 8.01 12h3.39l2.31-3.78L16.03 12l-4.01 6.54h3.39l4-6.54zm4.6 0h-3.39l4 6.54-4.01 6.54h3.39L24 12z" fill="#61DAFB"/>
+    <title>Marko</title><path fill="#61DAFB" d="M15.4 5.46h-3.39l-2.3 3.77L7.4 5.46H4l-4 6.55 4 6.53h3.39l-4-6.54L5.7 8.23 8.01 12h3.39l2.31-3.78L16.03 12l-4.01 6.54h3.39l4-6.54zm4.6 0h-3.39l4 6.54-4.01 6.54h3.39L24 12z" />
     </g>
 </svg>

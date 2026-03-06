@@ -1,44 +1,35 @@
-<svg width="48" height="48" viewBox="-3.84 -3.84 31.68 31.68" xmlns="http://www.w3.org/2000/svg">
-    <style>
+<svg width="48" height="48" viewBox="-10.2941 -10.2941 44.5884 44.5884" xmlns="http://www.w3.org/2000/svg">
+            <style>
         @keyframes popup {
             0% {
                 opacity: 0;
                 transform: scale(0);
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            70% {
-                transform: scale(0.9);
-            }
-            85% {
-                transform: scale(1.05);
             }
             100% {
                 opacity: 1;
                 transform: scale(1);
             }
         }
-        @keyframes float {
-            0%, 100% {
-                filter: drop-shadow(0 0 8px rgba(100, 100, 100, 0.3));
-            }
-            25% {
-                filter: drop-shadow(0 0 12px rgba(100, 100, 100, 0.5));
-            }
-            50% {
-                filter: drop-shadow(0 0 15px rgba(100, 100, 100, 0.6));
-            }
-            75% {
-                filter: drop-shadow(0 0 12px rgba(100, 100, 100, 0.5));
-            }
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-2px, -2px) rotate(-1deg); }
+            20% { transform: translate(2px, 2px) rotate(1deg); }
+            30% { transform: translate(-2px, 2px) rotate(-1deg); }
+            40% { transform: translate(2px, -2px) rotate(1deg); }
+            50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
+            60% { transform: translate(1px, -1px) rotate(0.5deg); }
+            70% { transform: translate(-2px, 0) rotate(-1deg); }
+            80% { transform: translate(2px, 0) rotate(1deg); }
+            90% { transform: translate(-1px, -1px) rotate(-0.5deg); }
         }
         #iconjar-logo {
-            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, float 3s ease-in-out 0.6s infinite;
-            transform-origin: center;
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        #iconjar-logo:hover {
+            animation: shake 0.5s ease-in-out infinite;
         }
     </style>
     <g id="iconjar-logo">
-    <title>IconJar</title><path d="M5.15 5.875c-.492 0-.936-.453-.936-.954 0-1.155 2.858-2.01 6.11-2.01.295 0 .492 0 .492-.25 0-.452-.985-.602-.985-1.355C9.831.502 10.767 0 11.95 0c1.183 0 2.12.502 2.12 1.306 0 .753-.986.853-.986 1.355 0 .151.148.251.492.251 3.252 0 6.16.803 6.16 2.009a.944.944 0 01-.937.953H5.151zm14.732 4.568c1.183.753 1.626 2.109 1.43 3.365l-1.38 7.58C19.636 22.897 18.354 24 16.826 24H7.17c-1.526 0-2.808-1.104-3.104-2.611l-1.38-7.581a3.307 3.307 0 011.48-3.315c.69-.501.836-1.355 0-1.656-1.184-.452-.938-1.908.245-1.908h7.193c1.133 0 2.514.853 2.514 3.615 0 2.762-1.282 2.51-1.282 4.468 0 .854.69 1.758 1.527 1.859 1.43.15 2.267-.402 2.267-2.41 0-2.06-1.182-3.013-1.182-4.72 0-2.059 1.28-2.863 2.118-2.863h2.07c1.182 0 1.43 1.457.246 1.909-.837.35-.69 1.205 0 1.656z" fill="#61DAFB"/>
+    <title>IconJar</title><path fill="#61DAFB" d="M5.15 5.875c-.492 0-.936-.453-.936-.954 0-1.155 2.858-2.01 6.11-2.01.295 0 .492 0 .492-.25 0-.452-.985-.602-.985-1.355C9.831.502 10.767 0 11.95 0c1.183 0 2.12.502 2.12 1.306 0 .753-.986.853-.986 1.355 0 .151.148.251.492.251 3.252 0 6.16.803 6.16 2.009a.944.944 0 01-.937.953H5.151zm14.732 4.568c1.183.753 1.626 2.109 1.43 3.365l-1.38 7.58C19.636 22.897 18.354 24 16.826 24H7.17c-1.526 0-2.808-1.104-3.104-2.611l-1.38-7.581a3.307 3.307 0 011.48-3.315c.69-.501.836-1.355 0-1.656-1.184-.452-.938-1.908.245-1.908h7.193c1.133 0 2.514.853 2.514 3.615 0 2.762-1.282 2.51-1.282 4.468 0 .854.69 1.758 1.527 1.859 1.43.15 2.267-.402 2.267-2.41 0-2.06-1.182-3.013-1.182-4.72 0-2.059 1.28-2.863 2.118-2.863h2.07c1.182 0 1.43 1.457.246 1.909-.837.35-.69 1.205 0 1.656z" />
     </g>
 </svg>

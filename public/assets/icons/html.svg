@@ -1,49 +1,40 @@
-<svg width="48" height="48" viewBox="-2.93 -2.93 53.86 53.86" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <style>
+<svg width="48" height="48" viewBox="-2.93 -2.93 53.86 53.86"  xmlns="http://www.w3.org/2000/svg">
+            <style>
         @keyframes popup {
             0% {
                 opacity: 0;
                 transform: scale(0);
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            70% {
-                transform: scale(0.9);
-            }
-            85% {
-                transform: scale(1.05);
             }
             100% {
                 opacity: 1;
                 transform: scale(1);
             }
         }
-        @keyframes float {
-            0%, 100% {
-                filter: drop-shadow(0 0 8px rgba(228, 77, 38, 0.3));
-            }
-            25% {
-                filter: drop-shadow(0 0 12px rgba(228, 77, 38, 0.5));
-            }
-            50% {
-                filter: drop-shadow(0 0 15px rgba(228, 77, 38, 0.6));
-            }
-            75% {
-                filter: drop-shadow(0 0 12px rgba(228, 77, 38, 0.5));
-            }
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-2px, -2px) rotate(-1deg); }
+            20% { transform: translate(2px, 2px) rotate(1deg); }
+            30% { transform: translate(-2px, 2px) rotate(-1deg); }
+            40% { transform: translate(2px, -2px) rotate(1deg); }
+            50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
+            60% { transform: translate(1px, -1px) rotate(0.5deg); }
+            70% { transform: translate(-2px, 0) rotate(-1deg); }
+            80% { transform: translate(2px, 0) rotate(1deg); }
+            90% { transform: translate(-1px, -1px) rotate(-0.5deg); }
         }
         #html-logo {
-            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, float 3s ease-in-out 0.6s infinite;
-            transform-origin: center;
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        #html-logo:hover {
+            animation: shake 0.5s ease-in-out infinite;
         }
     </style>
     <g id="html-logo">
-    <path d="M13.5171 37.121L11.2 11.2H36.6609L34.3413 37.1169L23.9149 40L13.5171 37.121Z" fill="#E44D26" />
-    <path d="M23.9304 37.7044L32.3778 35.3804L34.3652 13.287H23.9304V37.7044Z" fill="#F16529" />
-    <path d="M23.9304 22.8428H19.7454L19.4564 19.592H23.9304V16.4174H23.9195H16L16.0757 17.2691L16.853 26.0174H23.9304V22.8428Z" fill="#EBEBEB" />
-    <path d="M23.9304 31.2197L23.9167 31.2235L20.4194 30.2551L20.1958 27.687H18.4964H17.0435L17.4834 32.7429L23.916 34.574L23.9304 34.5699V31.2197Z" fill="#EBEBEB" />
-    <path d="M23.9304 22.887V26.0991H27.7999L27.4351 30.2651L23.9304 31.232V34.5739L30.3724 32.7488L30.4197 32.2062L31.1581 23.7495L31.2348 22.887H30.388H23.9304Z" fill="white" />
-    <path d="M23.9304 16.4174V18.3616V19.5401V19.5478H31.5672V19.5478H31.5774L31.6409 18.8442L31.7852 17.2572L31.8609 16.4174H23.9304Z" fill="white" />
+    <path fill="#E44D26" d="M13.5171 37.121L11.2 11.2H36.6609L34.3413 37.1169L23.9149 40L13.5171 37.121Z"  />
+    <path fill="#F16529" d="M23.9304 37.7044L32.3778 35.3804L34.3652 13.287H23.9304V37.7044Z"  />
+    <path fill="#EBEBEB" d="M23.9304 22.8428H19.7454L19.4564 19.592H23.9304V16.4174H23.9195H16L16.0757 17.2691L16.853 26.0174H23.9304V22.8428Z"  />
+    <path fill="#EBEBEB" d="M23.9304 31.2197L23.9167 31.2235L20.4194 30.2551L20.1958 27.687H18.4964H17.0435L17.4834 32.7429L23.916 34.574L23.9304 34.5699V31.2197Z"  />
+    <path fill="white" d="M23.9304 22.887V26.0991H27.7999L27.4351 30.2651L23.9304 31.232V34.5739L30.3724 32.7488L30.4197 32.2062L31.1581 23.7495L31.2348 22.887H30.388H23.9304Z"  />
+    <path fill="white" d="M23.9304 16.4174V18.3616V19.5401V19.5478H31.5672V19.5478H31.5774L31.6409 18.8442L31.7852 17.2572L31.8609 16.4174H23.9304Z"  />
     </g>
 </svg>
