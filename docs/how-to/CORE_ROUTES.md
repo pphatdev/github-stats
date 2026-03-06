@@ -298,11 +298,13 @@ GET /icons/:name.svg
 |-----------|------|-------------|
 | `color` | string | Replaces `currentColor` fill/stroke values |
 | `foreground` | string | Recolors elements marked with `data-foreground` |
+| `glow` | boolean | Enable glow effect (`true` or `1`) |
+| `glowColor` | string | Set glow color (hex, rgb, named). Defaults to `#00AAFF` |
 
 ### Response
 **Content-Type:** `image/svg+xml`
 
-Returns SVG content for the requested icon.
+Returns SVG content for the requested icon with optional color customization and glow effect.
 
 ### Examples
 
@@ -312,6 +314,10 @@ curl "http://localhost:3000/icons/react.svg"
 curl "http://localhost:3000/icons/typescript?color=%23FF0000"
 curl "http://localhost:3000/icons/html?foreground=%230088CC"
 curl "http://localhost:3000/icons/react?color=%230088CC&foreground=%23FF0000"
+curl "http://localhost:3000/icons/react?glow=true"
+curl "http://localhost:3000/icons/typescript?glow=true&glowColor=%23FF00FF"
+curl "http://localhost:3000/icons/github?glow=true&glowColor=blue"
+curl "http://localhost:3000/icons/react?color=%230088CC&glow=true&glowColor=%2300FF00"
 ```
 
 ---

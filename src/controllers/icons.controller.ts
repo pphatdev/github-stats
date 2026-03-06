@@ -110,16 +110,50 @@ export class IconsController {
     }
 
     /**
-     * Generate cache key with optional color parameters
+     * Apply glow effect to SVG content
+     * Adds an SVG filter that creates a glow effect around the icon
      */
-    private static generateCacheKey(iconName: string, color?: string, foreground?: string): string {
-        if (color && foreground) {
-            return `${iconName}:c:${color}:fg:${foreground}`;
-        }
-        if (foreground) {
-            return `${iconName}:fg:${foreground}`;
-        }
-        return color ? `${iconName}:${color}` : iconName;
+    private static applyGlowEffect(svgContent: string, glowColor: string): string {
+        // Generate a unique filter ID to avoid conflicts
+        const filterId = `glow-${Math.random().toString(36).substr(2, 9)}`;
+
+        // Create the glow filter definition
+        const filterDef = `
+            <defs>
+                <filter id="${filterId}" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+                    <feFlood flood-color="${glowColor}" flood-opacity="0.3" result="color"/>
+                    <feComposite in="color" in2="blur" operator="in" result="glow"/>
+                    <feMerge>
+                        <feMergeNode in="glow"/>
+                        <feMergeNode in="glow"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>`;
+
+        // Insert the filter definition after the opening SVG tag and apply it to the SVG
+        let result = svgContent.replace(
+            /(<svg[^>]*)(>)/i,
+            (match, svgTag, closingBracket) => {
+                // Remove any existing filter attribute first
+                const cleanedTag = svgTag.replace(/\s+filter="[^"]*"/gi, '');
+                return `${cleanedTag} filter="url(#${filterId})"${closingBracket}${filterDef}`;
+            }
+        );
+
+        return result;
+    }
+
+    /**
+     * Generate cache key with optional color and glow parameters
+     */
+    private static generateCacheKey(iconName: string, color?: string, foreground?: string, glow?: boolean, glowColor?: string): string {
+        const parts = [iconName];
+        if (color) parts.push(`c:${color}`);
+        if (foreground) parts.push(`fg:${foreground}`);
+        if (glow && glowColor) parts.push(`glow:${glowColor}`);
+        return parts.join(':');
     }
 
     /**
@@ -160,6 +194,10 @@ export class IconsController {
             const colorParam = req.query.color as string | undefined;
             const foregroundParam = req.query.foreground as string | undefined;
 
+            // Extract optional glow parameters
+            const glowParam = req.query.glow === 'true' || req.query.glow === '1';
+            const glowColorParam = req.query.glowColor as string | undefined;
+
             if (colorParam && !IconsController.isValidColor(colorParam)) {
                 res.status(400).json({
                     error: 'Invalid color parameter',
@@ -175,6 +213,17 @@ export class IconsController {
                 });
                 return;
             }
+
+            if (glowColorParam && !IconsController.isValidColor(glowColorParam)) {
+                res.status(400).json({
+                    error: 'Invalid glowColor parameter',
+                    message: 'glowColor must be a valid hex color (#RGB, #RRGGBB, #RRGGBBAA), rgb/rgba, hsl/hsla, named color, or currentColor'
+                });
+                return;
+            }
+
+            // If glow is enabled but no glowColor provided, use a default color
+            const effectiveGlowColor = glowParam ? (glowColorParam || '#00AAFF') : undefined;
 
             // Validate icon name against strict regex (alphanumeric, dots, underscores, hyphens only)
             const validFilenameRegex = /^[a-zA-Z0-9._-]+$/;
@@ -211,8 +260,8 @@ export class IconsController {
                 return;
             }
 
-            // Generate cache key including color parameters
-            const cacheKey = IconsController.generateCacheKey(iconName, colorParam, foregroundParam);
+            // Generate cache key including color and glow parameters
+            const cacheKey = IconsController.generateCacheKey(iconName, colorParam, foregroundParam, glowParam, effectiveGlowColor);
 
             // Check in-memory SVG cache first
             const cached = IconsController.svgCache.get(cacheKey);
@@ -244,6 +293,11 @@ export class IconsController {
             }
             if (foregroundParam) {
                 iconContent = IconsController.applyForegroundColor(iconContent, foregroundParam);
+            }
+
+            // Apply glow effect if requested
+            if (glowParam && effectiveGlowColor) {
+                iconContent = IconsController.applyGlowEffect(iconContent, effectiveGlowColor);
             }
 
             const etag = IconsController.createWeakEtag(iconContent);
@@ -301,9 +355,9 @@ export class IconsController {
         },
         'icons-get': {
             requiredParams: ['name'],
-            optionalParams: ['color', 'foreground'],
-            payload: 'Returns the SVG content of the specified icon, optionally with custom colors. Use "color" to replace currentColor, "foreground" to target elements with data-foreground attribute',
-            example: '/icons/react.svg or /icons/typescript?color=%23FF0000 or /icons/github?color=blue or /icons/html?foreground=%23FF0000 or /icons/react?color=%230088CC&foreground=%23FF0000'
+            optionalParams: ['color', 'foreground', 'glow', 'glowColor'],
+            payload: 'Returns the SVG content of the specified icon with optional styling. Use "color" to replace currentColor, "foreground" to target data-foreground elements, "glow=true" to enable glow effect, "glowColor" to set glow color (defaults to #00AAFF)',
+            example: '/icons/react.svg or /icons/typescript?color=%23FF0000 or /icons/github?glow=true&glowColor=%23FF00FF or /icons/html?foreground=%23FF0000 or /icons/react?color=%230088CC&glow=true&glowColor=%2300FF00'
         },
         'icons-demo': {
             requiredParams: [],

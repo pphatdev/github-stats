@@ -147,6 +147,8 @@ Optional query params for `/icons/:name`:
 |-------|-------------|
 | `color` | Replaces `currentColor` values in icon fill/stroke |
 | `foreground` | Recolors elements marked with `data-foreground` |
+| `glow` | Enable glow effect (`true` or `1`) |
+| `glowColor` | Set glow color (hex, rgb, named color). Defaults to `#00AAFF` |
 
 Examples:
 
@@ -157,6 +159,10 @@ GET https://stats.pphat.top/icons/react.svg
 GET https://stats.pphat.top/icons/typescript?color=%23FF0000
 GET https://stats.pphat.top/icons/html?foreground=%230088CC
 GET https://stats.pphat.top/icons/react?color=%230088CC&foreground=%23FF0000
+GET https://stats.pphat.top/icons/react?glow=true
+GET https://stats.pphat.top/icons/typescript?glow=true&glowColor=%23FF00FF
+GET https://stats.pphat.top/icons/github?glow=true&glowColor=blue
+GET https://stats.pphat.top/icons/react?color=%230088CC&glow=true&glowColor=%2300FF00
 GET https://stats.pphat.top/icons/demo
 ```
 

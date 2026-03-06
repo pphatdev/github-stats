@@ -22,6 +22,8 @@ Default demo icon: `react`
 |---|---|
 | `color` | Replaces `currentColor` fills/strokes in the SVG |
 | `foreground` | Recolors elements marked with `data-foreground` |
+| `glow` | Enable glow effect (`true` or `1`) |
+| `glowColor` | Set glow color (hex, rgb, named color). Defaults to `#00AAFF` if not specified |
 
 ## Default Demos
 
@@ -49,11 +51,15 @@ Demo page:
 |---|---|
 | `color` | ![color](https://stats.pphat.top/icons/react?color=%230088CC) |
 | `foreground` | ![foreground](https://stats.pphat.top/icons/html?foreground=%23FF0000) |
+| `glow` | ![glow](https://stats.pphat.top/icons/react?glow=true) |
+| `glowColor` | ![glowColor](https://stats.pphat.top/icons/typescript?glow=true&glowColor=%23FF00FF) |
 
 ## Combined Demos
 
 ![combined-react](https://stats.pphat.top/icons/react?color=%230088CC&foreground=%23FF0000)
 ![combined-github](https://stats.pphat.top/icons/github?color=blue)
+![combined-glow](https://stats.pphat.top/icons/react?color=%230088CC&glow=true&glowColor=%2300FF00)
+![combined-typescript](https://stats.pphat.top/icons/typescript?glow=true&glowColor=%23FF0000)
 
 ## Error Examples
 
