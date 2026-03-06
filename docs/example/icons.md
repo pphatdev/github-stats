@@ -1,8 +1,5 @@
 # GET /icons and /icons/:name
 
-List available SVG icons or fetch a single icon.
-
-## Default Icons
 
 ![icon-react](https://stats.pphat.top/icons/react?color=%230088CC&glow=true&glowColor=%2300FF)
 ![icon-python](https://stats.pphat.top/icons/python?color=%234584B6&glow=true&glowColor=%2300FF)
@@ -22,6 +19,8 @@ List available SVG icons or fetch a single icon.
 ![icon-cplusplus](https://stats.pphat.top/icons/cplusplus?color=%2300AACC&glow=true&glowColor=%2300FF)
 ![icon-fastapi](https://stats.pphat.top/icons/fastapi?color=white&glow=true&glowColor=%2300FF)
 ![icon-hugo](https://stats.pphat.top/icons/hugo?color=white&glow=true&glowColor=%2300FF)
+
+List available SVG icons or fetch a single icon.
 
 ## Routes
 
@@ -95,3 +94,4 @@ Icon not found:
 ```bash
 curl "https://stats.pphat.top/icons/not-a-real-icon"
 ```
+
