@@ -5,7 +5,7 @@ import { LanguageController } from '../controllers/languages.js';
 import { GraphController } from '../controllers/graph.js';
 import { UserBadgeController } from '../controllers/user-badge.controller.js';
 import { ProjectBadgeController } from '../controllers/project-badge.controller.js';
-import { registerCachedRoutes } from './redis-cached-routes.js';
+import { registerCachedRoutes } from './redis-cached.routes.js';
 import { registerUserBadgeRoutes } from './user-badge.routes.js';
 import { registerProjectBadgeRoutes } from './project-badge.routes.js';
 import { registerBadgeCacheRoutes } from './badge-cache.routes.js';

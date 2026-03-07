@@ -43,7 +43,7 @@ import {
 } from './controllers/health.controller.js';
 
 // Routes
-import { registerCachedRoutes } from './routes/redis-cached-routes.js';
+import { registerCachedRoutes } from './routes/redis-cached.routes.js';
 import { registerUserBadgeRoutes } from './routes/user-badge.routes.js';
 import { registerProjectBadgeRoutes } from './routes/project-badge.routes.js';
 
