@@ -56,9 +56,13 @@ export function registerCachedRoutes(app: Application): void {
         ttl: DEFAULT_TTL.STATS
     });
 
-    // Cache middleware for /languages - cache by username
+    // Cache middleware for /languages - cache by username and all params
     const languagesCache = cacheMiddleware({
-        keyGenerator: (req) => CACHE_KEYS.LANGUAGES(req.query.username as string),
+        keyGenerator: (req) => {
+            const username = req.query.username as string;
+            const params = normalizeQueryParams(req.query as Record<string, unknown>);
+            return `${CACHE_KEYS.LANGUAGES(username)}:${params}`;
+        },
         responseHeaders: () => ({ 'Content-Type': 'image/svg+xml' }),
         ttl: DEFAULT_TTL.LANGUAGES
     });

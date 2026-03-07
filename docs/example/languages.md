@@ -1,4 +1,7 @@
-# GET /languages
+
+<img src="https://stats.pphat.top/languages?username=pphatdev" alt="languages-default" />
+
+# `GET /languages`
 
 Generate a language card or pie chart.
 
@@ -10,39 +13,37 @@ Default demo username: `pphatdev`
 
 ## Optional Params
 
-| Param | Description |
-|---|---|
-| `theme` | Theme preset |
-| `show_info` | Show/hide language details |
-| `top` | Number of top languages |
-| `variant` | Card style variant |
-| `type` | `card`, `pie` |
-| `bgColor` | Background color |
-| `borderColor` | Border color |
-| `textColor` | Text color |
-| `titleColor` | Title color |
-| `format` | Output format |
+| Param | Description | Default | Values |
+|---|---|---|---|
+| `theme` | Theme preset | `default` | See themes |
+| `type` | Card or pie chart | `card` | `card`, `pie` |
+| `show_info` | Show/hide language details | `true` | `true`, `false` |
+| `info_outline` | Info display style | `solid` | `frame`, `solid` |
 
-## Default Demo
+### Themes
+```
+![themes](https://stats.pphat.top/languages?username=pphatdev&theme=default)
+![themes](https://stats.pphat.top/languages?username=pphatdev&theme=dracula)
+...
+```
 
-![languages-default](https://stats.pphat.top/languages?username=pphatdev)
+### Types
+```
+![type-card](https://stats.pphat.top/languages?username=pphatdev&type=card)
+![type-pie](https://stats.pphat.top/languages?username=pphatdev&type=pie)
+```
+### Show Info
+```
+![show-info-true](https://stats.pphat.top/languages?username=pphatdev&show_info=true)
+![show-info-false](https://stats.pphat.top/languages?username=pphatdev&show_info=false)
+```
 
-## Demo Each Optional Param
+### Info Outline
+```
+![info-outline-solid](https://stats.pphat.top/languages?username=pphatdev&info_outline=solid)
+![info-outline-frame](https://stats.pphat.top/languages?username=pphatdev&info_outline=frame)
+```
 
-| Param | Preview |
-|---|---|
-| `theme` | ![theme](https://stats.pphat.top/languages?username=pphatdev&theme=dracula) |
-| `show_info` | ![show_info](https://stats.pphat.top/languages?username=pphatdev&show_info=false) |
-| `top` | ![top](https://stats.pphat.top/languages?username=pphatdev&top=10) |
-| `variant` | ![variant](https://stats.pphat.top/languages?username=pphatdev&variant=bubbles) |
-| `type` | ![type](https://stats.pphat.top/languages?username=pphatdev&type=pie) |
-| `bgColor` | ![bgColor](https://stats.pphat.top/languages?username=pphatdev&bgColor=0d1117) |
-| `borderColor` | ![borderColor](https://stats.pphat.top/languages?username=pphatdev&borderColor=58a6ff) |
-| `textColor` | ![textColor](https://stats.pphat.top/languages?username=pphatdev&textColor=c9d1d9) |
-| `titleColor` | ![titleColor](https://stats.pphat.top/languages?username=pphatdev&titleColor=58a6ff) |
-| `format` | ![format](https://stats.pphat.top/languages?username=pphatdev&format=svg) |
+## Example Demo
 
-## Combined Demos
-
-![combined-card](https://stats.pphat.top/languages?username=pphatdev&type=card&top=8&theme=nord&show_info=true)
-![combined-pie](https://stats.pphat.top/languages?username=pphatdev&type=pie&top=6&theme=tokyonight)
+<img src="https://stats.pphat.top/languages?username=pphatdev&theme=default" alt="themes" width="48%" /><img src="https://stats.pphat.top/languages?username=pphatdev&theme=dracula" alt="themes" width="48%" /><img src="https://stats.pphat.top/languages?username=pphatdev&type=card" alt="type-card" width="48%" /><img src="https://stats.pphat.top/languages?username=pphatdev&type=pie" alt="type-pie" width="48%" /><img src="https://stats.pphat.top/languages?username=pphatdev&info_outline=solid" alt="info-outline-solid" width="48%" /><img src="https://stats.pphat.top/languages?username=pphatdev&info_outline=frame" alt="info-outline-frame" width="48%" />
