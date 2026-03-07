@@ -322,6 +322,8 @@ export class GitHubClient {
         else if (score > 1000) level = 'A';
         else if (score > 500) level = 'B+';
         else if (score > 100) level = 'B';
+        else if (score <= 100) level = 'C';
+        else if (score <= 0) level = 'D';
 
         return { level, score };
     }

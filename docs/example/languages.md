@@ -46,4 +46,10 @@ Default demo username: `pphatdev`
 
 ## Example Demo
 
-<img src="https://stats.pphat.top/languages?username=pphatdev&theme=default" alt="themes" width="48%" /><img src="https://stats.pphat.top/languages?username=pphatdev&theme=dracula" alt="themes" width="48%" /><img src="https://stats.pphat.top/languages?username=pphatdev&type=card" alt="type-card" width="48%" /><img src="https://stats.pphat.top/languages?username=pphatdev&type=pie" alt="type-pie" width="48%" /><img src="https://stats.pphat.top/languages?username=pphatdev&info_outline=solid" alt="info-outline-solid" width="48%" /><img src="https://stats.pphat.top/languages?username=pphatdev&info_outline=frame" alt="info-outline-frame" width="48%" />
+<img src="https://stats.pphat.top/languages?username=pphatdev&theme=default" alt="themes" width="49%" /><img src="https://stats.pphat.top/languages?username=pphatdev&theme=dracula" alt="themes" width="49%" />
+
+<img src="https://stats.pphat.top/languages?username=pphatdev&type=card" alt="type-card" width="49%" /><img src="https://stats.pphat.top/languages?username=pphatdev&type=pie" alt="type-pie" width="49%" />
+
+<img src="https://stats.pphat.top/languages?username=pphatdev&show_info=false" alt="show-info-false" width="49%" /><img src="https://stats.pphat.top/languages?username=pphatdev&show_info=true" alt="show-info-true" width="49%" />
+
+<img src="https://stats.pphat.top/languages?username=pphatdev&info_outline=frame" alt="info-outline-frame" width="49%" />
