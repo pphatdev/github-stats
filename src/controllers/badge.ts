@@ -17,7 +17,7 @@ const COMMON_OPTIONAL_PARAMS = [
 ];
 
 /** User-based badge types that have corresponding database columns */
-type UserBadgeType = Exclude<BadgeType, 'visitors' | RepoBadgeType>;
+type UserBadgeType = Exclude<BadgeType, 'visitors' | 'trophy' | RepoBadgeType>;
 
 /** Maps a user-based BadgeType to the matching badges table column key. */
 const TYPE_TO_COLUMN: Record<UserBadgeType, keyof typeof badges.$inferSelect> = {

@@ -15,7 +15,8 @@ export type UserBadgeType =
     | 'total-code-reviews'
     | 'total-issues'
     | 'total-pull-requests'
-    | 'total-joined-years';
+    | 'total-joined-years'
+    | 'trophy';
 
 /** Project/Repository-specific badge types (require owner and repo parameters) */
 export type ProjectBadgeType =

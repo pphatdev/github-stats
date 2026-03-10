@@ -5,11 +5,13 @@ import { LanguageController } from '../controllers/languages.js';
 import { GraphController } from '../controllers/graph.js';
 import { UserBadgeController } from '../controllers/user-badge.controller.js';
 import { ProjectBadgeController } from '../controllers/project-badge.controller.js';
+import { TrophyController } from '../controllers/trophy.controller.js';
 import { registerCachedRoutes } from './redis-cached.routes.js';
 import { registerUserBadgeRoutes } from './user-badge.routes.js';
 import { registerProjectBadgeRoutes } from './project-badge.routes.js';
 import { registerBadgeCacheRoutes } from './badge-cache.routes.js';
 import { registerIconsRoutes } from './icons.routes.js';
+import { registerTrophyRoutes } from './trophy.routes.js';
 
 // Cache type
 type CacheMap = Map<string, { data: string; timestamp: number }>;
@@ -27,6 +29,7 @@ export function initializeControllers(
     GraphController.initialize(githubClient, cache, cacheDuration);
     UserBadgeController.initialize(githubClient, cache, cacheDuration);
     ProjectBadgeController.initialize(githubClient, cache, cacheDuration);
+    TrophyController.initialize(githubClient, cache, cacheDuration);
 }
 
 /**
@@ -39,5 +42,6 @@ export function registerRoutes(app: Express): void {
     registerUserBadgeRoutes(app);
     registerProjectBadgeRoutes(app);
     registerBadgeCacheRoutes(app);
+    registerTrophyRoutes(app);
     registerIconsRoutes(app);
 }

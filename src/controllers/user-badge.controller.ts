@@ -13,8 +13,8 @@ import { BadgeRenderer } from '../components/badge-renderer.js';
 import { getBadgeCacheServiceSync } from '../services/badge-cache.service.js';
 import type { BadgeOptions, UserBadgeType, BadgeRouteDoc } from '../types/badge.types.js';
 
-/** User badge types that have corresponding database columns (excludes 'visitors') */
-type StoredUserBadgeType = Exclude<UserBadgeType, 'visitors'>;
+/** User badge types that have corresponding database columns (excludes 'visitors' and 'trophy') */
+type StoredUserBadgeType = Exclude<UserBadgeType, 'visitors' | 'trophy'>;
 
 /** Maps a user-based BadgeType to the matching badges table column key. */
 const TYPE_TO_COLUMN: Record<StoredUserBadgeType, keyof typeof badges.$inferSelect> = {
@@ -112,6 +112,12 @@ export class UserBadgeController {
             optionalParams: defaultOptionsParams,
             payload: null,
             example: '/badge/total-joined-years?username=pphatdev'
+        },
+        'trophy': {
+            requiredParams: ['username'],
+            optionalParams: ['theme', 'outline', 'badge', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            payload: null,
+            example: '/badge/trophy?username=pphatdev&theme=default&badge=stars,languages,followers'
         },
     };
 

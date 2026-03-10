@@ -99,6 +99,10 @@ const BADGE_CONFIGS: Record<BadgeType, BadgeConfig> = {
         iconPath: 'M 2 4 L 12 4 L 12 10 L 2 10 Z M 4 7 L 10 7 M 4 4 L 4 10 M 10 4 L 10 10',
         formatValue: (n) => n >= 1024 ? `${(n / 1024).toFixed(1)} MB` : `${n} KB`,
     },
+    'trophy': {
+        label: 'Trophy',
+        iconPath: 'M 3 0 Q 3 -1.5 5 -1.5 L 15 -1.5 Q 17 -1.5 17 0 L 17 12 Q 17 14 15 14 L 5 14 Q 3 14 3 12 Z M 19 2 Q 22 2 22 8 Q 22 14 19 14 M 1 2 Q -2 2 -2 8 Q -2 14 1 14 M 4 15 L 16 15 M 6 16 L 14 16',
+    },
 };
 
 export class BadgeRenderer {
