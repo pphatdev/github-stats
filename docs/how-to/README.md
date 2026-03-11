@@ -13,6 +13,9 @@ This folder contains comprehensive guides on how to use each API route available
 ### 📁 Project Badges
 - **[Project Badge Routes](./PROJECT_BADGES.md)** - Repository-specific badges (stars, forks, issues, etc.)
 
+### 🎨 Icons & Visual Assets
+- **[Release Icons Documentation](./RELEASE_ICONS.md)** - Using icons in releases, changelogs, and READMEs
+
 ### 🔧 Monitoring & Health
 - **[Cache Monitoring Guide](./CACHE_MONITORING.md)** - Health checks and cache statistics endpoints
 
