@@ -63,6 +63,12 @@ function createCheckSVG() {
     }, [polyline]);
 }
 
+/**
+ * Fetches SVG text content from the given URL.
+ * @param {string} path - URL or path to the SVG asset.
+ * @returns {string} The SVG file contents as text.
+ * @throws {Error} If the network request fails or the response has a non-OK status.
+ */
 async function fetchSVGContent(path) {
     try {
         const response = await fetch(path);
@@ -76,18 +82,7 @@ async function fetchSVGContent(path) {
     }
 }
 
-// Utility function to generate random color
-function generateRandomColor() {
-    const colors = [
-        '#ff3c3c'
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
-}
 
-// Utility function to encode URI component for color parameter
-function encodeColorParam(color) {
-    return encodeURIComponent(color);
-}
 
 // IconCard Class
 class IconCard {
@@ -96,8 +91,6 @@ class IconCard {
         this.element = document.createElement('div');
         this.element.className = 'icon-card';
         this.element.setAttribute('data-icon', options.name);
-        this.originalSVGContent = null;
-        this.isHovered = false;
 
         this.wrapper = document.createElement('div');
         this.wrapper.className = 'icon-wrapper';
@@ -120,7 +113,6 @@ class IconCard {
     async loadSVGContent() {
         try {
             const svgContent = await fetchSVGContent(this.options.assetPath);
-            this.originalSVGContent = svgContent;
             this.wrapper.innerHTML = svgContent;
         } catch (error) {
             this.wrapper.innerHTML = '❌';
@@ -131,41 +123,8 @@ class IconCard {
         }
     }
 
-    async applySVGColor(color) {
-        try {
-            const colorParam = encodeColorParam(color);
-            // Use the /icons/ API endpoint instead of /assets/icons/
-            const coloredSVGPath = `/icons/${this.options.name}?color=${colorParam}&foreground=white`;
-            const svgContent = await fetchSVGContent(coloredSVGPath);
-            this.wrapper.innerHTML = svgContent;
-        } catch (error) {
-            console.error(`Failed to load colored icon: ${this.options.name}`, error);
-        }
-    }
-
-    restoreOriginalColor() {
-        if (this.originalSVGContent) {
-            this.wrapper.innerHTML = this.originalSVGContent;
-        }
-    }
-
     setupEventListeners() {
         this.copyBtn.addEventListener('click', (e) => this.handleCopy(e));
-        this.element.addEventListener('mouseenter', () => this.handleHoverEnter());
-        this.element.addEventListener('mouseleave', () => this.handleHoverLeave());
-    }
-
-    async handleHoverEnter() {
-        if (this.isHovered || !this.originalSVGContent) return;
-        this.isHovered = true;
-        const randomColor = generateRandomColor();
-        await this.applySVGColor(randomColor);
-    }
-
-    handleHoverLeave() {
-        if (!this.isHovered) return;
-        this.isHovered = false;
-        this.restoreOriginalColor();
     }
 
     async handleCopy(e) {
