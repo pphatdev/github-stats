@@ -63,6 +63,12 @@ function createCheckSVG() {
     }, [polyline]);
 }
 
+/**
+ * Fetches SVG text content from the given URL.
+ * @param {string} path - URL or path to the SVG asset.
+ * @returns {string} The SVG file contents as text.
+ * @throws {Error} If the network request fails or the response has a non-OK status.
+ */
 async function fetchSVGContent(path) {
     try {
         const response = await fetch(path);
