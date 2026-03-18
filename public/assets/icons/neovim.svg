@@ -1,0 +1,21 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <path opacity="0.1" d="M31.8523 0H16.1477C7.22957 0 2.65694e-07 7.22957 2.65694e-07 16.1477V31.8523C2.65694e-07 40.7704 7.22957 48 16.1477 48H31.8523C40.7704 48 48 40.7704 48 31.8523V16.1477C48 7.22957 40.7704 0 31.8523 0Z" fill="currentColor"/>
+    <style>
+        @keyframes popup {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        #neovim-logo {
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+    </style>
+    <g id="neovim-logo">
+        <path d="M14 16.954V30.569L19.441 36V22.314L15.098 15.845L14 16.954ZM18.999 34.934L14.442 30.386V17.136L15.032 16.54L18.999 22.448V34.934ZM33.572 30.477L32.71 31.414L28.47 25.038V12L33.538 17.092L33.572 30.477ZM19.217 12.001L32.215 31.836L28.578 35.473L15.573 15.683L19.216 12L19.217 12.001Z" fill="currentColor"/>
+    </g>
+</svg>
