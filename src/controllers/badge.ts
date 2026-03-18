@@ -5,7 +5,7 @@ import { badges, visitorLogs } from '../db/schema.js';
 import { sql, eq } from 'drizzle-orm';
 import { GitHubClient, RepoBadgeType } from '../utils/github-client.js';
 import { BadgeRenderer } from '../components/badge-renderer.js';
-import type { BadgeType, BadgeOptions } from '../types.js';
+import type { BadgeType, BadgeOptions, UserBadgeType } from '../types.js';
 
 const COMMON_OPTIONAL_PARAMS = [
     'theme',
@@ -16,11 +16,11 @@ const COMMON_OPTIONAL_PARAMS = [
     'valueBackground',
 ];
 
-/** User-based badge types that have corresponding database columns */
-type UserBadgeType = Exclude<BadgeType, 'visitors' | RepoBadgeType>;
-
 /** Maps a user-based BadgeType to the matching badges table column key. */
-const TYPE_TO_COLUMN: Record<UserBadgeType, keyof typeof badges.$inferSelect> = {
+type PersistedUserBadgeType = Exclude<UserBadgeType, 'visitors'>;
+
+/** Maps persisted user badge types to the matching badges table column key. */
+const TYPE_TO_COLUMN: Record<PersistedUserBadgeType, keyof typeof badges.$inferSelect> = {
     'repositories': 'repositories',
     'organization': 'organization',
     'languages': 'languages',
@@ -132,7 +132,7 @@ export class BadgeController {
     private static async renderGitHubBadge(
         res: Response,
         username: string,
-        type: UserBadgeType,
+        type: PersistedUserBadgeType,
         options: BadgeOptions,
     ) {
         const cacheKey = BadgeController.buildCacheKey(username, options);
