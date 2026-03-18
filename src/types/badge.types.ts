@@ -19,6 +19,7 @@ export type UserBadgeType =
 
 /** Project/Repository-specific badge types (require owner and repo parameters) */
 export type ProjectBadgeType =
+    | 'repo-visitors'
     | 'repo-stars'
     | 'repo-forks'
     | 'repo-watchers'

@@ -3,11 +3,15 @@
  * Handles repository/project-specific badge endpoints
  * Features: Redis persistent caching, request deduplication, GitHub API optimization
  */
+import crypto from 'node:crypto';
 import { Request, Response } from 'express';
+import { eq, sql } from 'drizzle-orm';
+import { db } from '../db/index.js';
+import { badges, visitorLogs } from '../db/schema.js';
 import { GitHubClient, RepoBadgeType } from '../utils/github-client.js';
 import { BadgeRenderer } from '../components/badge-renderer.js';
 import { getBadgeCacheServiceSync } from '../services/badge-cache.service.js';
-import type { BadgeOptions, ProjectBadgeType, BadgeRouteDoc, BADGE_OPTIONAL_PARAMS } from '../types/badge.types.js';
+import type { BadgeOptions, ProjectBadgeType, BadgeRouteDoc } from '../types/badge.types.js';
 
 export class ProjectBadgeController {
     private static githubClient: GitHubClient;
@@ -19,45 +23,51 @@ export class ProjectBadgeController {
 
     /** Route documentation for project badges */
     static routeDocs: Record<ProjectBadgeType, BadgeRouteDoc> = {
+        'repo-visitors': {
+            requiredParams: ['repo'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
+            payload: null,
+            example: '/project/visitors?repo=pphatdev/github-stats'
+        },
         'repo-stars': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/stars?repo=pphatdev/github-stats'
         },
         'repo-forks': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/forks?repo=pphatdev/github-stats'
         },
         'repo-watchers': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/watchers?repo=pphatdev/github-stats'
         },
         'repo-issues': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/issues?repo=pphatdev/github-stats'
         },
         'repo-prs': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/prs?repo=pphatdev/github-stats'
         },
         'repo-contributors': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/contributors?repo=pphatdev/github-stats'
         },
         'repo-size': {
             requiredParams: ['repo'],
-            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
+            optionalParams: ['theme', 'customLabel', 'labelColor', 'labelBackground', 'valueColor', 'valueBackground'],
             payload: null,
             example: '/project/size?repo=pphatdev/github-stats'
         },
@@ -106,14 +116,13 @@ export class ProjectBadgeController {
 
     /** Parse options for project badges */
     private static parseOptions(req: Request, type: ProjectBadgeType): BadgeOptions {
-        const { theme, customLabel, labelColor, labelBackground, iconColor, valueColor, valueBackground } = req.query;
+        const { theme, customLabel, labelColor, labelBackground, valueColor, valueBackground } = req.query;
         return {
             type,
             theme: typeof theme === 'string' ? theme : undefined,
             customLabel: typeof customLabel === 'string' ? customLabel : undefined,
             labelColor: typeof labelColor === 'string' ? labelColor : undefined,
             labelBackground: typeof labelBackground === 'string' ? labelBackground : undefined,
-            iconColor: typeof iconColor === 'string' ? iconColor : undefined,
             valueColor: typeof valueColor === 'string' ? valueColor : undefined,
             valueBackground: typeof valueBackground === 'string' ? valueBackground : undefined,
         };
@@ -130,7 +139,6 @@ export class ProjectBadgeController {
             options.customLabel ?? '',
             options.labelColor ?? '',
             options.labelBackground ?? '',
-            options.iconColor ?? '',
             options.valueColor ?? '',
             options.valueBackground ?? '',
         ].join('|');
@@ -143,7 +151,6 @@ export class ProjectBadgeController {
             customLabel: options.customLabel,
             labelColor: options.labelColor,
             labelBackground: options.labelBackground,
-            iconColor: options.iconColor,
             valueColor: options.valueColor,
             valueBackground: options.valueBackground,
         };
@@ -206,7 +213,10 @@ export class ProjectBadgeController {
             })();
 
             ProjectBadgeController.pendingRequests.set(cacheKey, pending);
-            pending.finally(() => ProjectBadgeController.pendingRequests.delete(cacheKey));
+            pending.then(
+                () => ProjectBadgeController.pendingRequests.delete(cacheKey),
+                () => ProjectBadgeController.pendingRequests.delete(cacheKey)
+            );
         }
 
         const svg = await pending;
@@ -219,6 +229,68 @@ export class ProjectBadgeController {
     // ═══════════════════════════════════════════════════════════════════════
     // Badge Endpoints
     // ═══════════════════════════════════════════════════════════════════════
+
+    /** GET /project/visitors - Repository visitors (counted once per IP per 5 minutes) */
+    static async getVisitors(req: Request, res: Response) {
+        try {
+            const params = ProjectBadgeController.requireRepo(req, res);
+            if (!params) return;
+            const projectKey = `project:${params.owner}/${params.repo}`;
+
+            const rawIp = (
+                (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0].trim() ||
+                req.socket?.remoteAddress ||
+                'unknown'
+            );
+
+            const ipHash = crypto
+                .createHash('sha256')
+                .update(rawIp)
+                .digest('hex')
+                .slice(0, 16);
+
+            const FIVE_MINUTES_MS = 5 * 60 * 1000;
+            const bucketStartMs = Math.floor(Date.now() / FIVE_MINUTES_MS) * FIVE_MINUTES_MS;
+            const visitBucket = new Date(bucketStartMs).toISOString();
+
+            // Count only once per IP per 5-minute bucket for each project.
+            const logInsert = await db
+                .insert(visitorLogs)
+                .values({ username: projectKey, ip_hash: ipHash, visit_date: visitBucket, created_at: Date.now() })
+                .onConflictDoNothing()
+                .returning();
+
+            let count: number;
+            if (logInsert.length > 0) {
+                const result = await db
+                    .insert(badges)
+                    .values({ username: projectKey, visitors: 1 })
+                    .onConflictDoUpdate({
+                        target: badges.username,
+                        set: { visitors: sql`${badges.visitors} + 1` },
+                    })
+                    .returning();
+                count = result[0]?.visitors ?? 1;
+            } else {
+                const badge = await db
+                    .select({ visitors: badges.visitors })
+                    .from(badges)
+                    .where(eq(badges.username, projectKey))
+                    .get();
+                count = badge?.visitors ?? 0;
+            }
+
+            const options = ProjectBadgeController.parseOptions(req, 'repo-visitors');
+            const svg = BadgeRenderer.generateBadge(count, options);
+
+            res.setHeader('Content-Type', 'image/svg+xml');
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            return res.send(svg);
+        } catch (err) {
+            console.error('ProjectBadgeController.getVisitors:', err);
+            res.status(500).send(`Error: ${err instanceof Error ? err.message : err}`);
+        }
+    }
 
     /** GET /project/stars - Repository star count */
     static async getStars(req: Request, res: Response) {
