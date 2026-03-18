@@ -9,19 +9,13 @@ export class LanguageController {
     static routeDocs = {
         requiredParams: ['username'],
         optionalParams: [
+            'type',
             'theme',
             'show_info',
-            'top',
-            'variant',
-            'type',
-            'bgColor',
-            'borderColor',
-            'textColor',
-            'titleColor',
-            'format'
+            'info_outline'
         ],
         payload: null as null,
-        example: '/languages?username=pphatdev&theme=default'
+        example: '/languages?username=pphatdev&type=card&theme=default'
     };
 
     static initialize(githubClient: GitHubClient, cache: Map<string, { data: string; timestamp: number }>, cacheDuration: number) {
@@ -32,13 +26,13 @@ export class LanguageController {
 
     static async getSvg(req: Request, res: Response) {
         try {
-            const { username, theme = 'default', show_info, top, variant, type = 'card', bgColor, borderColor, textColor, titleColor, format } = req.query;
+            const { username, type = 'card', theme = 'default', show_info, info_outline = 'solid' } = req.query;
 
             if (!username || typeof username !== 'string') {
                 return res.status(400).send('Username is required');
             }
 
-            const cacheKey = `languages-${username}-${theme}-${show_info}-${top}-${variant}-${type}-${bgColor || ''}-${borderColor || ''}-${textColor || ''}-${titleColor || ''}`;
+            const cacheKey = `languages-${username}-${type}-${theme}-${show_info}-${info_outline}`;
             const cached = LanguageController.cache.get(cacheKey);
             if (cached && Date.now() - cached.timestamp < LanguageController.CACHE_DURATION) {
                 res.setHeader('Content-Type', 'image/svg+xml');
@@ -52,22 +46,12 @@ export class LanguageController {
             if (type === 'pie') {
                 svg = LanguagePieChartRenderer.generatePieChart(languages, {
                     theme: theme as string,
-                    listLength: typeof top === 'string' ? Math.max(0, Number.parseInt(top, 10) || 8) : 8,
-                    bgColor: bgColor as string | undefined,
-                    borderColor: borderColor as string | undefined,
-                    textColor: textColor as string | undefined,
-                    titleColor: titleColor as string | undefined,
                 });
             } else {
                 svg = LanguageCardRenderer.generateLanguagesCard(languages, {
                     theme: theme as string,
                     showInfo: show_info !== 'false',
-                    listLength: typeof top === 'string' ? Math.max(0, Number.parseInt(top, 10) || 5) : 5,
-                    variant: variant as 'bubbles' | 'pie' | undefined,
-                    bgColor: bgColor as string | undefined,
-                    borderColor: borderColor as string | undefined,
-                    textColor: textColor as string | undefined,
-                    titleColor: titleColor as string | undefined,
+                    dataBorderStyle: info_outline === 'frame' ? 'frame' : 'solid',
                 });
             }
 
