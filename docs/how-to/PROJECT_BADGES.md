@@ -16,6 +16,7 @@ All project badges require a `repo` parameter in the format: `owner/repository`
 ---
 
 ## Table of Contents
+- [GET /project/visitors](#get-projectvisitors---unique-visitors)
 - [GET /project/stars](#get-projectstars---repository-stars)
 - [GET /project/forks](#get-projectforks---repository-forks)
 - [GET /project/watchers](#get-projectwatchers---watchers)
@@ -36,9 +37,47 @@ All project badge endpoints support these optional parameters:
 | `customLabel` | string | - | Custom label text (replaces default) |
 | `labelColor` | string | - | Background color for label (hex) |
 | `labelBackground` | string | - | Alternative label background (hex) |
-| `iconColor` | string | - | Icon color (hex) |
 | `valueColor` | string | - | Value text color (hex) |
 | `valueBackground` | string | - | Value background color (hex) |
+
+---
+
+## GET /project/visitors - Visitors
+
+Counts visitors for a repository badge endpoint once per same IP every 5 minutes. Refreshes within the same 5-minute window from the same IP do not increment.
+
+### Endpoint
+```
+GET /project/visitors
+```
+
+### Required Parameters
+
+| Parameter | Type | Format | Description |
+|-----------|------|--------|-------------|
+| `repo` | string | `owner/repository` | Repository identifier |
+
+### Response
+**Content-Type:** `image/svg+xml`
+
+Badge showing total unique visits recorded for this repository badge.
+
+### Examples
+
+#### Basic Usage
+```bash
+curl "http://localhost:3000/project/visitors?repo=pphatdev/github-stats"
+```
+
+#### With Theme
+```bash
+curl "http://localhost:3000/project/visitors?repo=pphatdev/github-stats&theme=tokyo"
+```
+
+### Markdown Embedding
+```markdown
+![Visitors](https://stats.pphat.top/project/visitors?repo=pphatdev/github-stats)
+```
 
 ---
 
@@ -81,7 +120,7 @@ curl "http://localhost:3000/project/stars?repo=pphatdev/github-stats&customLabel
 
 #### With All Custom Colors
 ```bash
-curl "http://localhost:3000/project/stars?repo=pphatdev/github-stats&labelColor=%23000000&valueColor=%23ffffff&Icon=%23ffff00"
+curl "http://localhost:3000/project/stars?repo=pphatdev/github-stats&labelColor=%23000000&valueColor=%23ffffff&valueBackground=%231f2937"
 ```
 
 ### Markdown Embedding
@@ -433,7 +472,7 @@ Popular colors for badges:
 
 ### Custom Color Example
 ```bash
-curl "http://localhost:3000/project/stars?repo=pphatdev/github-stats&labelColor=%23000000&valueColor=%23ffffff&iconColor=%233b82f6"
+curl "http://localhost:3000/project/stars?repo=pphatdev/github-stats&labelColor=%23000000&valueColor=%23ffffff&valueBackground=%233b82f6"
 ```
 
 URL-encoded color format: Use `%23` instead of `#`

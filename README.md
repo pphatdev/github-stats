@@ -1,6 +1,6 @@
-<!-- <img align='middle' src="./public/assets/screenshot.png" style="width:100%"/> -->
-
+<a href="https://github.com/pphatdev">
 <img align='middle' src="https://stats.sophat.top/stats?username=pphatdev&avatar_mode=radar&data_border_style=frame&data_border_frame=out&hide_title=false" style="width:100%"/>
+</a>
 
 <div align="center" style="margin-top: 20px;">
 
@@ -12,435 +12,275 @@
 ![Portfolio](https://stats.pphat.top/badge/total-contributors?username=pphatdev&theme=ocean)
 </div>
 
-<h1 align="center">Fast GitHub Stats Graph 🚀</h1>
+# Fast GitHub Stats Graph 🚀
 
-Create beautiful, real-time GitHub stats cards, badges, and contribution graphs that are easy to customize and perfect for your profile README or project docs.
+Create beautiful GitHub stats cards, badges, icons, and contribution graphs that are easy to customize and perfect for your profile README or project docs.
 
-## Endpoints
 
-### `GET /stats`
+# 🌟 Examples Icons Usage
 
-Returns an SVG Statistic card or pie chart for a user.
+## ✨ Icon Collections
+Render multiple icons into one SVG image using the name query parameter.
+for more detail checkout [Here](docs/example/icon-collection.md)
 
-Example:
 
-```
-GET https://stats.pphat.top/stats?username=pphatdev
-```
-Required query params:
-
-- username
-
-Optional query params:
-
-| Param | Description |
-|-------|-------------|
-| `theme` | Theme preset |
-| `hide_title` | Hide title (`true`/`false`) |
-| `hide_border` | Hide border (`true`/`false`) |
-| `hide_rank` | Hide rank (`true`/`false`) |
-| `show_icons` | Show icons (`true`/`false`) |
-| `avatar_mode` | Avatar mode: `none` / `avatar` / `radar` |
-| `show_avatar` | Legacy alias; `true` sets `avatar_mode=avatar` |
-| `custom_title` | Custom card title |
-| `data_border_style` | Border style: `solid` / `frame` |
-| `data_border_frame` | Border frame position: `in` / `out` |
-| `bgColor` | Background color |
-| `borderColor` | Border color |
-| `textColor` | Text color |
-| `titleColor` | Title color |
-| `format` | Output format: `svg` / `webp` |
-
-Example:
-
-![GitHub Stats](https://stats.pphat.top/stats?username=pphatdev&avatar_mode=radar)
-
+### Icons Sizes [`small` | `medium` | `large`]
 
 ```
-GET https://stats.pphat.top/stats?username=pphatdev&avatar_mode=radar
+![icon-collection-basic](https://stats.pphat.top/icons?name=react,typescript,github&size=small)
 ```
 
-### `GET /languages`
+**Preview Example**
 
-Returns an SVG languages card or pie chart for a user.
+![icon-collection-basic](https://stats.pphat.top/icons?name=react,typescript,github&size=small)
 
-Required query params:
+![icon-collection-basic](https://stats.pphat.top/icons?name=react,typescript,github&size=medium)
 
-- username
+### Columns [`1` | `2` | `3` | `4` | `5` | `6`|...] maximum 50
 
-Optional query params:
-
-| Param | Description |
-|-------|-------------|
-| `theme` | Theme preset |
-| `show_info` | Show extra language info |
-| `top` | Limit number of top languages |
-| `variant` | Card variant style |
-| `type` | Output style: `card` / `pie` |
-| `bgColor` | Background color |
-| `borderColor` | Border color |
-| `textColor` | Text color |
-| `titleColor` | Title color |
-| `format` | Output format |
-
-Example:
-
-![Languages](https://stats.pphat.top/languages?username=pphatdev)
+Customize with 3 columns
 
 ```
-GET https://stats.pphat.top/languages?username=pphatdev
+![icon-collection-basic](https://stats.pphat.top/icons?name=react,typescript,github,javascript,nextjs,nuxt&columns=3)
 ```
 
-### `GET /graph`
+**Preview Example**
 
-Returns an SVG activity graph for a user for a specific year or the last 365 days.
+![icon-collection-basic](https://stats.pphat.top/icons?name=react,typescript,github,javascript,nextjs,nuxt&columns=3)
 
-Required query params:
 
-- `username`
+### Color Mapping
 
-Optional query params:
-
-| Param | Description |
-|-------|-------------|
-| `theme` | Theme preset (see [Graph Themes](#graph-themes)) |
-| `year` | 4-digit year (default: last 365 days) |
-| `animate` | Animation mode: `glow` (default), `wave`, `pulse`, `none` |
-| `size` | Canvas preset: `default`, `small`, `medium`, `large` |
-| `show_title` | Show/hide username + year heading |
-| `show_total_contribution` | Show/hide contribution subtitle |
-| `show_background` | Show/hide background gradient, stars, and grid |
-| `as` | Output format: `svg` (default), `gif`, `webp`, `png` |
-| `bgColor` | Background color |
-| `borderColor` | Border color |
-| `textColor` | Text color |
-| `titleColor` | Title color |
-
-Example:
-
-![Graph](https://stats.pphat.top/graph?username=pphatdev)
+Mapped colors (index by index):
 
 ```
-GET https://stats.pphat.top/graph?username=pphatdev&year=2024
-GET https://stats.pphat.top/graph?username=pphatdev&theme=aurora
-GET https://stats.pphat.top/graph?username=pphatdev&theme=matrix&animate=pulse
-GET https://stats.pphat.top/graph?username=pphatdev&theme=ocean&animate=wave
-GET https://stats.pphat.top/graph?username=pphatdev&theme=aurora&animate=wave&as=gif
-GET https://stats.pphat.top/graph?username=pphatdev&theme=matrix&animate=pulse&as=webp
-GET https://stats.pphat.top/graph?username=pphatdev&as=png
+![icon-collection-colors](https://stats.pphat.top/icons?name=react,typescript,github&color=%230088CC,%233178C6,white)
 ```
+**Example Demo**
 
-### `GET /icons` and `GET /icons/:name`
+![icon-collection-colors](https://stats.pphat.top/icons?name=react,typescript,github&color=%230088CC,%233178C6,white)
 
-Provides reusable SVG icons: list all icon names, render a composite icon grid, fetch an icon by name, and preview the icon gallery demo page.
-
-Route demo docs:
-
-- [Single Icon and Icon Routes](./docs/example/icons.md)
-- [Icon Collection Examples](./docs/example/icon-collection.md)
-
-Routes:
-
-- `/icons` - Returns JSON list of available icons, or a composite SVG when `name` is provided
-- `/icons/:name` - Returns icon SVG by name (e.g. `/icons/react`)
-- `/icons/:name.svg` - Same as above with explicit extension
-- `/icons/demo` - Interactive icons demo page
-
-Optional query params for `/icons` composite SVG mode:
-
-| Param | Description |
-|-------|-------------|
-| `name` | Required for composite mode. Comma-separated icon names, for example `react,typescript,github` |
-| `color` | Optional comma-separated colors mapped by icon index. Remaining icons use deterministic random colors |
-| `size` | Icon size preset: `small`, `medium`, `large` |
-| `effect` | Visual effect: `glow`, `wave` |
-| `columns` | Number of columns in the grid. Default: `3` |
-
-Optional query params for `/icons/:name`:
-
-| Param | Description |
-|-------|-------------|
-| `color` | Replaces `currentColor` values in icon fill/stroke |
-| `foreground` | Recolors elements marked with `data-foreground` |
-| `glow` | Enable glow effect (`true` or `1`) |
-| `glowColor` | Set glow color (hex, rgb, named color). Defaults to `#00AAFF` |
-
-Examples:
-
-```text
-GET https://stats.pphat.top/icons
-GET https://stats.pphat.top/icons?name=react,typescript,github
-GET https://stats.pphat.top/icons?name=react,typescript,github&color=%230088CC,%233178C6,white&size=large&columns=2
-GET https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss&effect=wave&columns=2
-GET https://stats.pphat.top/icons?name=react,typescript,github&effect=glow&size=medium
-GET https://stats.pphat.top/icons/react
-GET https://stats.pphat.top/icons/react.svg
-GET https://stats.pphat.top/icons/typescript?color=%23FF0000
-GET https://stats.pphat.top/icons/html?foreground=%230088CC
-GET https://stats.pphat.top/icons/react?color=%230088CC&foreground=%23FF0000
-GET https://stats.pphat.top/icons/react?glow=true
-GET https://stats.pphat.top/icons/typescript?glow=true&glowColor=%23FF00FF
-GET https://stats.pphat.top/icons/github?glow=true&glowColor=blue
-GET https://stats.pphat.top/icons/react?color=%230088CC&glow=true&glowColor=%2300FF00
-GET https://stats.pphat.top/icons/demo
-```
-
-### `GET /badge/:type`
-
-Returns dynamic badge SVGs for various GitHub user metrics.
-
-**Available badge types:**
-
-| Endpoint | Description |
-|----------|-------------|
-| `/badge/visitors` | Visitor counter (increments per unique IP/day) |
-| `/badge/repositories` | Total public repositories |
-| `/badge/organization` | Organizations count |
-| `/badge/languages` | Number of programming languages used |
-| `/badge/followers` | Follower count |
-| `/badge/total-stars` | Total stars across all repositories |
-| `/badge/total-contributors` | Total contributors |
-| `/badge/total-commits` | Total commits |
-| `/badge/total-code-reviews` | Total code reviews |
-| `/badge/total-issues` | Total issues created |
-| `/badge/total-pull-requests` | Total pull requests |
-| `/badge/total-joined-years` | Years since joining GitHub |
-
-Required query params:
-
-- `username`
-
-Optional query params:
-
-| Param | Description |
-|-------|-------------|
-| `theme` | Badge theme: `default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark` |
-| `customLabel` | Override label text |
-| `labelColor` | Label text color (hex without `#`, e.g. `ff5733`) |
-| `labelBackground` | Label background color (hex without `#`) |
-| `iconColor` | Icon color (hex without `#`) |
-| `valueColor` | Value text color (hex without `#`) |
-| `valueBackground` | Value background color (hex without `#`) |
-| `hideFrame` | Hide corner bracket frame (`true`/`false`, default `false`) |
-| `hideIcon` | Hide badge icon (`true`/`false`, default `false`) |
-
-Examples:
-
-![Visitors](https://stats.pphat.top/badge/visitors?username=pphatdev)
-![Total Stars](https://stats.pphat.top/badge/total-stars?username=pphatdev)
-![Repositories](https://stats.pphat.top/badge/repositories?username=pphatdev)
-![Followers](https://stats.pphat.top/badge/followers?username=pphatdev)
-![Total Commits](https://stats.pphat.top/badge/total-commits?username=pphatdev)
-![Total Code Reviews](https://stats.pphat.top/badge/total-code-reviews?username=pphatdev)
-![Total Issues](https://stats.pphat.top/badge/total-issues?username=pphatdev)
-![Total Pull Requests](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev)
-![Total Joined Years](https://stats.pphat.top/badge/total-joined-years?username=pphatdev)
+Partial colors (remaining icons use fallback colors):
 
 ```
-GET https://stats.pphat.top/badge/visitors?username=pphatdev
-GET https://stats.pphat.top/badge/total-stars?username=pphatdev&theme=ocean
-GET https://stats.pphat.top/badge/repositories?username=pphatdev&hideFrame=true
-GET https://stats.pphat.top/badge/followers?username=pphatdev&hideIcon=true&theme=neon
-GET https://stats.pphat.top/badge/total-commits?username=pphatdev&hideFrame=true&hideIcon=true
+![icon-collection-partial-colors](https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss,postgresql&color=%2300AACC,%23EAB308)
 ```
+**Example Demo**
 
-### `GET /project/:type`
+![icon-collection-partial-colors](https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss,postgresql&color=%2300AACC,%23EAB308)
 
-Returns dynamic badge SVGs for repository/project-specific metrics.
 
-**Available project badge types:**
-
-| Endpoint | Description |
-|----------|-------------|
-| `/project/stars` | Repository star count |
-| `/project/forks` | Repository fork count |
-| `/project/watchers` | Repository watcher count |
-| `/project/issues` | Open issues count |
-| `/project/prs` | Open pull requests count |
-| `/project/contributors` | Contributors count |
-| `/project/size` | Repository size |
-
-Required query params:
-
-- `repo` — Repository in format `owner/repo` (e.g., `pphatdev/github-stats`)
-
-Optional query params:
-
-| Param | Description |
-|-------|-------------|
-| `theme` | Badge theme: `default`, `aurora`, `matrix`, `inferno`, `ocean`, `neon`, `solar`, `galaxy`, `github-dark` |
-| `customLabel` | Override label text |
-| `labelColor` | Label text color (hex without `#`, e.g. `ff5733`) |
-| `labelBackground` | Label background color (hex without `#`) |
-| `iconColor` | Icon color (hex without `#`) |
-| `valueColor` | Value text color (hex without `#`) |
-| `valueBackground` | Value background color (hex without `#`) |
-| `hideFrame` | Hide corner bracket frame (`true`/`false`, default `false`) |
-| `hideIcon` | Hide badge icon (`true`/`false`, default `false`) |
-
-Examples:
-
-![Repo Stars](https://stats.pphat.top/project/stars?repo=pphatdev/github-stats)
-![Repo Forks](https://stats.pphat.top/project/forks?repo=pphatdev/github-stats)
-![Repo Issues](https://stats.pphat.top/project/issues?repo=pphatdev/github-stats)
-![Repo PRs](https://stats.pphat.top/project/prs?repo=pphatdev/github-stats)
-![Repo Contributors](https://stats.pphat.top/project/contributors?repo=pphatdev/github-stats)
-![Repo Size](https://stats.pphat.top/project/size?repo=pphatdev/github-stats)
+### Effects [`glow` | `wave`]
 
 ```
-GET https://stats.pphat.top/project/stars?repo=pphatdev/github-stats
-GET https://stats.pphat.top/project/forks?repo=pphatdev/github-stats&theme=aurora
-GET https://stats.pphat.top/project/issues?repo=pphatdev/github-stats&hideFrame=true
-GET https://stats.pphat.top/project/contributors?repo=pphatdev/github-stats&hideIcon=true
+![icon-collection-glow](https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss&effect=glow&columns=2)
+```
+**Example Demo**
+
+Wave:
+
+![icon-collection-wave](https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss&effect=wave&columns=6)
+
+Glow:
+
+![icon-collection-glow](https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss&effect=glow&columns=6)
+
+### Combined Example
+
+Size + colors + wave + columns:
+
+![icon-collection-combined](https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss,javascript,nextjs,nuxt&size=large&color=%230088CC,%233178C6,%23FFFFFF,%2338B2AC&effect=wave&columns=4)
+
+
+## 👍 Icon by names
+
+**Normal Icon**
+
+for more detail checkout [Here](docs/example/icons.md)
+
+```
+![icon-react](https://stats.pphat.top/icons/react?color=%230088CC)
+![icon-python](https://stats.pphat.top/icons/python?color=%234584B6)
+```
+**Example Demo**
+
+![icon-react](https://stats.pphat.top/icons/react?color=%230088CC)
+![icon-python](https://stats.pphat.top/icons/python?color=%234584B6)
+
+**Effect icon**
+
+```
+![icon-react](https://stats.pphat.top/icons/react?color=%230088CC&glow=true&glowColor=%230088CC)
+![icon-python](https://stats.pphat.top/icons/python?color=%234584B6&glow=true&glowColor=%234584B6)
+```
+**Example Demo**
+
+![icon-react](https://stats.pphat.top/icons/react?color=%230088CC&glow=true&glowColor=%230088CC)
+![icon-python](https://stats.pphat.top/icons/python?color=%234584B6&glow=true&glowColor=%234584B6)
+
+
+# 📊 Stats Card Examples
+
+for more detail checkout [Here](docs/example/stats.md)
+
+### Default
+
+```
+![stats-default](https://stats.pphat.top/stats?username=pphatdev)
 ```
 
-## Usage in README
+![stats-default](https://stats.pphat.top/stats?username=pphatdev)
 
-Stats card:
+### Theme + Avatar Mode
 
-```markdown
-![GitHub Stats](https://stats.pphat.top/stats?username=YOUR_USERNAME)
+```
+![stats-theme](https://stats.pphat.top/stats?username=pphatdev&theme=tokyonight&avatar_mode=radar)
 ```
 
-Languages card:
+![stats-theme](https://stats.pphat.top/stats?username=pphatdev&theme=tokyonight&avatar_mode=radar)
 
-```markdown
-![Top Languages](https://stats.pphat.top/languages?username=YOUR_USERNAME)
+### Minimal Card
+
+```
+![stats-minimal](https://stats.pphat.top/stats?username=pphatdev&hide_title=true&hide_rank=true&hide_border=true)
 ```
 
-Languages pie chart:
+![stats-minimal](https://stats.pphat.top/stats?username=pphatdev&hide_title=true&hide_rank=true&hide_border=true)
 
-```markdown
-![Top Languages](https://stats.pphat.top/languages?username=YOUR_USERNAME&type=pie)
+### Combined Example
+
+```
+![stats-combined](https://stats.pphat.top/stats?username=pphatdev&theme=dracula&custom_title=My%20GitHub%20Stats&data_border_style=frame&data_border_frame=out&show_icons=true)
 ```
 
-Activity graph:
+![stats-combined](https://stats.pphat.top/stats?username=pphatdev&theme=dracula&custom_title=My%20GitHub%20Stats&data_border_style=frame&data_border_frame=out&show_icons=true)
 
-```markdown
-![Activity Graph](https://stats.pphat.top/graph?username=YOUR_USERNAME)
+
+# 💻 Languages Card Examples
+
+for more detail checkout [Here](docs/example/languages.md)
+
+### Default
+
+```
+![languages-default](https://stats.pphat.top/languages?username=pphatdev)
 ```
 
-Activity graph with theme and animation:
+![languages-default](https://stats.pphat.top/languages?username=pphatdev)
 
-```markdown
-![Activity Graph](https://stats.pphat.top/graph?username=YOUR_USERNAME&theme=aurora&animate=pulse)
+### Card and Pie
+
+```
+![languages-card](https://stats.pphat.top/languages?username=pphatdev&type=card)
+![languages-pie](https://stats.pphat.top/languages?username=pphatdev&type=pie)
 ```
 
-Visitor badge:
+![languages-card](https://stats.pphat.top/languages?username=pphatdev&type=card)
+![languages-pie](https://stats.pphat.top/languages?username=pphatdev&type=pie)
 
-```markdown
-![Visitor Badge](https://stats.pphat.top/badge/visitors?username=YOUR_USERNAME)
+### Theme + Info Style
+
+```
+![languages-themed](https://stats.pphat.top/languages?username=pphatdev&theme=dracula&show_info=true&info_outline=frame)
 ```
 
-Other badges (stars, followers, commits, etc.):
+![languages-themed](https://stats.pphat.top/languages?username=pphatdev&theme=dracula&show_info=true&info_outline=frame)
 
-```markdown
-![Total Stars](https://stats.pphat.top/badge/total-stars?username=YOUR_USERNAME)
-![Followers](https://stats.pphat.top/badge/followers?username=YOUR_USERNAME)
-![Repositories](https://stats.pphat.top/badge/repositories?username=YOUR_USERNAME)
-![Total Commits](https://stats.pphat.top/badge/total-commits?username=YOUR_USERNAME)
+
+# 📈 Contribution Graph Examples
+
+for more detail checkout [Here](docs/example/graph.md)
+
+### Default
+
+```
+![graph-default](https://stats.pphat.top/graph?username=pphatdev)
 ```
 
-Badges with theme and custom label:
+![graph-default](https://stats.pphat.top/graph?username=pphatdev)
 
-```markdown
-![Visitor Badge](https://stats.pphat.top/badge/visitors?username=YOUR_USERNAME&theme=aurora)
-![Stars](https://stats.pphat.top/badge/total-stars?username=YOUR_USERNAME&theme=matrix&customLabel=Stars)
+### Animated Variants
+
+```
+![graph-wave](https://stats.pphat.top/graph?username=pphatdev&animate=wave&theme=aurora)
+![graph-pulse](https://stats.pphat.top/graph?username=pphatdev&animate=pulse&theme=matrix)
 ```
 
-Minimal badges (no frame, no icon):
+![graph-wave](https://stats.pphat.top/graph?username=pphatdev&animate=wave&theme=aurora)
+![graph-pulse](https://stats.pphat.top/graph?username=pphatdev&animate=pulse&theme=matrix)
 
-```markdown
-![Visitor Badge](https://stats.pphat.top/badge/visitors?username=YOUR_USERNAME&hideFrame=true&hideIcon=true)
-![Total Stars](https://stats.pphat.top/badge/total-stars?username=YOUR_USERNAME&hideFrame=true&hideIcon=true&theme=ocean)
+
+# 🏷️ Badge Examples
+
+for more detail checkout [Here](docs/example/badge-user.md)
+
+### Popular Badge Types
+
+```
+![badge-visitors](https://stats.pphat.top/badge/visitors?username=pphatdev)
+![badge-repositories](https://stats.pphat.top/badge/repositories?username=pphatdev)
+![badge-followers](https://stats.pphat.top/badge/followers?username=pphatdev)
+![badge-total-stars](https://stats.pphat.top/badge/total-stars?username=pphatdev)
 ```
 
-Badges without frame (clean border):
+![badge-visitors](https://stats.pphat.top/badge/visitors?username=pphatdev)
+![badge-repositories](https://stats.pphat.top/badge/repositories?username=pphatdev)
+![badge-followers](https://stats.pphat.top/badge/followers?username=pphatdev)
+![badge-total-stars](https://stats.pphat.top/badge/total-stars?username=pphatdev)
 
-```markdown
-![Repositories](https://stats.pphat.top/badge/repositories?username=YOUR_USERNAME&hideFrame=true)
-![Followers](https://stats.pphat.top/badge/followers?username=YOUR_USERNAME&hideFrame=true&theme=neon)
+### Theme + Custom Label
+
+```
+![badge-custom-label](https://stats.pphat.top/badge/repositories?username=pphatdev&theme=ocean&customLabel=Public%20Repos)
 ```
 
-Badges without icon (text focus):
+![badge-custom-label](https://stats.pphat.top/badge/repositories?username=pphatdev&theme=ocean&customLabel=Public%20Repos)
 
-```markdown
-![Languages](https://stats.pphat.top/badge/languages?username=YOUR_USERNAME&hideIcon=true)
-![Commits](https://stats.pphat.top/badge/total-commits?username=YOUR_USERNAME&hideIcon=true&theme=matrix)
+### Color and Layout Controls
+
+```
+![badge-colors](https://stats.pphat.top/badge/total-issues?username=pphatdev&labelBackground=0d1117&labelColor=ffffff&valueBackground=1f2937&valueColor=22c55e)
+![badge-minimal](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev&theme=tokyonight&hideFrame=true&hideIcon=true)
 ```
 
-Project/repository badges:
+![badge-colors](https://stats.pphat.top/badge/total-issues?username=pphatdev&labelBackground=0d1117&labelColor=ffffff&valueBackground=1f2937&valueColor=22c55e)
+![badge-minimal](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev&theme=tokyonight&hideFrame=true&hideIcon=true)
 
-```markdown
-![Repo Stars](https://stats.pphat.top/project/stars?repo=OWNER/REPO)
-![Repo Forks](https://stats.pphat.top/project/forks?repo=OWNER/REPO)
-![Repo Issues](https://stats.pphat.top/project/issues?repo=OWNER/REPO)
-![Repo PRs](https://stats.pphat.top/project/prs?repo=OWNER/REPO)
-![Repo Contributors](https://stats.pphat.top/project/contributors?repo=OWNER/REPO)
+
+# 📁 Project Badge Examples
+
+for more detail checkout [Here](docs/example/project.md)
+
+### Popular Project Badge Types
+
+```
+![project-visitors](https://stats.pphat.top/project/visitors?repo=pphatdev/github-stats)
+![project-stars](https://stats.pphat.top/project/stars?repo=pphatdev/github-stats)
+![project-forks](https://stats.pphat.top/project/forks?repo=pphatdev/github-stats)
+![project-watchers](https://stats.pphat.top/project/watchers?repo=pphatdev/github-stats)
 ```
 
-## Example Themes
+![project-visitors](https://stats.pphat.top/project/visitors?repo=pphatdev/github-stats)
+![project-stars](https://stats.pphat.top/project/stars?repo=pphatdev/github-stats)
+![project-forks](https://stats.pphat.top/project/forks?repo=pphatdev/github-stats)
+![project-watchers](https://stats.pphat.top/project/watchers?repo=pphatdev/github-stats)
 
-Use the `theme` query param. A few previews:
+### Theme + Custom Label
 
-<table>
-	<tr>
-		<td align="center"><img alt="default" src="https://stats.pphat.top/stats?username=pphatdev&theme=default" /><br /><strong>🎨 default</strong></td>
-		<td align="center"><img alt="dark" src="https://stats.pphat.top/stats?username=pphatdev&theme=dark" /><br /><strong>🌙 dark</strong></td>
-		<td align="center"><img alt="radical" src="https://stats.pphat.top/stats?username=pphatdev&theme=radical" /><br /><strong>⚡ radical</strong></td>
-		<td align="center"><img alt="tokyonight" src="https://stats.pphat.top/stats?username=pphatdev&theme=tokyonight" /><br /><strong>🌆 tokyonight</strong></td>
-	</tr>
-	<tr>
-		<td align="center"><img alt="dracula" src="https://stats.pphat.top/stats?username=pphatdev&theme=dracula" /><br /><strong>🧛 dracula</strong></td>
-		<td align="center"><img alt="monokai" src="https://stats.pphat.top/stats?username=pphatdev&theme=monokai" /><br /><strong>🌈 monokai</strong></td>
-		<td align="center"><img alt="gruvbox" src="https://stats.pphat.top/stats?username=pphatdev&theme=gruvbox" /><br /><strong>🍂 gruvbox</strong></td>
-		<td align="center"><img alt="onedark" src="https://stats.pphat.top/stats?username=pphatdev&theme=onedark" /><br /><strong>🖤 onedark</strong></td>
-	</tr>
-</table>
+```
+![project-custom](https://stats.pphat.top/project/contributors?repo=pphatdev/github-stats&theme=ocean&customLabel=Contributors)
+```
 
-### All Available Themes (50+)
+![project-custom](https://stats.pphat.top/project/contributors?repo=pphatdev/github-stats&theme=ocean&customLabel=Contributors)
 
-| Category | Themes |
-|----------|--------|
-| Dark | `default`, `dark`, `radical`, `merko`, `gruvbox`, `tokyonight`, `onedark`, `cobalt`, `synthwave`, `highcontrast`, `dracula`, `prussian`, `monokai`, `vue`, `vue-dark`, `shades-of-purple`, `nightowl`, `buefy-dark`, `blue-green`, `algolia`, `great-gatsby`, `darcula`, `bear`, `solarized-dark`, `chartreuse-dark`, `nord`, `gotham`, `material-palenight`, `vision-friendly-dark`, `ayu-mirage`, `midnight-purple`, `calm`, `omni`, `react`, `jolly`, `maroongold`, `yeblu`, `blueberry`, `slateorange`, `kacho_ga`, `outrun`, `ocean_dark`, `city_lights`, `github_dark`, `discord_old_blurple`, `aura_dark`, `panda`, `noctis_minimus`, `cobalt2`, `swift`, `aura`, `apprentice`, `moltack`, `codeSTACKr`, `rose_pine` |
-| Light | `solarized-light`, `graywhite`, `flag-india` |
+### Visitors Rule (Same IP)
 
-Full theme list is in [src/utils/themes](src/utils/themes).
+Project visitors increment once per same IP every 5 minutes.
 
-## Graph Themes
+```
+![project-visitors](https://stats.pphat.top/project/visitors?repo=pphatdev/github-stats)
+```
 
-These themes are tuned for the `/graph` heatmap card — vivid `iconColor` cells against near-black backgrounds.
-
-<table>
-	<tr>
-		<td align="center"><img alt="aurora" src="https://stats.pphat.top/graph?username=pphatdev&size=small&show_title=false&show_total_contribution=false&theme=aurora" /><br /><strong>🌌 aurora</strong></td>
-		<td align="center"><img alt="matrix" src="https://stats.pphat.top/graph?username=pphatdev&size=small&show_title=false&show_total_contribution=false&theme=matrix" /><br /><strong>💚 matrix</strong></td>
-	</tr>
-	<tr>
-		<td align="center"><img alt="inferno" src="https://stats.pphat.top/graph?username=pphatdev&size=small&show_title=false&show_total_contribution=false&theme=inferno" /><br /><strong>🔥 inferno</strong></td>
-		<td align="center"><img alt="ocean" src="https://stats.pphat.top/graph?username=pphatdev&size=small&show_title=false&show_total_contribution=false&theme=ocean" /><br /><strong>🌊 ocean</strong></td>
-	</tr>
-</table>
-
-All available themes: `aurora` · `matrix` · `inferno` · `ocean` · `neon` · `solar` · `galaxy` · `github-dark`
-
-### Animate Modes
-
-| Mode    | Description                                   |
-| ------- | --------------------------------------------- |
-| `glow`  | Default — active cells pulse with a soft glow |
-| `wave`  | Cells ripple in a wave pattern across columns |
-| `pulse` | ~16 random cells flash independently          |
-| `none`  | No animation — static render                  |
-
-### Size Presets
-
-| Value     | Canvas     | Cell size |
-| --------- | ---------- | --------- |
-| `default` | 1200 × 600 | 14 px     |
-| `small`   | 800 × 400  | 9 px      |
-| `medium`  | 1000 × 500 | 12 px     |
-| `large`   | 1400 × 700 | 16 px     |
 
 ## Development
 
@@ -462,7 +302,8 @@ Route-by-route demos with option examples: [docs/example/README.md](docs/example
 - Without a GitHub token, API rate limits are very low (~60 requests/hour)
 - Set `GITHUB_TOKEN` to get 5,000 requests/hour
 - Redis is optional but recommended for production (enables distributed caching)
-- Visitor badges use IP hashing for privacy-preserving unique visitor counting
+- User visitor badges (`/badge/visitors`) use IP hashing for privacy-preserving unique visitor counting
+- Project visitor badges (`/project/visitors`) increment once per same IP every 5 minutes
 
 ## License
 

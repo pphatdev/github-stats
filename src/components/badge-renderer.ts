@@ -70,6 +70,10 @@ const BADGE_CONFIGS: Record<BadgeType, BadgeConfig> = {
         formatValue: (n) => `${n} yr${n !== 1 ? 's' : ''}`,
     },
     // Project/Repository-specific badges
+    'repo-visitors': {
+        label: 'Visitors',
+        iconPath: 'M 1 7 Q 7 1.5 13 7 Q 7 12.5 1 7 Z M 7 5 A 2 2 0 1 1 6.99 5',
+    },
     'repo-stars': {
         label: 'Stars',
         iconPath: 'M 4.808 4.281 l -3.722 0.540 l -0.066 0.013 a 0.583 0.583 0 0 0 -0.257 0.982 l 2.696 2.624 l -0.636 3.707 l -0.008 0.064 a 0.583 0.583 0 0 0 0.854 0.551 l 3.328 -1.750 l 3.321 1.750 l 0.058 0.027 a 0.583 0.583 0 0 0 0.789 -0.642 l -0.636 -3.707 l 2.697 -2.625 l 0.046 -0.050 a 0.583 0.583 0 0 0 -0.369 -0.945 l -3.722 -0.540 l -1.663 -3.372 a 0.583 0.583 0 0 0 -1.047 0 l -1.664 3.372 z',
@@ -102,6 +106,10 @@ const BADGE_CONFIGS: Record<BadgeType, BadgeConfig> = {
 };
 
 export class BadgeRenderer {
+
+    private static _isProjectBadgeType(type: BadgeType): boolean {
+        return type.startsWith('repo-');
+    }
 
     static visitors(value: number, options: Omit<BadgeOptions, 'type'> = {}): string {
         return BadgeRenderer._render(BADGE_CONFIGS['visitors'], 'visitors', value, options);
@@ -225,7 +233,7 @@ export class BadgeRenderer {
 
 
         // Dimensions
-        const showIcon = !options.hideIcon;
+        const showIcon = !BadgeRenderer._isProjectBadgeType(type) && !options.hideIcon;
         const iconSpace = showIcon ? (ICON_PAD_L + ICON_SIZE + ICON_GAP) : LABEL_PAD_R;
         const labelTextW = Math.ceil(labelText.length * LABEL_CHARW);
         const labelSecW = iconSpace + labelTextW + LABEL_PAD_R;

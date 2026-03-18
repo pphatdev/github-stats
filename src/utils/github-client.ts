@@ -439,67 +439,72 @@ export class GitHubClient {
      */
     async fetchRepoBadgeValue(owner: string, repo: string, type: RepoBadgeType): Promise<number> {
         const key = `repo-badge-${type}-${owner}-${repo}`;
-
-        switch (type) {
-            case 'repo-stars':
-                return this.cachedRequest(key, async () => {
-                    const { data } = await this.octokit.repos.get({ owner, repo });
-                    return data.stargazers_count;
-                });
-
-            case 'repo-forks':
-                return this.cachedRequest(key, async () => {
-                    const { data } = await this.octokit.repos.get({ owner, repo });
-                    return data.forks_count;
-                });
-
-            case 'repo-watchers':
-                return this.cachedRequest(key, async () => {
-                    const { data } = await this.octokit.repos.get({ owner, repo });
-                    return data.subscribers_count;
-                });
-
-            case 'repo-issues':
-                return this.cachedRequest(key, async () => {
-                    const { data } = await this.octokit.repos.get({ owner, repo });
-                    return data.open_issues_count;
-                });
-
-            case 'repo-prs':
-                return this.cachedRequest(key, async () => {
-                    const { data } = await this.octokit.search.issuesAndPullRequests({
-                        q: `repo:${owner}/${repo} type:pr state:open`,
-                        per_page: 1,
+        try {
+            switch (type) {
+                case 'repo-stars':
+                    return await this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.repos.get({ owner, repo });
+                        return data.stargazers_count;
                     });
-                    return data.total_count;
-                });
 
-            case 'repo-contributors':
-                return this.cachedRequest(key, async () => {
-                    const { data } = await this.octokit.repos.listContributors({
-                        owner,
-                        repo,
-                        per_page: 1,
-                        anon: 'true',
+                case 'repo-forks':
+                    return await this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.repos.get({ owner, repo });
+                        return data.forks_count;
                     });
-                    // Get total from headers if available, otherwise count response
-                    // Note: GitHub API returns paginated results, we need to fetch all or use the link header
-                    const response = await this.octokit.repos.listContributors({
-                        owner,
-                        repo,
-                        per_page: 100,
+
+                case 'repo-watchers':
+                    return await this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.repos.get({ owner, repo });
+                        return data.subscribers_count;
                     });
-                    return response.data.length;
-                });
 
-            case 'repo-size':
-                return this.cachedRequest(key, async () => {
-                    const { data } = await this.octokit.repos.get({ owner, repo });
-                    return data.size; // Size in KB
-                });
+                case 'repo-issues':
+                    return await this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.repos.get({ owner, repo });
+                        return data.open_issues_count;
+                    });
 
-            default:
-                throw new Error(`Unknown repo badge type: ${type}`);
+                case 'repo-prs':
+                    return await this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.search.issuesAndPullRequests({
+                            q: `repo:${owner}/${repo} type:pr state:open`,
+                            per_page: 1,
+                        });
+                        return data.total_count;
+                    });
+
+                case 'repo-contributors':
+                    return await this.cachedRequest(key, async () => {
+                        await this.octokit.repos.listContributors({
+                            owner,
+                            repo,
+                            per_page: 1,
+                            anon: 'true',
+                        });
+                        const response = await this.octokit.repos.listContributors({
+                            owner,
+                            repo,
+                            per_page: 100,
+                        });
+                        return response.data.length;
+                    });
+
+                case 'repo-size':
+                    return await this.cachedRequest(key, async () => {
+                        const { data } = await this.octokit.repos.get({ owner, repo });
+                        return data.size; // Size in KB
+                    });
+
+                default:
+                    throw new Error(`Unknown repo badge type: ${type}`);
+            }
+        } catch (error: any) {
+            const isNotFound = error?.status === 404 || String(error?.message || '').toLowerCase().includes('not found');
+            if (isNotFound) {
+                return 0;
+            }
+            throw error;
         }
     }
 }

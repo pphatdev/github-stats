@@ -10,6 +10,7 @@ import { ProjectBadgeController } from '../controllers/project-badge.controller.
  */
 export function registerProjectBadgeRoutes(app: Application): void {
     // Register routes under /project prefix
+    app.get('/project/visitors', ProjectBadgeController.getVisitors);
     app.get('/project/stars', ProjectBadgeController.getStars);
     app.get('/project/forks', ProjectBadgeController.getForks);
     app.get('/project/watchers', ProjectBadgeController.getWatchers);
@@ -24,6 +25,7 @@ export function registerProjectBadgeRoutes(app: Application): void {
  */
 export function getProjectBadgeRouteDocs(): Record<string, typeof ProjectBadgeController.routeDocs[keyof typeof ProjectBadgeController.routeDocs]> {
     return {
+        'GET /project/visitors': ProjectBadgeController.routeDocs['repo-visitors'],
         'GET /project/stars': ProjectBadgeController.routeDocs['repo-stars'],
         'GET /project/forks': ProjectBadgeController.routeDocs['repo-forks'],
         'GET /project/watchers': ProjectBadgeController.routeDocs['repo-watchers'],

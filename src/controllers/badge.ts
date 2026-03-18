@@ -177,7 +177,10 @@ export class BadgeController {
             })();
 
             BadgeController.pendingRequests.set(cacheKey, pending);
-            pending.finally(() => BadgeController.pendingRequests.delete(cacheKey));
+            pending.then(
+                () => BadgeController.pendingRequests.delete(cacheKey),
+                () => BadgeController.pendingRequests.delete(cacheKey)
+            );
         }
 
         const svg = await pending;
