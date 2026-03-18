@@ -65,13 +65,13 @@ Glow:
 
 Wave:
 
-![icon-collection-wave](https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss,python,go&effect=wave&columns=3)
+![icon-collection-wave](https://stats.pphat.top/icons?name=typescript,javascript,nodedotjs,nextjs,nuxt,shadcnui,postgresql,drizzle,tailwindcss,laravel,csharp&columns=12&size=small&effect=wave)
 
 ## Combined Example
 
 Size + colors + glow + columns:
 
-![icon-collection-combined](https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss&size=large&color=%230088CC,%233178C6,%23FFFFFF,%2338B2AC&effect=glow&columns=2)
+![icon-collection-combined](https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss&size=large&color=%230088CC,%233178C6,%23FFFFFF,%2338B2AC&effect=wave&columns=2)
 
 ## Curl Examples
 
