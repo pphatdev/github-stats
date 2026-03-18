@@ -1,0 +1,21 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <path opacity="0.1" d="M31.8523 0H16.1477C7.22957 0 2.65694e-07 7.22957 2.65694e-07 16.1477V31.8523C2.65694e-07 40.7704 7.22957 48 16.1477 48H31.8523C40.7704 48 48 40.7704 48 31.8523V16.1477C48 7.22957 40.7704 0 31.8523 0Z" fill="currentColor"/>
+    <style>
+        @keyframes popup {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        #supabase-logo {
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+    </style>
+    <g id="supabase-logo">
+        <path d="M23.9 13.036C23.885 12.05 22.64 11.626 22.026 12.399L12.764 24.05C11.67 25.427 12.65 27.455 14.409 27.455H23.988L24.101 34.965C24.115 35.95 25.36 36.373 25.974 35.601L35.236 23.948C36.329 22.573 35.349 20.545 33.591 20.545H23.949L23.9 13.036Z" fill="currentColor"/>
+    </g>
+</svg>
