@@ -132,14 +132,29 @@ GET https://stats.pphat.top/graph?username=pphatdev&as=png
 
 ### `GET /icons` and `GET /icons/:name`
 
-Provides reusable SVG icons: list all icon names, fetch an icon by name, and preview the icon gallery demo page.
+Provides reusable SVG icons: list all icon names, render a composite icon grid, fetch an icon by name, and preview the icon gallery demo page.
+
+Route demo docs:
+
+- [Single Icon and Icon Routes](./docs/example/icons.md)
+- [Icon Collection Examples](./docs/example/icon-collection.md)
 
 Routes:
 
-- `/icons` - Returns JSON list of available icons
+- `/icons` - Returns JSON list of available icons, or a composite SVG when `name` is provided
 - `/icons/:name` - Returns icon SVG by name (e.g. `/icons/react`)
 - `/icons/:name.svg` - Same as above with explicit extension
 - `/icons/demo` - Interactive icons demo page
+
+Optional query params for `/icons` composite SVG mode:
+
+| Param | Description |
+|-------|-------------|
+| `name` | Required for composite mode. Comma-separated icon names, for example `react,typescript,github` |
+| `color` | Optional comma-separated colors mapped by icon index. Remaining icons use deterministic random colors |
+| `size` | Icon size preset: `small`, `medium`, `large` |
+| `effect` | Visual effect: `glow`, `wave` |
+| `columns` | Number of columns in the grid. Default: `3` |
 
 Optional query params for `/icons/:name`:
 
@@ -154,6 +169,10 @@ Examples:
 
 ```text
 GET https://stats.pphat.top/icons
+GET https://stats.pphat.top/icons?name=react,typescript,github
+GET https://stats.pphat.top/icons?name=react,typescript,github&color=%230088CC,%233178C6,white&size=large&columns=2
+GET https://stats.pphat.top/icons?name=react,typescript,github,tailwindcss&effect=wave&columns=2
+GET https://stats.pphat.top/icons?name=react,typescript,github&effect=glow&size=medium
 GET https://stats.pphat.top/icons/react
 GET https://stats.pphat.top/icons/react.svg
 GET https://stats.pphat.top/icons/typescript?color=%23FF0000
