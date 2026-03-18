@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createHash } from 'crypto';
 import { generateIconsDemoHTML } from '../views/icons-demo.view.js';
+import { IconsCollectionController } from './icons-collection.controller.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,7 @@ export class IconsController {
     private static readonly MAX_CACHE_ITEMS = 2000;
     private static readonly HTTP_CACHE_CONTROL = 'public, max-age=31536000, immutable';
     private static readonly COLOR_REGEX = /^(#[0-9A-Fa-f]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|[a-zA-Z]+|currentColor)$/;
+    private static readonly ICON_NAME_REGEX = /^[a-zA-Z0-9._-]+$/;
 
     /**
      * Load and cache icon list
@@ -72,6 +74,44 @@ export class IconsController {
      */
     private static isValidColor(color: string): boolean {
         return IconsController.COLOR_REGEX.test(color);
+    }
+
+    /**
+     * Resolve icon path after validating the icon name and path boundaries
+     */
+    private static resolveIconPath(iconName: string): string | null {
+        if (!IconsController.ICON_NAME_REGEX.test(iconName)) {
+            return null;
+        }
+
+        const resolvedIconsDir = path.resolve(IconsController.iconsDir);
+        const iconPath = path.resolve(IconsController.iconsDir, `${iconName}.svg`);
+
+        if (!iconPath.startsWith(resolvedIconsDir + path.sep) && iconPath !== resolvedIconsDir) {
+            return null;
+        }
+
+        return iconPath;
+    }
+
+    /**
+     * Read base icon SVG content with deduplicated concurrent loads
+     */
+    private static async readBaseIconContent(iconName: string): Promise<string> {
+        const iconPath = IconsController.resolveIconPath(iconName);
+
+        if (!iconPath) {
+            throw new Error('INVALID_ICON_NAME');
+        }
+
+        let pending = IconsController.pendingLoads.get(iconName);
+        if (!pending) {
+            pending = fs.readFile(iconPath, 'utf-8');
+            IconsController.pendingLoads.set(iconName, pending);
+            pending.finally(() => IconsController.pendingLoads.delete(iconName));
+        }
+
+        return pending;
     }
 
     /**
@@ -159,8 +199,13 @@ export class IconsController {
     /**
      * Get all available icons
      */
-    static async getAllIcons(_req: Request, res: Response): Promise<void> {
+    static async getAllIcons(req: Request, res: Response): Promise<void> {
         try {
+            if (typeof req.query.name !== 'undefined') {
+                await IconsCollectionController.getIconsCollection(req, res);
+                return;
+            }
+
             const icons = await IconsController.loadIconsList();
 
             res.setHeader('Cache-Control', IconsController.HTTP_CACHE_CONTROL);
@@ -169,6 +214,7 @@ export class IconsController {
                 icons: icons,
                 base_url: '/icons',
                 examples: {
+                    get_icons_svg: '/icons?name=react,typescript&color=%230088CC,%233178C6&size=medium&effect=glow&columns=2',
                     get_icon: '/icons/react',
                     get_icon_svg: '/icons/react.svg',
                     demo_page: '/icons/demo'
@@ -226,8 +272,7 @@ export class IconsController {
             const effectiveGlowColor = glowParam ? (glowColorParam || '#00AAFF') : undefined;
 
             // Validate icon name against strict regex (alphanumeric, dots, underscores, hyphens only)
-            const validFilenameRegex = /^[a-zA-Z0-9._-]+$/;
-            if (!validFilenameRegex.test(iconName)) {
+            if (!IconsController.ICON_NAME_REGEX.test(iconName)) {
                 res.status(400).json({
                     error: 'Invalid icon name',
                     message: 'Icon name must contain only alphanumeric characters, dots, underscores, and hyphens'
@@ -235,12 +280,8 @@ export class IconsController {
                 return;
             }
 
-            // Resolve paths to prevent path traversal
-            const resolvedIconsDir = path.resolve(IconsController.iconsDir);
-            const iconPath = path.resolve(IconsController.iconsDir, `${iconName}.svg`);
-
-            // Ensure the resolved path is contained within the icons directory
-            if (!iconPath.startsWith(resolvedIconsDir + path.sep) && iconPath !== resolvedIconsDir) {
+            const iconPath = IconsController.resolveIconPath(iconName);
+            if (!iconPath) {
                 res.status(400).json({
                     error: 'Invalid icon path',
                     message: 'Icon path must be within the icons directory'
@@ -277,15 +318,7 @@ export class IconsController {
             }
 
             // Deduplicate concurrent loads of the same icon (without color modification)
-            const baseIconCacheKey = IconsController.generateCacheKey(iconName);
-            let pending = IconsController.pendingLoads.get(baseIconCacheKey);
-            if (!pending) {
-                pending = fs.readFile(iconPath, 'utf-8');
-                IconsController.pendingLoads.set(baseIconCacheKey, pending);
-                pending.finally(() => IconsController.pendingLoads.delete(baseIconCacheKey));
-            }
-
-            let iconContent = await pending;
+            let iconContent = await IconsController.readBaseIconContent(iconName);
 
             // Apply color transformations if requested
             if (colorParam) {
@@ -349,9 +382,9 @@ export class IconsController {
     static routeDocs = {
         'icons-list': {
             requiredParams: [],
-            optionalParams: [],
-            payload: 'Returns a list of all available icons with metadata',
-            example: '/icons'
+            optionalParams: ['name', 'color', 'size', 'effect', 'columns'],
+            payload: 'Returns JSON metadata when called without query parameters. When name is provided, returns a composite SVG icon grid. Use comma-separated name and color values, size=small|medium|large, effect=glow|wave, and columns to control layout.',
+            example: '/icons or /icons?name=react,typescript&color=%230088CC,%233178C6&size=medium&effect=glow&columns=2'
         },
         'icons-get': {
             requiredParams: ['name'],
