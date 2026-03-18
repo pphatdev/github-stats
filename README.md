@@ -247,6 +247,41 @@ for more detail checkout [Here](docs/example/badge-user.md)
 ![badge-minimal](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev&theme=tokyonight&hideFrame=true&hideIcon=true)
 
 
+# 📁 Project Badge Examples
+
+for more detail checkout [Here](docs/example/project.md)
+
+### Popular Project Badge Types
+
+```
+![project-visitors](https://stats.pphat.top/project/visitors?repo=pphatdev/github-stats)
+![project-stars](https://stats.pphat.top/project/stars?repo=pphatdev/github-stats)
+![project-forks](https://stats.pphat.top/project/forks?repo=pphatdev/github-stats)
+![project-watchers](https://stats.pphat.top/project/watchers?repo=pphatdev/github-stats)
+```
+
+![project-visitors](https://stats.pphat.top/project/visitors?repo=pphatdev/github-stats)
+![project-stars](https://stats.pphat.top/project/stars?repo=pphatdev/github-stats)
+![project-forks](https://stats.pphat.top/project/forks?repo=pphatdev/github-stats)
+![project-watchers](https://stats.pphat.top/project/watchers?repo=pphatdev/github-stats)
+
+### Theme + Custom Label
+
+```
+![project-custom](https://stats.pphat.top/project/contributors?repo=pphatdev/github-stats&theme=ocean&customLabel=Contributors)
+```
+
+![project-custom](https://stats.pphat.top/project/contributors?repo=pphatdev/github-stats&theme=ocean&customLabel=Contributors)
+
+### Visitors Rule (Same IP)
+
+Project visitors increment once per same IP every 5 minutes.
+
+```
+![project-visitors](https://stats.pphat.top/project/visitors?repo=pphatdev/github-stats)
+```
+
+
 ## Development
 
 Development setup was moved to: [docs/how-to/DEVELOPMENT.md](docs/how-to/DEVELOPMENT.md)
@@ -267,7 +302,8 @@ Route-by-route demos with option examples: [docs/example/README.md](docs/example
 - Without a GitHub token, API rate limits are very low (~60 requests/hour)
 - Set `GITHUB_TOKEN` to get 5,000 requests/hour
 - Redis is optional but recommended for production (enables distributed caching)
-- Visitor badges use IP hashing for privacy-preserving unique visitor counting
+- User visitor badges (`/badge/visitors`) use IP hashing for privacy-preserving unique visitor counting
+- Project visitor badges (`/project/visitors`) increment once per same IP every 5 minutes
 
 ## License
 
