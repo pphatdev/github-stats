@@ -154,10 +154,25 @@ export class IconsCollectionController {
     }
 
     private static applySvgColor(svgContent: string, color: string): string {
-        let result = svgContent.replace(/fill="currentColor"/gi, `fill="${color}"`);
+        let result = svgContent;
+
+        // First, map the standard currentColor usage.
+        const beforeCurrentColor = result;
+        result = result.replace(/fill="currentColor"/gi, `fill="${color}"`);
         result = result.replace(/fill='currentColor'/gi, `fill='${color}'`);
         result = result.replace(/stroke="currentColor"/gi, `stroke="${color}"`);
         result = result.replace(/stroke='currentColor'/gi, `stroke='${color}'`);
+
+        // Some icon assets are authored with hardcoded black values. If no
+        // currentColor replacement happened, remap common black tokens so icons
+        // remain visible on dark backgrounds in collection mode.
+        if (result === beforeCurrentColor) {
+            result = result.replace(/fill="(?:#000(?:000)?|black|rgb\(0\s*,\s*0\s*,\s*0\))"/gi, `fill="${color}"`);
+            result = result.replace(/fill='(?:#000(?:000)?|black|rgb\(0\s*,\s*0\s*,\s*0\))'/gi, `fill='${color}'`);
+            result = result.replace(/stroke="(?:#000(?:000)?|black|rgb\(0\s*,\s*0\s*,\s*0\))"/gi, `stroke="${color}"`);
+            result = result.replace(/stroke='(?:#000(?:000)?|black|rgb\(0\s*,\s*0\s*,\s*0\))'/gi, `stroke='${color}'`);
+        }
+
         return result;
     }
 
