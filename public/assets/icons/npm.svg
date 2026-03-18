@@ -1,0 +1,21 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <path opacity="0.1" d="M31.8523 0H16.1477C7.22957 0 0 7.22957 0 16.1477V31.8523C0 40.7704 7.22957 48 16.1477 48H31.8523C40.7704 48 48 40.7704 48 31.8523V16.1477C48 7.22957 40.7704 0 31.8523 0Z" fill="currentColor"/>
+    <style>
+        @keyframes popup {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        #npm-logo {
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+    </style>
+    <g id="npm-logo">
+        <path d="M13.763 12C12.786 12 12 12.786 12 13.763V34.237C12 35.214 12.786 36 13.763 36H34.237C35.214 36 36 35.214 36 34.237V13.763C36 12.786 35.214 12 34.237 12H13.763ZM17.13 17.323L30.967 17.342L30.958 31.178H27.494L27.504 20.796H24.048L24.04 31.17H17.113L17.13 17.323Z" fill="currentColor"/>
+    </g>
+</svg>
