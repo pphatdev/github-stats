@@ -1,1 +1,21 @@
-<svg width="48" height="48" viewBox="-10.2941 -10.2941 44.5884 44.5884" xmlns="http://www.w3.org/2000/svg"><rect x="-10.2941" y="-10.2941" width="44.5884" height="44.5884" rx="15" fill="currentColor" opacity="0.1"/><title>Lit</title><path fill="currentColor" d="M2.4 9.6l4.8 4.8V24l-4.8-4.8V9.6zm4.8-4.8v9.6L12 9.6V0L7.2 4.8zM12 9.6v9.6l4.8-4.8V4.8L12 9.6zm4.8 4.8V24l4.8-4.8V9.6l-4.8 4.8z"/></svg>
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <path opacity="0.1" d="M31.8523 0H16.1477C7.22957 0 2.65694e-07 7.22957 2.65694e-07 16.1477V31.8523C2.65694e-07 40.7704 7.22957 48 16.1477 48H31.8523C40.7704 48 48 40.7704 48 31.8523V16.1477C48 7.22957 40.7704 0 31.8523 0Z" fill="currentColor"/>
+    <style>
+        @keyframes popup {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        #lit-logo {
+            animation: popup 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+    </style>
+    <g id="lit-logo">
+        <path d="M14 21.6L18.8 26.4V36L14 31.2V21.6ZM18.8 16.8V26.4L23.6 21.6V12L18.8 16.8ZM23.6 21.6V31.2L28.4 26.4V16.8L23.6 21.6ZM28.4 26.4V36L33.2 31.2V21.6L28.4 26.4Z" fill="currentColor"/>
+    </g>
+</svg>
