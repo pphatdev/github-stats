@@ -199,7 +199,8 @@ export class IconsCollectionController {
         y: number,
         size: number,
         className: string,
-        styleAttribute: string
+        styleAttribute: string,
+        filterId?: string
     ): string {
         const cleanedSvg = svgContent
             .replace(/^\s*<\?xml[^>]*>\s*/i, '')
@@ -207,13 +208,26 @@ export class IconsCollectionController {
 
         return cleanedSvg.replace(/<svg\b([^>]*)>/i, (_match, attributes: string) => {
             const cleanedAttributes = attributes
-                .replace(/\s(?:x|y|width|height|class|style|preserveAspectRatio)=("[^"]*"|'[^']*')/gi, '')
+                .replace(/\s(?:x|y|width|height|class|style|filter|preserveAspectRatio|overflow)=("[^"]*"|'[^']*')/gi, '')
                 .trim();
             const classPart = className ? ` class="${className}"` : '';
             const stylePart = styleAttribute ? ` style="${styleAttribute}"` : '';
+            const filterPart = filterId ? ` filter="url(#${filterId})"` : '';
 
-            return `<svg${cleanedAttributes ? ` ${cleanedAttributes}` : ''}${classPart}${stylePart} x="${x}" y="${y}" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet">`;
+            return `<svg${cleanedAttributes ? ` ${cleanedAttributes}` : ''}${classPart}${stylePart}${filterPart} x="${x}" y="${y}" width="${size}" height="${size}" overflow="visible" preserveAspectRatio="xMidYMid meet">`;
         });
+    }
+
+    private static buildGlowFilterDefinition(filterId: string, color: string): string {
+        return `<filter id="${filterId}" x="-60%" y="-60%" width="220%" height="220%" filterUnits="objectBoundingBox">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="blur"/>
+                <feFlood flood-color="${color}" flood-opacity="0.85" result="glowColor"/>
+                <feComposite in="glowColor" in2="blur" operator="in" result="coloredGlow"/>
+                <feMerge>
+                    <feMergeNode in="coloredGlow"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>`;
     }
 
     private static async buildIconsCollectionSvg(
@@ -228,6 +242,7 @@ export class IconsCollectionController {
         const totalRows = Math.ceil(iconNames.length / totalColumns);
         const width = preset.padding * 2 + totalColumns * preset.cell + (totalColumns - 1) * preset.gap;
         const height = preset.padding * 2 + totalRows * preset.cell + (totalRows - 1) * preset.gap;
+        const defs: string[] = [];
         const waveStyles = effect === 'wave'
             ? `<style>
                 @keyframes icons-wave {
@@ -252,9 +267,11 @@ export class IconsCollectionController {
             const baseContent = await IconsCollectionController.readBaseIconContent(iconName);
             const coloredContent = IconsCollectionController.applySvgColor(baseContent, resolvedColor);
             const effectStyles: string[] = [];
+            let glowFilterId: string | undefined;
 
             if (effect === 'glow') {
-                effectStyles.push(`filter: drop-shadow(0 0 8px ${resolvedColor}) drop-shadow(0 0 6px ${resolvedColor}20);`);
+                glowFilterId = `icon-glow-${index}`;
+                defs.push(IconsCollectionController.buildGlowFilterDefinition(glowFilterId, resolvedColor));
             }
 
             if (effect === 'wave') {
@@ -270,13 +287,17 @@ export class IconsCollectionController {
                 y,
                 preset.icon,
                 effect === 'wave' ? 'icon-wave' : '',
-                effectStyles.join(' ')
+                effectStyles.join(' '),
+                glowFilterId
             );
         }));
 
         return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Icon collection">
     <title>Icon collection</title>
+    ${defs.length > 0 ? `<defs>
+        ${defs.join('\n        ')}
+    </defs>` : ''}
     ${waveStyles}
     ${images.join('\n    ')}
 </svg>`;
