@@ -193,6 +193,29 @@ export class IconsCollectionController {
         ].join('|');
     }
 
+    private static buildInlineCollectionIconSvg(
+        svgContent: string,
+        x: number,
+        y: number,
+        size: number,
+        className: string,
+        styleAttribute: string
+    ): string {
+        const cleanedSvg = svgContent
+            .replace(/^\s*<\?xml[^>]*>\s*/i, '')
+            .trim();
+
+        return cleanedSvg.replace(/<svg\b([^>]*)>/i, (_match, attributes: string) => {
+            const cleanedAttributes = attributes
+                .replace(/\s(?:x|y|width|height|class|style|preserveAspectRatio)=("[^"]*"|'[^']*')/gi, '')
+                .trim();
+            const classPart = className ? ` class="${className}"` : '';
+            const stylePart = styleAttribute ? ` style="${styleAttribute}"` : '';
+
+            return `<svg${cleanedAttributes ? ` ${cleanedAttributes}` : ''}${classPart}${stylePart} x="${x}" y="${y}" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet">`;
+        });
+    }
+
     private static async buildIconsCollectionSvg(
         iconNames: string[],
         colors: string[],
@@ -228,7 +251,6 @@ export class IconsCollectionController {
             const delay = (column * 0.12) + (row * 0.08);
             const baseContent = await IconsCollectionController.readBaseIconContent(iconName);
             const coloredContent = IconsCollectionController.applySvgColor(baseContent, resolvedColor);
-            const encodedSvg = Buffer.from(coloredContent).toString('base64');
             const effectStyles: string[] = [];
 
             if (effect === 'glow') {
@@ -242,7 +264,14 @@ export class IconsCollectionController {
             const className = effect === 'wave' ? ' class="icon-wave"' : '';
             const styleAttribute = effectStyles.length > 0 ? ` style="${effectStyles.join(' ')}"` : '';
 
-            return `<image${className}${styleAttribute} x="${x}" y="${y}" width="${preset.icon}" height="${preset.icon}" href="data:image/svg+xml;base64,${encodedSvg}" preserveAspectRatio="xMidYMid meet" />`;
+            return IconsCollectionController.buildInlineCollectionIconSvg(
+                coloredContent,
+                x,
+                y,
+                preset.icon,
+                effect === 'wave' ? 'icon-wave' : '',
+                effectStyles.join(' ')
+            );
         }));
 
         return `<?xml version="1.0" encoding="UTF-8"?>
