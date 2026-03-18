@@ -217,7 +217,7 @@ export class IconsCollectionController {
             const effectStyles: string[] = [];
 
             if (effect === 'glow') {
-                effectStyles.push(`filter: drop-shadow(0 0 8px ${resolvedColor}) drop-shadow(0 0 16px ${resolvedColor});`);
+                effectStyles.push(`filter: drop-shadow(0 0 8px ${resolvedColor}) drop-shadow(0 0 6px ${resolvedColor}20);`);
             }
 
             if (effect === 'wave') {
