@@ -246,6 +246,35 @@ for more detail checkout [Here](docs/example/badge-user.md)
 ![badge-minimal](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev&theme=tokyonight&hideFrame=true&hideIcon=true)
 
 
+# 🧩 Badge Collection Examples
+
+for more detail checkout [Here](docs/example/badge-collection.md)
+
+### Default Collection
+
+```
+![badge-collection-default](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories)
+```
+
+![badge-collection-default](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories)
+
+### Layout Controls (columns + gap)
+
+```
+![badge-collection-layout](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&columns=2&gap=8)
+```
+
+![badge-collection-layout](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&columns=2&gap=8)
+
+### Multiple Themes (cycled per badge)
+
+```
+![badge-collection-multi-theme](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
+```
+
+![badge-collection-multi-theme](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
+
+
 # 📁 Project Badge Examples
 
 for more detail checkout [Here](docs/example/project.md)
