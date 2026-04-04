@@ -3,10 +3,9 @@
  * Handles user-specific badge endpoints (require username parameter)
  * Features: Redis persistent caching with intelligent TTL, request deduplication
  */
-import crypto from 'node:crypto';
 import { Request, Response } from 'express';
 import { db } from '../db/index.js';
-import { badges, visitorLogs } from '../db/schema.js';
+import { badges } from '../db/schema.js';
 import { sql, eq } from 'drizzle-orm';
 import { GitHubClient } from '../utils/github-client.js';
 import { BadgeRenderer } from '../components/badge-renderer.js';
@@ -284,120 +283,29 @@ export class UserBadgeController {
     // ═══════════════════════════════════════════════════════════════════════
     // Badge Endpoints
     // ═══════════════════════════════════════════════════════════════════════
-    /** 
-     * GET /badge/visitors — counts unique visitors per IP per calendar day.
-     * 
-     * The same IP can increment the counter once per day:
-     * - Day 1: IP visits → count +1
-     * - Day 1 (later): Same IP visits again → count stays same (already counted today)
-     * - Day 2: Same IP visits → count +1 (new day, allowed to count again)
-     * 
-     * This is enforced by the unique index on (username, ip_hash, visit_date) in the visitor_logs table.
-     * 
-     * Caching Strategy:
-     * - Redis cache for rendered SVG (10 minutes)
-     * - In-memory cache for rapid F5 spam (60 seconds)
-     * - Short TTL ensures visitor counts update frequently
-     */
+    /** GET /badge/visitors — increments all-time visitors on every request. */
     static async getVisitors(req: Request, res: Response) {
         try {
             const username = UserBadgeController.requireUsername(req, res);
             if (!username) return;
 
             const options = UserBadgeController.parseOptions(req, 'visitors');
-            const cacheKey = UserBadgeController.buildCacheKey(username, options);
-            const badgeService = getBadgeCacheServiceSync();
-            const optionsRecord = UserBadgeController.optionsToRecord(options);
-
-            // 1. Check Redis persistent cache first
-            if (badgeService?.isReady()) {
-                const redisCached = await badgeService.getUserBadgeSVG(username, 'visitors', optionsRecord);
-                if (redisCached) {
-                    res.setHeader('Content-Type', 'image/svg+xml');
-                    res.setHeader('Cache-Control', 'public, max-age=60');
-                    res.setHeader('X-Cache', 'REDIS');
-                    return res.send(redisCached.svg);
-                }
-            }
-
-            // 2. Check in-memory SVG cache first — prevents unnecessary DB queries for rapid refreshes
-            const cached = UserBadgeController.cache.get(cacheKey);
-            if (cached && Date.now() - cached.timestamp < 60_000) {  // 60-second cache
-                res.setHeader('Content-Type', 'image/svg+xml');
-                res.setHeader('Cache-Control', 'public, max-age=60');
-                res.setHeader('X-Cache', 'MEMORY');
-                return res.send(cached.data);
-            }
-
-            // Resolve the real client IP (works behind reverse proxies)
-            const rawIp = (
-                (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0].trim() ||
-                req.socket?.remoteAddress ||
-                'unknown'
-            );
-
-            // Hash the IP for privacy — truncated SHA-256 is enough for dedup
-            const ipHash = crypto
-                .createHash('sha256')
-                .update(rawIp)
-                .digest('hex')
-                .slice(0, 16);
-
-            // Calendar date in UTC (YYYY-MM-DD) — ensures same IP can count once per day
-            const visitDate = new Date().toISOString().split('T')[0];
-
-            // Attempt to record this unique IP+date combination
-            // If this IP already visited today, onConflictDoNothing() prevents duplicate insertion
-            const logInsert = await db
-                .insert(visitorLogs)
-                .values({ username, ip_hash: ipHash, visit_date: visitDate, created_at: Date.now() })
-                .onConflictDoNothing()
+            const result = await db
+                .insert(badges)
+                .values({ username, visitors: 1, updated_at: Date.now() })
+                .onConflictDoUpdate({
+                    target: badges.username,
+                    set: { visitors: sql`${badges.visitors} + 1`, updated_at: Date.now() },
+                })
                 .returning();
 
-            let count: number;
-            let dbTimestamp = Date.now();
-
-            if (logInsert.length > 0) {
-                // New unique visit for today — atomically increment the stored total
-                const result = await db
-                    .insert(badges)
-                    .values({ username, visitors: 1, updated_at: Date.now() })
-                    .onConflictDoUpdate({
-                        target: badges.username,
-                        set: { visitors: sql`${badges.visitors} + 1`, updated_at: Date.now() },
-                    })
-                    .returning();
-                count = result[0]?.visitors ?? 1;
-                dbTimestamp = result[0]?.updated_at ?? Date.now();
-            } else {
-                // Same IP already counted today — return the current total without incrementing
-                const badge = await db
-                    .select({ visitors: badges.visitors, updated_at: badges.updated_at })
-                    .from(badges)
-                    .where(eq(badges.username, username))
-                    .get();
-                count = badge?.visitors ?? 0;
-                dbTimestamp = badge?.updated_at ?? Date.now();
-            }
+            const count = result[0]?.visitors ?? 1;
 
             const svg = BadgeRenderer.generateBadge(count, options);
 
-            // Cache the SVG in both layers
-            UserBadgeController.cache.set(cacheKey, { data: svg, timestamp: Date.now() });
-
-            // Cache in Redis with short TTL for frequent updates
-            if (badgeService?.isReady()) {
-                await badgeService.setUserBadgeSVG(username, 'visitors', optionsRecord, {
-                    svg,
-                    value: count,
-                    timestamp: Date.now(),
-                    dbTimestamp,
-                }, 60); // 60 seconds for visitors (shorter for freshness)
-            }
-
             res.setHeader('Content-Type', 'image/svg+xml');
-            res.setHeader('Cache-Control', 'public, max-age=60');
-            res.setHeader('X-Cache', 'MISS');
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('X-Cache', 'BYPASS');
             return res.send(svg);
         } catch (err) {
             console.error('UserBadgeController.getVisitors:', err);

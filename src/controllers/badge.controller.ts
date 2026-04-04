@@ -1,7 +1,6 @@
-import crypto from 'node:crypto';
 import { Request, Response } from 'express';
 import { db } from '../db/index.js';
-import { badges, visitorLogs } from '../db/schema.js';
+import { badges } from '../db/schema.js';
 import { sql, eq } from 'drizzle-orm';
 import { GitHubClient, RepoBadgeType } from '../utils/github-client.js';
 import { BadgeRenderer } from '../components/badge-renderer.js';
@@ -189,60 +188,22 @@ export class BadgeController {
         return res.send(svg);
     }
 
-    /** GET /badge/visitors — counts unique visitors per IP per calendar day. */
+    /** GET /badge/visitors — increments total visitors on every request. */
     static async getVisitors(req: Request, res: Response) {
         try {
             const username = BadgeController.requireUsername(req, res);
             if (!username) return;
 
-            // Resolve the real client IP (works behind reverse proxies)
-            const rawIp = (
-                (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0].trim() ||
-                req.socket?.remoteAddress ||
-                'unknown'
-            );
-
-            // Hash the IP for privacy — truncated SHA-256 is enough for dedup
-            const ipHash = crypto
-                .createHash('sha256')
-                .update(rawIp)
-                .digest('hex')
-                .slice(0, 16);
-
-            // Calendar date in UTC (YYYY-MM-DD)
-            const visitDate = new Date().toISOString().split('T')[0];
-
-            // Attempt to record this unique IP+date combination.
-            // If the row already exists the insert is a no-op (ON CONFLICT DO NOTHING)
-            // and `.returning()` returns an empty array — meaning we don't double-count.
-            const logInsert = await db
-                .insert(visitorLogs)
-                .values({ username, ip_hash: ipHash, visit_date: visitDate, created_at: Date.now() })
-                .onConflictDoNothing()
+            const result = await db
+                .insert(badges)
+                .values({ username, visitors: 1, updated_at: Date.now() })
+                .onConflictDoUpdate({
+                    target: badges.username,
+                    set: { visitors: sql`${badges.visitors} + 1`, updated_at: Date.now() },
+                })
                 .returning();
 
-            let count: number;
-
-            if (logInsert.length > 0) {
-                // New unique visit — atomically increment the stored total
-                const result = await db
-                    .insert(badges)
-                    .values({ username, visitors: 1 })
-                    .onConflictDoUpdate({
-                        target: badges.username,
-                        set: { visitors: sql`${badges.visitors} + 1` },
-                    })
-                    .returning();
-                count = result[0]?.visitors ?? 1;
-            } else {
-                // Same IP already counted today — serve the current total without mutating
-                const badge = await db
-                    .select({ visitors: badges.visitors })
-                    .from(badges)
-                    .where(eq(badges.username, username))
-                    .get();
-                count = badge?.visitors ?? 0;
-            }
+            const count = result[0]?.visitors ?? 1;
 
             const options = BadgeController.parseOptions(req, 'visitors');
             const svg = BadgeRenderer.generateBadge(count, options);

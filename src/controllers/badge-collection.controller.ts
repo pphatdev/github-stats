@@ -7,7 +7,7 @@ import type { Request, Response } from 'express';
 import { createHash } from 'crypto';
 import { db } from '../db/index.js';
 import { badges } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { GitHubClient } from '../utils/github-client.js';
 import { BadgeRenderer } from '../components/badge-renderer.js';
 import { badgeThemes } from '../utils/themes.js';
@@ -156,6 +156,20 @@ export class BadgeCollectionController {
             hideFrame: false,
             hideIcon: true,
         };
+    }
+
+    /** Increment all-time visitors and return the latest value. */
+    private static async incrementVisitorsCount(username: string): Promise<number> {
+        const result = await db
+            .insert(badges)
+            .values({ username, visitors: 1, updated_at: Date.now() })
+            .onConflictDoUpdate({
+                target: badges.username,
+                set: { visitors: sql`${badges.visitors} + 1`, updated_at: Date.now() },
+            })
+            .returning();
+
+        return result[0]?.visitors ?? 1;
     }
 
     /**
@@ -393,6 +407,7 @@ export class BadgeCollectionController {
             }
 
             const types = rawTypes as UserBadgeType[];
+            const includesVisitors = types.includes('visitors');
 
             // 3. Validate layout options
             const columns = BadgeCollectionController.normalizeColumns(req.query.columns);
@@ -448,27 +463,36 @@ export class BadgeCollectionController {
                 return;
             }
 
-            // 5. Check in-memory collection cache
+            // 5. Check in-memory collection cache (disabled for visitors to keep counter live)
             const cacheKey = BadgeCollectionController.generateCacheKey(username, types, sharedOptions, columns, gap, padding, themes, effect);
-            const cached = BadgeCollectionController.svgCache.get(cacheKey);
-            if (cached) {
-                if (req.headers['if-none-match'] === cached.etag) {
-                    res.status(304).end();
+            if (!includesVisitors) {
+                const cached = BadgeCollectionController.svgCache.get(cacheKey);
+                if (cached) {
+                    if (req.headers['if-none-match'] === cached.etag) {
+                        res.status(304).end();
+                        return;
+                    }
+                    BadgeCollectionController.setImageHeaders(res, cached.etag);
+                    res.send(cached.content);
                     return;
                 }
-                BadgeCollectionController.setImageHeaders(res, cached.etag);
-                res.send(cached.content);
-                return;
             }
 
             // 6. Deduplicate in-flight renders for the same cache key
             let pending = BadgeCollectionController.pendingCollections.get(cacheKey);
             if (!pending) {
                 pending = (async () => {
+                    const visitorsValue = includesVisitors
+                        ? await BadgeCollectionController.incrementVisitorsCount(username)
+                        : null;
+
                     // Fetch all badge values in parallel
-                    const values = await Promise.all(
-                        types.map((type) => BadgeCollectionController.fetchBadgeValue(username, type))
-                    );
+                    const values = await Promise.all(types.map((type) => {
+                        if (type === 'visitors') {
+                            return Promise.resolve(visitorsValue ?? 0);
+                        }
+                        return BadgeCollectionController.fetchBadgeValue(username, type);
+                    }));
 
                     // Render each badge as a standalone SVG
                     const badgeSvgs = values.map((value, i) => {
@@ -487,15 +511,21 @@ export class BadgeCollectionController {
             const svgContent = await pending;
             const etag = BadgeCollectionController.createWeakEtag(svgContent);
 
-            if (req.headers['if-none-match'] === etag) {
-                res.status(304).end();
-                return;
+            if (!includesVisitors) {
+                if (req.headers['if-none-match'] === etag) {
+                    res.status(304).end();
+                    return;
+                }
+
+                BadgeCollectionController.svgCache.set(cacheKey, { content: svgContent, etag, timestamp: Date.now() });
+                BadgeCollectionController.maybePruneCache();
+
+                BadgeCollectionController.setImageHeaders(res, etag);
+            } else {
+                res.setHeader('Content-Type', 'image/svg+xml');
+                res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
             }
 
-            BadgeCollectionController.svgCache.set(cacheKey, { content: svgContent, etag, timestamp: Date.now() });
-            BadgeCollectionController.maybePruneCache();
-
-            BadgeCollectionController.setImageHeaders(res, etag);
             res.send(svgContent);
         } catch (error) {
             res.status(500).json({
