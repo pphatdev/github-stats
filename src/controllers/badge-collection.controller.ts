@@ -57,14 +57,15 @@ export class BadgeCollectionController {
     private static readonly DEFAULT_COLUMNS = 50;
     private static readonly MAX_COLUMNS = 50;
     private static readonly DEFAULT_GAP = 5;
+    private static readonly DEFAULT_PADDING = 0;
 
     /** Route documentation */
     static readonly routeDocs = {
         collection: {
             requiredParams: ['username', 'type'],
-            optionalParams: ['columns', 'gap', 'theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
+            optionalParams: ['columns', 'gap', 'padding', 'theme', 'effect', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
             payload: null,
-            example: '/badge/collection?username=pphatdev&type=visitors,total-stars,repositories&columns=1&theme=galaxy',
+            example: '/badge/collection?username=pphatdev&type=visitors,total-stars,repositories&columns=1&gap=8&padding=12&theme=galaxy&effect=wave',
         },
     };
 
@@ -125,6 +126,22 @@ export class BadgeCollectionController {
         const parsed = Number.parseInt(value, 10);
         if (!Number.isInteger(parsed) || parsed < 0 || parsed > 100) return null;
         return parsed;
+    }
+
+    private static normalizePadding(value: unknown): number | null {
+        if (typeof value === 'undefined') return BadgeCollectionController.DEFAULT_PADDING;
+        if (typeof value !== 'string') return null;
+        const parsed = Number.parseInt(value, 10);
+        if (!Number.isInteger(parsed) || parsed < 0 || parsed > 200) return null;
+        return parsed;
+    }
+
+    private static normalizeEffect(value: unknown): 'glow' | 'wave' | undefined | null {
+        if (typeof value === 'undefined') return undefined;
+        if (typeof value !== 'string') return null;
+        const normalized = value.trim().toLowerCase();
+        if (normalized === 'glow' || normalized === 'wave') return normalized;
+        return null;
     }
 
     private static parseSharedOptions(req: Request): Omit<BadgeOptions, 'type'> {
@@ -206,6 +223,8 @@ export class BadgeCollectionController {
         badgeSvgs: string[],
         columns: number,
         gap: number,
+        padding: number,
+        effect: 'glow' | 'wave' | undefined,
     ): string {
         const dims = badgeSvgs.map(
             (svg) => BadgeCollectionController.extractSvgDimensions(svg) ?? { width: 200, height: 34 }
@@ -233,17 +252,34 @@ export class BadgeCollectionController {
         });
 
         const colXOffsets = colWidths.reduce<number[]>((acc, _w, i) => {
-            acc.push(i === 0 ? 0 : acc[i - 1] + colWidths[i - 1] + gap);
+            acc.push(i === 0 ? padding : acc[i - 1] + colWidths[i - 1] + gap);
             return acc;
         }, []);
 
         const rowYOffsets = rowHeights.reduce<number[]>((acc, _h, i) => {
-            acc.push(i === 0 ? 0 : acc[i - 1] + rowHeights[i - 1] + gap);
+            acc.push(i === 0 ? padding : acc[i - 1] + rowHeights[i - 1] + gap);
             return acc;
         }, []);
 
-        const totalWidth = colWidths.reduce((a, b) => a + b, 0) + gap * Math.max(0, totalCols - 1);
-        const totalHeight = rowHeights.reduce((a, b) => a + b, 0) + gap * Math.max(0, totalRows - 1);
+        const contentWidth = colWidths.reduce((a, b) => a + b, 0) + gap * Math.max(0, totalCols - 1);
+        const contentHeight = rowHeights.reduce((a, b) => a + b, 0) + gap * Math.max(0, totalRows - 1);
+        const totalWidth = contentWidth + (padding * 2);
+        const totalHeight = contentHeight + (padding * 2);
+        const defs: string[] = [];
+
+        const waveStyles = effect === 'wave'
+            ? `<style>
+                @keyframes badges-wave {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-5px); }
+                }
+                .badge-wave {
+                    animation: badges-wave 1.9s ease-in-out infinite;
+                    transform-box: fill-box;
+                    transform-origin: center;
+                }
+            </style>`
+            : '';
 
         const embeds = badgeSvgs.map((svgContent, index) => {
             const col = index % totalCols;
@@ -252,22 +288,42 @@ export class BadgeCollectionController {
             const y = rowYOffsets[row];
             const { width, height } = dims[index];
             const prefix = `bc-${index}`;
+            const delay = (col * 0.12) + (row * 0.08);
+            const className = effect === 'wave' ? 'badge-wave' : '';
+            const styleAttr = effect === 'wave' ? `animation-delay: ${delay.toFixed(2)}s;` : '';
+            const glowFilterId = effect === 'glow' ? `badge-glow-${index}` : undefined;
+
+            if (glowFilterId) {
+                defs.push(`<filter id="${glowFilterId}" x="-40%" y="-40%" width="180%" height="180%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="1.4" result="blur"/>
+                        <feMerge>
+                            <feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>`);
+            }
 
             const scoped = BadgeCollectionController.scopeBadgeSvgIds(svgContent.trim(), prefix);
 
             // Rewrite the root <svg> tag with explicit position, size, and no xmlns
             return scoped.replace(/<svg\b([^>]*)>/i, (_match, attrs: string) => {
                 const cleaned = attrs
-                    .replace(/\s+(?:x|y|width|height|xmlns(?::[a-z]+)?)="[^"]*"/gi, '')
-                    .replace(/\s+(?:x|y|width|height|xmlns(?::[a-z]+)?)='[^']*'/gi, '')
+                    .replace(/\s+(?:x|y|width|height|xmlns(?::[a-z]+)?|class|style|filter)="[^"]*"/gi, '')
+                    .replace(/\s+(?:x|y|width|height|xmlns(?::[a-z]+)?|class|style|filter)='[^']*'/gi, '')
                     .trim();
-                return `<svg${cleaned ? ` ${cleaned}` : ''} x="${x}" y="${y}" width="${width}" height="${height}">`;
+                const classPart = className ? ` class="${className}"` : '';
+                const stylePart = styleAttr ? ` style="${styleAttr}"` : '';
+                const filterPart = glowFilterId ? ` filter="url(#${glowFilterId})"` : '';
+                return `<svg${cleaned ? ` ${cleaned}` : ''}${classPart}${stylePart}${filterPart} x="${x}" y="${y}" width="${width}" height="${height}">`;
             });
         });
 
         return `<?xml version="1.0" encoding="UTF-8"?>
             <svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" role="img" aria-label="Badge collection">
                 <title>Badge collection</title>
+                ${defs.length > 0 ? `<defs>
+                    ${defs.join('\n                    ')}
+                </defs>` : ''}
+                ${waveStyles}
                 ${embeds.join('\n    ')}
             </svg>
         `;
@@ -279,15 +335,19 @@ export class BadgeCollectionController {
         options: Omit<BadgeOptions, 'type'>,
         columns: number,
         gap: number,
+        padding: number,
         themes: string[],
+        effect: 'glow' | 'wave' | undefined,
     ): string {
         return [
             'badge-collection',
             `user:${username}`,
             `types:${types.join(',')}`,
             `themes:${themes.join(',')}`,
+            `effect:${effect ?? 'none'}`,
             `columns:${columns}`,
             `gap:${gap}`,
+            `padding:${padding}`,
             `labelColor:${options.labelColor ?? ''}`,
             `labelBg:${options.labelBackground ?? ''}`,
             `iconColor:${options.iconColor ?? ''}`,
@@ -353,6 +413,24 @@ export class BadgeCollectionController {
                 return;
             }
 
+            const padding = BadgeCollectionController.normalizePadding(req.query.padding);
+            if (padding === null) {
+                res.status(400).json({
+                    error: 'Invalid padding parameter',
+                    message: 'padding must be an integer between 0 and 200',
+                });
+                return;
+            }
+
+            const effect = BadgeCollectionController.normalizeEffect(req.query.effect);
+            if (effect === null) {
+                res.status(400).json({
+                    error: 'Invalid effect parameter',
+                    message: 'effect must be one of: glow, wave',
+                });
+                return;
+            }
+
             // 4. Parse display options
             const sharedOptions = BadgeCollectionController.parseSharedOptions(req);
 
@@ -371,7 +449,7 @@ export class BadgeCollectionController {
             }
 
             // 5. Check in-memory collection cache
-            const cacheKey = BadgeCollectionController.generateCacheKey(username, types, sharedOptions, columns, gap, themes);
+            const cacheKey = BadgeCollectionController.generateCacheKey(username, types, sharedOptions, columns, gap, padding, themes, effect);
             const cached = BadgeCollectionController.svgCache.get(cacheKey);
             if (cached) {
                 if (req.headers['if-none-match'] === cached.etag) {
@@ -399,7 +477,7 @@ export class BadgeCollectionController {
                     });
 
                     // Compose into collection
-                    return BadgeCollectionController.buildCollectionSvg(badgeSvgs, columns, gap);
+                    return BadgeCollectionController.buildCollectionSvg(badgeSvgs, columns, gap, padding, effect);
                 })();
 
                 BadgeCollectionController.pendingCollections.set(cacheKey, pending);

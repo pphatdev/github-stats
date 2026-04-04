@@ -258,13 +258,13 @@ for more detail checkout [Here](docs/example/badge-collection.md)
 
 ![badge-collection-default](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories)
 
-### Layout Controls (columns + gap)
+### Layout Controls (columns + gap + padding)
 
 ```
-![badge-collection-layout](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&columns=2&gap=8)
+![badge-collection-layout](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&columns=2&gap=8&padding=12)
 ```
 
-![badge-collection-layout](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&columns=2&gap=8)
+![badge-collection-layout](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&columns=2&gap=8&padding=12)
 
 ### Multiple Themes (cycled per badge)
 
@@ -273,6 +273,16 @@ for more detail checkout [Here](docs/example/badge-collection.md)
 ```
 
 ![badge-collection-multi-theme](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
+
+### Effects (`glow` | `wave`)
+
+```
+![badge-collection-glow](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=glow)
+![badge-collection-wave](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=wave)
+```
+
+![badge-collection-glow](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=glow)
+![badge-collection-wave](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=wave)
 
 
 # 📁 Project Badge Examples
