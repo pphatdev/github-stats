@@ -7,6 +7,7 @@ assignees: ''
 
 ---
 
+<!-- Please fill out this template to help us improve -->
 
 **Describe the bug**
 A clear and concise description of what the bug is.
