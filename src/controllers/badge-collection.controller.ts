@@ -10,6 +10,7 @@ import { badges } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { GitHubClient } from '../utils/github-client.js';
 import { BadgeRenderer } from '../components/badge-renderer.js';
+import { badgeThemes } from '../utils/themes.js';
 import type { BadgeOptions, UserBadgeType } from '../types/badge.types.js';
 
 /** User badge types that have a corresponding DB column */
@@ -63,7 +64,7 @@ export class BadgeCollectionController {
             requiredParams: ['username', 'type'],
             optionalParams: ['columns', 'gap', 'theme', 'customLabel', 'labelColor', 'labelBackground', 'iconColor', 'valueColor', 'valueBackground'],
             payload: null,
-            example: '/badge/collection?username=pphatdev&type=visitors,total-stars,repositories&columns=1',
+            example: '/badge/collection?username=pphatdev&type=visitors,total-stars,repositories&columns=1&theme=galaxy',
         },
     };
 
@@ -127,9 +128,8 @@ export class BadgeCollectionController {
     }
 
     private static parseSharedOptions(req: Request): Omit<BadgeOptions, 'type'> {
-        const { theme, customLabel, labelColor, labelBackground, iconColor, valueColor, valueBackground } = req.query;
+        const { customLabel, labelColor, labelBackground, iconColor, valueColor, valueBackground } = req.query;
         return {
-            theme: typeof theme === 'string' ? theme : undefined,
             customLabel: typeof customLabel === 'string' ? customLabel : undefined,
             labelColor: typeof labelColor === 'string' ? labelColor : undefined,
             labelBackground: typeof labelBackground === 'string' ? labelBackground : undefined,
@@ -279,12 +279,13 @@ export class BadgeCollectionController {
         options: Omit<BadgeOptions, 'type'>,
         columns: number,
         gap: number,
+        themes: string[],
     ): string {
         return [
             'badge-collection',
             `user:${username}`,
             `types:${types.join(',')}`,
-            `theme:${options.theme ?? 'default'}`,
+            `themes:${themes.join(',')}`,
             `columns:${columns}`,
             `gap:${gap}`,
             `labelColor:${options.labelColor ?? ''}`,
@@ -355,8 +356,22 @@ export class BadgeCollectionController {
             // 4. Parse display options
             const sharedOptions = BadgeCollectionController.parseSharedOptions(req);
 
+            // 4a. Parse and validate themes (comma-separated list; cycles across badges)
+            const rawThemes = BadgeCollectionController.parseQueryList(req.query.theme);
+            const themes = rawThemes.length > 0 ? rawThemes : ['default'];
+            const validThemes = Object.keys(badgeThemes);
+            const invalidThemes = themes.filter((t) => !validThemes.includes(t));
+            if (invalidThemes.length > 0) {
+                res.status(400).json({
+                    error: 'Invalid theme',
+                    invalid_themes: invalidThemes,
+                    valid_themes: validThemes,
+                });
+                return;
+            }
+
             // 5. Check in-memory collection cache
-            const cacheKey = BadgeCollectionController.generateCacheKey(username, types, sharedOptions, columns, gap);
+            const cacheKey = BadgeCollectionController.generateCacheKey(username, types, sharedOptions, columns, gap, themes);
             const cached = BadgeCollectionController.svgCache.get(cacheKey);
             if (cached) {
                 if (req.headers['if-none-match'] === cached.etag) {
@@ -379,7 +394,7 @@ export class BadgeCollectionController {
 
                     // Render each badge as a standalone SVG
                     const badgeSvgs = values.map((value, i) => {
-                        const opts: BadgeOptions = { ...sharedOptions, type: types[i] };
+                        const opts: BadgeOptions = { ...sharedOptions, type: types[i], theme: themes[i % themes.length] };
                         return BadgeRenderer.generateBadge(value, opts).trim();
                     });
 
