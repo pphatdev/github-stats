@@ -4,7 +4,7 @@
  */
 
 import { Request, Response } from 'express';
-import { ICacheService } from '../services/base.js';
+import { ICacheService } from '../services/base.service.js';
 import { db } from '../db/index.js';
 import { createLogger } from '../common/logger.js';
 import { getConfig } from '../config/index.js';

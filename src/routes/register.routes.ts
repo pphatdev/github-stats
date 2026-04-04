@@ -1,8 +1,8 @@
 import type { Express } from 'express';
 import { GitHubClient } from '../utils/github-client.js';
-import { StatsController } from '../controllers/stats.js';
-import { LanguageController } from '../controllers/languages.js';
-import { GraphController } from '../controllers/graph.js';
+import { StatsController } from '../controllers/stats.controller.js';
+import { LanguageController } from '../controllers/languages.controller.js';
+import { GraphController } from '../controllers/graph.controller.js';
 import { UserBadgeController } from '../controllers/user-badge.controller.js';
 import { ProjectBadgeController } from '../controllers/project-badge.controller.js';
 import { registerCachedRoutes } from './redis-cached.routes.js';

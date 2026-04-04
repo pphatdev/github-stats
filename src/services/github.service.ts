@@ -5,7 +5,7 @@
 
 import { Octokit } from '@octokit/rest';
 import { GitHubStats, LanguageCount, BadgeType } from '../types.js';
-import { BaseService, RequestDeduplicationService } from './base.js';
+import { BaseService, RequestDeduplicationService } from './base.service.js';
 import {
     GitHubApiError,
     GitHubRateLimitError,

@@ -23,15 +23,15 @@ import { createLogger } from './common/logger.js';
 // Services
 import { GitHubService } from './services/github.service.js';
 import { MemoryCacheService, HybridCacheService } from './services/cache.service.js';
-import { getServiceContainer } from './services/base.js';
+import { getServiceContainer } from './services/base.service.js';
 
 // Middleware
 import { errorHandler, notFoundHandler, requestLogger, asyncHandler } from './middleware/error.middleware.js';
 
 // Controllers
-import { StatsController } from './controllers/stats.js';
-import { LanguageController } from './controllers/languages.js';
-import { GraphController } from './controllers/graph.js';
+import { StatsController } from './controllers/stats.controller.js';
+import { LanguageController } from './controllers/languages.controller.js';
+import { GraphController } from './controllers/graph.controller.js';
 import { UserBadgeController } from './controllers/user-badge.controller.js';
 import { ProjectBadgeController } from './controllers/project-badge.controller.js';
 import {

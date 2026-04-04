@@ -4,7 +4,7 @@
  */
 
 import { createClient, RedisClientType } from 'redis';
-import { ICacheService } from './base.js';
+import { ICacheService } from './base.service.js';
 import { CacheError } from '../common/errors.js';
 import { createLogger, Logger } from '../common/logger.js';
 import { getConfig } from '../config/index.js';
@@ -303,7 +303,7 @@ export class RedisCacheService implements ICacheService {
 /**
  * Export MemoryCacheService for use in other modules
  */
-export { MemoryCacheService } from './base.js';
+export { MemoryCacheService } from './base.service.js';
 
 /**
  * Hybrid cache service that uses Redis with memory fallback

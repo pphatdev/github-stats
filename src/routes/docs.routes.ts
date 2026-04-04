@@ -1,6 +1,6 @@
-import { GraphController } from "../controllers/graph.js";
-import { LanguageController } from "../controllers/languages.js";
-import { StatsController } from "../controllers/stats.js";
+import { GraphController } from "../controllers/graph.controller.js";
+import { LanguageController } from "../controllers/languages.controller.js";
+import { StatsController } from "../controllers/stats.controller.js";
 import { getProjectBadgeRouteDocs } from "./project-badge.routes.js";
 import { getUserBadgeRouteDocs } from "./user-badge.routes.js";
 import { getIconsRouteDocs } from "./icons.routes.js";

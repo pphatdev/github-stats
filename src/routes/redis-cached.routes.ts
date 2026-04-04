@@ -3,9 +3,9 @@
  * Routes for stats, languages, and graph with caching middleware
  */
 import type { Application, Request } from 'express';
-import { StatsController } from '../controllers/stats.js';
-import { LanguageController } from '../controllers/languages.js';
-import { GraphController } from '../controllers/graph.js';
+import { StatsController } from '../controllers/stats.controller.js';
+import { LanguageController } from '../controllers/languages.controller.js';
+import { GraphController } from '../controllers/graph.controller.js';
 import { cacheMiddleware } from '../utils/cache-middleware.js';
 import { CACHE_KEYS, DEFAULT_TTL } from '../utils/redis-client.js';
 
