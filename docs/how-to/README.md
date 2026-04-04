@@ -10,6 +10,9 @@ This folder contains comprehensive guides on how to use each API route available
 ### 👤 User Badges
 - **[User Badge Routes](./USER_BADGES.md)** - Personal GitHub statistics badges (visitors, repos, followers, etc.)
 
+### 🧩 Badge Collections
+- **[Badge Collections](./BADGE_COLLECTIONS.md)** - Compose multiple user badges into one SVG image
+
 ### 📁 Project Badges
 - **[Project Badge Routes](./PROJECT_BADGES.md)** - Repository-specific badges (stars, forks, issues, etc.)
 
