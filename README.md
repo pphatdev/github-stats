@@ -284,6 +284,14 @@ for more detail checkout [Here](docs/example/badge-collection.md)
 ![badge-collection-glow](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=glow)
 ![badge-collection-wave](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=wave)
 
+### Combined Example (layout + themes + effect)
+
+```
+![badge-collection-combined](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers,total-pull-requests&columns=3&gap=8&padding=12&theme=galaxy,aurora,ocean&effect=wave)
+```
+
+![badge-collection-combined](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers,total-pull-requests&columns=3&gap=8&padding=12&theme=galaxy,aurora,ocean&effect=wave)
+
 
 # 📁 Project Badge Examples
 
