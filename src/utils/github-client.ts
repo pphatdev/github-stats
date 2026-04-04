@@ -51,7 +51,7 @@ export class GitHubClient {
     private getDefaultStats(username: string): GitHubStats {
         return {
             name: username,
-            avatarUrl: `https://avatars.githubusercontent.com/u/0?v=4?s=130`,
+            avatarUrl: 'https://avatars.githubusercontent.com/u/0?v=4',
             totalStars: 0,
             totalCommits: 0,
             totalPRs: 0,
@@ -64,9 +64,78 @@ export class GitHubClient {
         };
     }
 
+    private buildContributionYearRanges(createdAt: Date): Array<{ from: string; to: string }> {
+        const now = new Date();
+        const years: Array<{ from: string; to: string }> = [];
+        let yearStart = new Date(createdAt.getFullYear(), 0, 1);
+
+        while (yearStart <= now) {
+            const yearEnd = new Date(yearStart.getFullYear(), 11, 31, 23, 59, 59);
+            years.push({
+                from: (yearStart > createdAt ? yearStart : createdAt).toISOString(),
+                to: (yearEnd > now ? now : yearEnd).toISOString(),
+            });
+            yearStart = new Date(yearStart.getFullYear() + 1, 0, 1);
+        }
+
+        return years;
+    }
+
+    private async fetchTotalCommitContributions(username: string, createdAt: string): Promise<number> {
+        const ranges = this.buildContributionYearRanges(new Date(createdAt));
+
+        if (ranges.length === 0) {
+            return 0;
+        }
+
+        const variableDefinitions = ranges
+            .map((_, index) => `$from${index}: DateTime!, $to${index}: DateTime!`)
+            .join(', ');
+        const contributionSelections = ranges
+            .map((_, index) => `year${index}: contributionsCollection(from: $from${index}, to: $to${index}) { totalCommitContributions restrictedContributionsCount }`)
+            .join('\n');
+
+        const query = `
+            query($username: String!, ${variableDefinitions}) {
+                user(login: $username) {
+                    ${contributionSelections}
+                }
+            }
+        `;
+
+        const variables: Record<string, string> = { username };
+        ranges.forEach((range, index) => {
+            variables[`from${index}`] = range.from;
+            variables[`to${index}`] = range.to;
+        });
+
+        const result: any = await this.octokit.graphql(query, variables);
+        const user = result.user;
+
+        if (!user) {
+            return 0;
+        }
+
+        return ranges.reduce((sum, _, index) => {
+            const contributionYear = user[`year${index}`];
+            return sum + (contributionYear?.totalCommitContributions || 0) + (contributionYear?.restrictedContributionsCount || 0);
+        }, 0);
+    }
+
+    private withAvatarMode(stats: GitHubStats, avatarMode: 'none' | 'avatar' | 'radar'): GitHubStats {
+        if (avatarMode === 'none') {
+            return stats;
+        }
+
+        return {
+            ...stats,
+            avatarUrl: `${stats.avatarUrl}${stats.avatarUrl.includes('?') ? '&' : '?'}s=130`,
+        };
+    }
+
     async fetchUserStats(username: string, options: { avatarMode: 'none' | 'avatar' | 'radar' }): Promise<GitHubStats> {
         try {
-            return await this.cachedRequest(`user-stats-${username}`, async () => {
+            const stats = await this.cachedRequest(`user-stats-${username}`, async () => {
                 // Use GraphQL to get all-time stats in a single request
                 const query = `
                     query($username: String!) {
@@ -122,64 +191,14 @@ export class GitHubClient {
                 const totalPRs = userData.pullRequests.totalCount;
                 const totalIssues = userData.issues.totalCount;
 
-                // Get all-time commits by summing contributions from account creation to now
-                const createdAt = new Date(userData.createdAt);
-                const now = new Date();
-                let totalCommits = 0;
-
-                // Fetch commits year by year (GitHub only allows 1 year at a time for contributionsCollection)
-                const years: { from: Date; to: Date }[] = [];
-                let yearStart = new Date(createdAt.getFullYear(), 0, 1);
-
-                while (yearStart <= now) {
-                    const yearEnd = new Date(yearStart.getFullYear(), 11, 31, 23, 59, 59);
-                    years.push({
-                        from: yearStart > createdAt ? yearStart : createdAt,
-                        to: yearEnd > now ? now : yearEnd
-                    });
-                    yearStart = new Date(yearStart.getFullYear() + 1, 0, 1);
-                }
-
-                // Fetch all years' contributions in parallel
-                const commitPromises = years.map(async ({ from, to }) => {
-                    const commitQuery = `
-                        query($username: String!, $from: DateTime!, $to: DateTime!) {
-                            user(login: $username) {
-                                contributionsCollection(from: $from, to: $to) {
-                                    totalCommitContributions
-                                    restrictedContributionsCount
-                                }
-                            }
-                        }
-                    `;
-                    try {
-                        const result: any = await this.octokit.graphql(commitQuery, {
-                            username,
-                            from: from.toISOString(),
-                            to: to.toISOString()
-                        });
-                        const collection = result.user?.contributionsCollection;
-                        return (collection?.totalCommitContributions || 0) + (collection?.restrictedContributionsCount || 0);
-                    } catch {
-                        return 0;
-                    }
-                });
-
-                const yearlyCommits = await Promise.all(commitPromises);
-                totalCommits = yearlyCommits.reduce((sum, count) => sum + count, 0);
+                const totalCommits = await this.fetchTotalCommitContributions(username, userData.createdAt);
 
                 // Calculate rank
                 const rank = this.calculateRank(totalStars, totalCommits, totalPRs, totalIssues);
 
-                // Format avatar URL
-                let avatarUrl = userData.avatarUrl;
-                if (options.avatarMode !== 'none') {
-                    avatarUrl = `${userData.avatarUrl}${userData.avatarUrl.includes('?') ? '&' : '?'}s=130`;
-                }
-
                 return {
                     name: userData.name || username,
-                    avatarUrl,
+                    avatarUrl: userData.avatarUrl,
                     totalStars,
                     totalCommits,
                     totalPRs,
@@ -188,6 +207,8 @@ export class GitHubClient {
                     rank,
                 };
             });
+
+            return this.withAvatarMode(stats, options.avatarMode);
         } catch (error: any) {
             // Check if it's a rate limit error
             if (error.status === 403 && error.message?.includes('rate limit')) {

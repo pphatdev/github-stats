@@ -12,6 +12,7 @@ export class StatsController {
     private static CACHE_DURATION: number;
     private static pendingRequests: Map<string, Promise<string>> = new Map();
     private static pngCache: Map<string, { data: Buffer; timestamp: number }> = new Map();
+    private static pendingWebpRequests: Map<string, Promise<Buffer>> = new Map();
     static routeDocs = {
         requiredParams: ['username'],
         optionalParams: [
@@ -157,16 +158,33 @@ export class StatsController {
                     return res.send(cachedWebp.data);
                 }
 
-                const svgCard = await getSvgCard();
+                const pendingWebp = StatsController.pendingWebpRequests.get(webpCacheKey);
+                if (pendingWebp) {
+                    const webpBuffer = await pendingWebp;
+                    timings['total'] = Date.now() - startTime;
+                    res.setHeader('X-Timing', JSON.stringify(timings));
+                    res.setHeader('Content-Type', 'image/webp');
+                    res.setHeader('Cache-Control', 'public, max-age=600');
+                    return res.send(webpBuffer);
+                }
 
-                const webpStartTime = Date.now();
-                // Sharp uses native C++ bindings for efficient SVG→WebP conversion
-                const webpBuffer = await sharp(Buffer.from(svgCard))
-                    .webp({ quality: 75, effort: 4, alphaQuality: 100 })
-                    .toBuffer();
-                timings['webp_convert'] = Date.now() - webpStartTime;
+                const webpPromise = (async () => {
+                    const svgCard = await getSvgCard();
+                    const webpStartTime = Date.now();
+                    const webpBuffer = await sharp(Buffer.from(svgCard))
+                        .webp({ quality: 75, effort: 4, alphaQuality: 100 })
+                        .toBuffer();
+                    timings['webp_convert'] = Date.now() - webpStartTime;
+                    StatsController.pngCache.set(webpCacheKey, { data: webpBuffer, timestamp: Date.now() });
+                    return webpBuffer;
+                })();
 
-                StatsController.pngCache.set(webpCacheKey, { data: webpBuffer, timestamp: Date.now() });
+                StatsController.pendingWebpRequests.set(webpCacheKey, webpPromise);
+
+                const webpBuffer = await webpPromise.finally(() => {
+                    StatsController.pendingWebpRequests.delete(webpCacheKey);
+                });
+
                 timings['total'] = Date.now() - startTime;
                 res.setHeader('X-Timing', JSON.stringify(timings));
                 res.setHeader('Content-Type', 'image/webp');
