@@ -20,6 +20,7 @@ Icons enhance release documentation by:
 - [Technology Stack Display](#technology-stack-display)
 - [Themed Icon Sets](#themed-icon-sets)
 - [Best Practices](#best-practices)
+- [Current Release (v2.0.1)](#current-release-v201)
 
 ---
 
@@ -294,6 +295,51 @@ Icons are SVGs served directly from the server. They're lightweight and render q
 ```markdown
 ![Correct](https://stats.pphat.top/icons/react?color=%2361DAFB)
 ```
+
+---
+
+## Current Release (v2.0.1)
+
+Use this section as a copy-ready template for the current release.
+
+### Highlights
+
+- Added `GET /badge/collection` to render multiple user badges into one SVG.
+- Added collection layout controls: `columns` and `gap`.
+- Added endpoint examples and documentation for badge collection in `docs/example/badge-collection.md`.
+- Fixed collection SVG composition to avoid duplicate `width`/`height` attributes.
+
+### Release Notes Template
+
+```markdown
+# Release v2.0.1
+
+![TypeScript](https://stats.pphat.top/icons/typescript?color=%233178C6) ![Node.js](https://stats.pphat.top/icons/nodedotjs?color=%23339933) ![GitHub](https://stats.pphat.top/icons/github?color=white)
+
+## Added
+- `GET /badge/collection` endpoint for multi-badge SVG output.
+- New docs: `docs/example/badge-collection.md`.
+
+## Improved
+- Better layout customization for badge collections using `columns` and `gap`.
+
+## Fixed
+- XML parsing issue in composed badge SVGs caused by duplicate attributes.
+
+## Quick Demo
+![badge-collection](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories&columns=3)
+```
+
+### Release Badge Examples (v2.0.1)
+
+```markdown
+![version](https://img.shields.io/badge/version-2.0.1-22c55e)
+![badge-collection-demo](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,followers&columns=2&gap=10)
+```
+
+Preview:
+
+![badge-collection-demo](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,followers&columns=2&gap=10)
 
 ---
 

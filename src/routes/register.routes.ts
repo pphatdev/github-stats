@@ -10,6 +10,8 @@ import { registerUserBadgeRoutes } from './user-badge.routes.js';
 import { registerProjectBadgeRoutes } from './project-badge.routes.js';
 import { registerBadgeCacheRoutes } from './badge-cache.routes.js';
 import { registerIconsRoutes } from './icons.routes.js';
+import { BadgeCollectionController } from '../controllers/badge-collection.controller.js';
+import { registerBadgeCollectionRoutes } from './badge-collection.routes.js';
 
 // Cache type
 type CacheMap = Map<string, { data: string; timestamp: number }>;
@@ -27,6 +29,7 @@ export function initializeControllers(
     GraphController.initialize(githubClient, cache, cacheDuration);
     UserBadgeController.initialize(githubClient, cache, cacheDuration);
     ProjectBadgeController.initialize(githubClient, cache, cacheDuration);
+    BadgeCollectionController.initialize(githubClient, cache, cacheDuration);
 }
 
 /**
@@ -39,5 +42,6 @@ export function registerRoutes(app: Express): void {
     registerUserBadgeRoutes(app);
     registerProjectBadgeRoutes(app);
     registerBadgeCacheRoutes(app);
+    registerBadgeCollectionRoutes(app);
     registerIconsRoutes(app);
 }

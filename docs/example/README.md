@@ -10,11 +10,12 @@ This folder contains one file per route, with demo examples for each available o
 - [GET /icons and /icons/:name](./icons.md)
 - [GET /icons (Collection Mode)](./icon-collection.md)
 - [GET /badge/:type](./badge-user.md)
+- [GET /badge/collection](./badge-collection.md)
 - [GET /project/:type](./project.md)
 
 ## Additional Guides
 
-- [Release Icons Documentation](../how-to/RELEASE_ICONS.md) - How to use icons in releases, changelogs, and READMEs
+- [Release Icons Documentation](../RELEASE/RELEASE_ICONS.md) - How to use icons in releases, changelogs, and READMEs
 
 ## Notes
 
