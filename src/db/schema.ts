@@ -1,5 +1,20 @@
 import { sqliteTable, text, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+export const statsRequests = sqliteTable(
+    "stats_requests",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        username: text("username").notNull(),
+        url: text("url").notNull(),
+        created_at: integer("created_at"),
+    },
+    (table) => {
+        return {
+            uqStatsRequestUrl: uniqueIndex("uq_stats_request_url").on(table.url),
+        };
+    },
+);
+
 export const visitorLogs = sqliteTable(
     "visitor_logs",
     {

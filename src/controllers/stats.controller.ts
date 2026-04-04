@@ -3,6 +3,8 @@ import { GitHubClient } from '../utils/github-client.js';
 import { CardRenderer } from '../components/card-renderer.js';
 import { createLogger } from '../common/logger.js';
 import sharp from 'sharp';
+import { db } from '../db/index.js';
+import { statsRequests } from '../db/schema.js';
 
 const logger = createLogger({ controller: 'StatsController' });
 
@@ -69,6 +71,33 @@ export class StatsController {
             if (!username || typeof username !== 'string') {
                 return res.status(400).send('Username is required');
             }
+
+            const normalizedParams = Object.entries(req.query)
+                .flatMap(([key, value]) => {
+                    if (value === undefined || value === null) return [] as Array<[string, string]>;
+                    if (Array.isArray(value)) {
+                        return value.map((item) => [key, String(item)] as [string, string]);
+                    }
+                    return [[key, String(value)] as [string, string]];
+                })
+                .sort(([aKey, aVal], [bKey, bVal]) => {
+                    const keyCompare = aKey.localeCompare(bKey);
+                    return keyCompare !== 0 ? keyCompare : aVal.localeCompare(bVal);
+                });
+
+            const queryString = new URLSearchParams(normalizedParams).toString();
+            const normalizedEndpoint = queryString ? `${req.path}?${queryString}` : req.path;
+
+            db.insert(statsRequests)
+                .values({ username, url: normalizedEndpoint, created_at: Date.now() })
+                .onConflictDoUpdate({
+                    target: statsRequests.url,
+                    set: {
+                        username,
+                        created_at: Date.now(),
+                    },
+                })
+                .catch((err: Error) => logger.error('Failed to log stats request', err, { username, normalizedEndpoint }));
 
             // Backward compatibility: convert show_avatar to avatar_mode
             let finalAvatarMode = avatar_mode as string;
