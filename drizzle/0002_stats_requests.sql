@@ -5,4 +5,5 @@ CREATE TABLE `stats_requests` (
 	`created_at` integer
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `uq_stats_request_url` ON `stats_requests` (`url`);--> statement-breakpoint
+CREATE UNIQUE INDEX `uq_stats_request_url` ON `stats_requests` (`url`);
+--> statement-breakpoint
