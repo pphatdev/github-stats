@@ -53,6 +53,9 @@ const PORT = process.env.PORT || 3000;
 const APP_ENV = process.env.APP_ENV || 'development';
 const PROTOCOL = APP_ENV === 'production' ? 'https' : 'http';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const ENVIRONMENT = process.env.ENVIRONMENT || '';
+const isCloudflareEnv = ENVIRONMENT.toLowerCase().includes('cloudflare') || Boolean(process.env.CF_PAGES || process.env.CF_ACCOUNT_ID);
+const runtimeTarget = isCloudflareEnv ? 'cloudflare' : 'node';
 
 // Only log warnings from worker 1 or non-cluster mode
 const shouldLog = !cluster.isWorker || cluster.worker?.id === 1;
@@ -109,6 +112,7 @@ app.listen(PORT, () => {
         console.log(`🚀 GitHub Stats server running on ${PROTOCOL}://localhost:${PORT}${workerId}`);
         console.log(`📊 Example: ${PROTOCOL}://localhost:${PORT}/stats?username=pphatdev`);
         console.log(`🔧 Environment: ${APP_ENV}`);
+        console.log(`🧪 Runtime target: ${runtimeTarget} (ENVIRONMENT=${ENVIRONMENT || 'not-set'})`);
         console.log(`💾 Cache: Redis ${redis_initialized ? '✅' : '⚠️'} | Badges ${badgeCache_initialized ? '✅' : '⚠️'}`);
     }
 

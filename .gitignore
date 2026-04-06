@@ -16,3 +16,7 @@ public/user/
 
 # OS
 Thumbs.db
+
+# Cloudflare
+.wrangler/
+.dev.vars

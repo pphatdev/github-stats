@@ -1,0 +1,79 @@
+name = "github-stats"
+main = "dist/index.js"
+compatibility_date = "2024-12-16"
+compatibility_flags = ["nodejs_compat"]
+
+# Build configuration
+[build]
+command = "npm run build"
+cwd = "."
+
+# Environment variables (default/production)
+[vars]
+ENVIRONMENT = "cloudflare"
+PORT = "3000"
+
+# D1 Database Binding - SQLite for Cloudflare
+[[d1_databases]]
+binding = "DB"
+database_name = "github-stats"
+database_id = "YOUR_DATABASE_ID"
+
+# KV Namespace Bindings - for caching
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "YOUR_KV_NAMESPACE_ID"
+
+[[kv_namespaces]]
+binding = "BADGE_CACHE_KV"
+id = "YOUR_BADGE_CACHE_NAMESPACE_ID"
+preview_id = "YOUR_BADGE_CACHE_PREVIEW_NAMESPACE_ID"
+
+# Development environment
+[env.development]
+name = "github-stats-dev"
+main = "dist/index.js"
+compatibility_date = "2024-12-16"
+
+[env.development.vars]
+ENVIRONMENT = "cloudflare-dev"
+DEBUG = "true"
+
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "github-stats-dev"
+database_id = "YOUR_DEV_DATABASE_ID"
+
+[[env.development.kv_namespaces]]
+binding = "CACHE_KV"
+id = "YOUR_DEV_KV_NAMESPACE_ID"
+preview_id = "YOUR_DEV_KV_PREVIEW_NAMESPACE_ID"
+
+[[env.development.kv_namespaces]]
+binding = "BADGE_CACHE_KV"
+id = "YOUR_DEV_BADGE_CACHE_NAMESPACE_ID"
+preview_id = "YOUR_DEV_BADGE_CACHE_PREVIEW_NAMESPACE_ID"
+
+# Production environment
+[env.production]
+name = "github-stats-prod"
+main = "dist/index.js"
+compatibility_date = "2024-12-16"
+
+[env.production.vars]
+ENVIRONMENT = "cloudflare-production"
+DEBUG = "false"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "github-stats"
+database_id = "YOUR_PROD_DATABASE_ID"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE_KV"
+id = "YOUR_PROD_KV_NAMESPACE_ID"
+
+[[env.production.kv_namespaces]]
+binding = "BADGE_CACHE_KV"
+id = "YOUR_PROD_BADGE_CACHE_NAMESPACE_ID"
+

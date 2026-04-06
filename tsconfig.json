@@ -3,6 +3,7 @@
         "target": "ES2020",
         "module": "Node16",
         "lib": ["ES2020", "DOM"],
+        "types": ["@cloudflare/workers-types"],
         "jsx": "react",
         "outDir": "./dist",
         "rootDir": "./src",
