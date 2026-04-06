@@ -12,7 +12,6 @@ cwd = "."
 [vars]
 ENVIRONMENT = "cloudflare"
 PORT = "3000"
-UPSTREAM_ORIGIN = "https://stats.pphatdev.workers.dev"
 
 # D1 Database Binding - SQLite for Cloudflare
 [[d1_databases]]
@@ -39,7 +38,7 @@ compatibility_date = "2024-12-16"
 [env.development.vars]
 ENVIRONMENT = "cloudflare-dev"
 DEBUG = "true"
-UPSTREAM_ORIGIN = "https://stats.pphatdev.workers.dev"
+PORT = "3000"
 
 [[env.development.d1_databases]]
 binding = "DB"
@@ -65,7 +64,7 @@ compatibility_date = "2024-12-16"
 [env.production.vars]
 ENVIRONMENT = "cloudflare-production"
 DEBUG = "false"
-UPSTREAM_ORIGIN = "https://stats.pphatdev.workers.dev"
+PORT = "3000"
 
 [[env.production.d1_databases]]
 binding = "DB"
