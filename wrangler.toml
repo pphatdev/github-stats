@@ -17,8 +17,8 @@ UPSTREAM_ORIGIN = ""
 # D1 Database Binding - SQLite for Cloudflare
 [[d1_databases]]
 binding = "DB"
-database_name = "github-stats"
-database_id = "YOUR_DATABASE_ID"
+database_name = "stats"
+database_id = "a2b03b75-e470-480a-acd4-89bad0b42794"
 
 # KV Namespace Bindings - for caching
 [[kv_namespaces]]
@@ -70,7 +70,7 @@ UPSTREAM_ORIGIN = ""
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "github-stats"
-database_id = "YOUR_PROD_DATABASE_ID"
+database_id = "a2b03b75-e470-480a-acd4-89bad0b42794"
 
 [[env.production.kv_namespaces]]
 binding = "bind_stats"
