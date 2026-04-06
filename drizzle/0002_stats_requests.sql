@@ -6,4 +6,3 @@ CREATE TABLE `stats_requests` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `uq_stats_request_url` ON `stats_requests` (`url`);
---> statement-breakpoint
