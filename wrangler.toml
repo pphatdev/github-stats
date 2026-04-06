@@ -1,4 +1,4 @@
-name = "github-stats"
+name = 'stats'
 main = "src/worker.ts"
 compatibility_date = "2024-12-16"
 compatibility_flags = ["nodejs_compat"]
@@ -12,7 +12,7 @@ cwd = "."
 [vars]
 ENVIRONMENT = "cloudflare"
 PORT = "3000"
-UPSTREAM_ORIGIN = ""
+UPSTREAM_ORIGIN = "https://stats.pphatdev.workers.dev"
 
 # D1 Database Binding - SQLite for Cloudflare
 [[d1_databases]]
@@ -32,14 +32,14 @@ preview_id = "e1c34e6f806c419e885f45607e3b0a84"
 
 # Development environment
 [env.development]
-name = "github-stats-dev"
+name = "stats-dev"
 main = "src/worker.ts"
 compatibility_date = "2024-12-16"
 
 [env.development.vars]
 ENVIRONMENT = "cloudflare-dev"
 DEBUG = "true"
-UPSTREAM_ORIGIN = ""
+UPSTREAM_ORIGIN = "https://stats.pphatdev.workers.dev"
 
 [[env.development.d1_databases]]
 binding = "DB"
@@ -58,18 +58,18 @@ preview_id = "e1c34e6f806c419e885f45607e3b0a84"
 
 # Production environment
 [env.production]
-name = "github-stats-prod"
+name = "stats-prod"
 main = "src/worker.ts"
 compatibility_date = "2024-12-16"
 
 [env.production.vars]
 ENVIRONMENT = "cloudflare-production"
 DEBUG = "false"
-UPSTREAM_ORIGIN = ""
+UPSTREAM_ORIGIN = "https://stats.pphatdev.workers.dev"
 
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "github-stats"
+database_name = "stats"
 database_id = "a2b03b75-e470-480a-acd4-89bad0b42794"
 
 [[env.production.kv_namespaces]]
