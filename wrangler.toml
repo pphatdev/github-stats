@@ -22,13 +22,13 @@ database_id = "YOUR_DATABASE_ID"
 
 # KV Namespace Bindings - for caching
 [[kv_namespaces]]
-binding = "CACHE_KV"
-id = "YOUR_KV_NAMESPACE_ID"
+binding = "bind_stats"
+id = "31440109a66e43afb1edb018a6dd7637"
 
 [[kv_namespaces]]
-binding = "BADGE_CACHE_KV"
-id = "YOUR_BADGE_CACHE_NAMESPACE_ID"
-preview_id = "YOUR_BADGE_CACHE_PREVIEW_NAMESPACE_ID"
+binding = "bind_stats_cache"
+id = "e1c34e6f806c419e885f45607e3b0a84"
+preview_id = "e1c34e6f806c419e885f45607e3b0a84"
 
 # Development environment
 [env.development]
@@ -43,18 +43,18 @@ UPSTREAM_ORIGIN = ""
 
 [[env.development.d1_databases]]
 binding = "DB"
-database_name = "github-stats-dev"
-database_id = "YOUR_DEV_DATABASE_ID"
+database_name = "stats"
+database_id = "a2b03b75-e470-480a-acd4-89bad0b42794"
 
 [[env.development.kv_namespaces]]
-binding = "CACHE_KV"
-id = "YOUR_DEV_KV_NAMESPACE_ID"
-preview_id = "YOUR_DEV_KV_PREVIEW_NAMESPACE_ID"
+binding = "bind_stats"
+id = "31440109a66e43afb1edb018a6dd7637"
+preview_id = "31440109a66e43afb1edb018a6dd7637"
 
 [[env.development.kv_namespaces]]
-binding = "BADGE_CACHE_KV"
-id = "YOUR_DEV_BADGE_CACHE_NAMESPACE_ID"
-preview_id = "YOUR_DEV_BADGE_CACHE_PREVIEW_NAMESPACE_ID"
+binding = "bind_stats_cache"
+id = "e1c34e6f806c419e885f45607e3b0a84"
+preview_id = "e1c34e6f806c419e885f45607e3b0a84"
 
 # Production environment
 [env.production]
@@ -73,10 +73,10 @@ database_name = "github-stats"
 database_id = "YOUR_PROD_DATABASE_ID"
 
 [[env.production.kv_namespaces]]
-binding = "CACHE_KV"
-id = "YOUR_PROD_KV_NAMESPACE_ID"
+binding = "bind_stats"
+id = "31440109a66e43afb1edb018a6dd7637"
 
 [[env.production.kv_namespaces]]
-binding = "BADGE_CACHE_KV"
-id = "YOUR_PROD_BADGE_CACHE_NAMESPACE_ID"
+binding = "bind_stats_cache"
+id = "e1c34e6f806c419e885f45607e3b0a84"
 
