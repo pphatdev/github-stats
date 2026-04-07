@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+
+# Database
+data/
+
+# FFmpeg working directory
+public/user/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+
+# Cloudflare
+.wrangler/
+.dev.vars
