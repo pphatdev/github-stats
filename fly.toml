@@ -1,0 +1,32 @@
+app = "stats-pphat-top"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  APP_ENV = "production"
+  PORT = "3000"
+  HOST = "0.0.0.0"
+  DATABASE_URL = "/data/stats.db"
+  REDIS_ENABLED = "false"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "20s"
+    method = "get"
+    path = "/health/ping"
+
+[[mounts]]
+  source = "stats_data"
+  destination = "/data"
