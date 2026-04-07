@@ -147,9 +147,23 @@ export class GraphsService {
 
     /**
      * Get cache key
+     * Includes all rendering-affecting params so different options produce distinct keys.
      */
     private getCacheKey(params: GraphQueryParams, dateRange: GraphDateRange): string {
-        return `graph-${params.username}-${params.theme}-${dateRange.cacheKeyExtra}-${params.animate}-${params.show_title}-${params.show_total_contribution}`;
+        const renderingParams = [
+            params.theme || 'default',
+            params.animate || '',
+            params.size || '',
+            params.format || params.as || '',
+            params.show_title || '',
+            params.show_total_contribution || '',
+            params.show_background || '',
+            params.bgColor || '',
+            params.borderColor || '',
+            params.textColor || '',
+            params.titleColor || '',
+        ].join('-');
+        return `graph-${params.username}-${dateRange.cacheKeyExtra}-${renderingParams}`;
     }
 
     /**
