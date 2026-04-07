@@ -5,7 +5,7 @@
 
 import cluster from 'cluster';
 import os from 'os';
-import { createLogger } from './common/logger.js';
+import { createLogger } from './shared/logs/logger.js';
 
 const logger = createLogger({ service: 'ClusterManager' });
 

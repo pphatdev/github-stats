@@ -1,6 +1,6 @@
 // Re-export badge types from the dedicated badge types file
-export type { BadgeType, UserBadgeType, ProjectBadgeType, BadgeTheme, BadgeOptions, BadgeRouteDoc } from './types/badge.types.js';
-export { BADGE_OPTIONAL_PARAMS } from './types/badge.types.js';
+export type { BadgeType, UserBadgeType, ProjectBadgeType, BadgeTheme, BadgeOptions, BadgeRouteDoc } from './shared/types/badge.types.js';
+export { BADGE_OPTIONAL_PARAMS } from './shared/types/badge.types.js';
 
 export interface GitHubStats {
     name: string;

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { getRedisClient, closeRedisClient, CACHE_KEYS } from '../src/utils/redis-client.js';
+import { getRedisClient, closeRedisClient, CACHE_KEYS } from '../src/shared/utils/redis-client.js';
 import { db } from '../src/db/index.js';
 import { badges, visitorLogs } from '../src/db/schema.js';
 import { like, sql } from 'drizzle-orm';

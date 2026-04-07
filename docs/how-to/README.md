@@ -4,7 +4,11 @@ This folder contains comprehensive guides on how to use each API route available
 
 ## Quick Navigation
 
-### 📊 Core Routes
+### � Architecture & Development
+- **[Project Structure](../PROJECT_STRUCTURE.md)** - Complete codebase architecture and file organization
+- **[Development Guide](./DEVELOPMENT.md)** - Local setup, environment variables, database, and run scripts
+
+### �📊 Core Routes
 - **[Core Statistics Routes](./CORE_ROUTES.md)** - Main stats, languages, and graph visualization endpoints
 
 ### 👤 User Badges

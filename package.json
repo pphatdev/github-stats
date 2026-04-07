@@ -1,12 +1,13 @@
 {
   "name": "github-stats",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "description": "Generate dynamic GitHub stats cards for your README",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
     "build": "tsc",
     "dev": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/index.ts",
+    "dev:modular": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/server.ts",
     "start": "node dist/index.js",
     "start:cluster": "node dist/server-cluster.js",
     "start:production": "NODE_ENV=production node dist/server-cluster.js",
