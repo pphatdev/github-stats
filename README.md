@@ -330,9 +330,10 @@ Project visitors increment once per same IP every 5 minutes.
 
 ## Development
 
-Development setup was moved to: [docs/how-to/DEVELOPMENT.md](docs/how-to/DEVELOPMENT.md)
-
-Route-by-route demos with option examples: [docs/example/README.md](docs/example/README.md)
+**Documentation:**
+- [Development Setup Guide](docs/how-to/DEVELOPMENT.md) - Environment setup, database, and run commands
+- [Project Structure](docs/PROJECT_STRUCTURE.md) - Complete codebase architecture and organization
+- [Route Examples](docs/example/README.md) - Route-by-route demos with option examples
 
 ## Architecture
 

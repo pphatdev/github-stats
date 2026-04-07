@@ -2,6 +2,12 @@
 
 Thank you for your interest in contributing to GitHub Stats! 🎉
 
+## Getting Started
+
+Before contributing, please review:
+- [Project Structure](docs/PROJECT_STRUCTURE.md) - Understand the codebase organization
+- [Development Guide](docs/how-to/DEVELOPMENT.md) - Setup and development workflow
+
 ## How to Contribute
 
 ### Reporting Bugs
@@ -35,7 +41,7 @@ We welcome feature suggestions! Please create an issue with:
 
 To add a new theme:
 
-1. Edit the appropriate file in `src/utils/themes/`:
+1. Edit the appropriate file in `src/shared/utils/themes/`:
    - `base.ts` - General-purpose themes (stats, languages)
    - `graph.ts` - Graph/heatmap optimized themes
    - `badge.ts` - Badge-specific themes
