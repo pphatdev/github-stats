@@ -10,17 +10,59 @@ import { createLogger } from './shared/logs/logger.js';
 import { initializeDatabase } from './config/db.js';
 import { GitHubClient } from './shared/utils/github-client.js';
 import { getRedisClient } from './shared/utils/redis-client.js';
-import { getBadgeCacheService } from './services/badge-cache.service.js';
+import type { ICacheService } from './services/base.service.js';
 
 const logger = createLogger({ module: 'server' });
 
 // Shared cache for API responses
 const cache = new Map<string, { data: string; timestamp: number }>();
 
+function createRedisHealthCacheService(): ICacheService {
+    return {
+        async get<T>(key: string): Promise<T | null> {
+            const client = await getRedisClient();
+            const value = await client.get(key);
+
+            if (value === null) {
+                return null;
+            }
+
+            try {
+                return JSON.parse(value) as T;
+            } catch {
+                return value as T;
+            }
+        },
+        async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+            const client = await getRedisClient();
+            const serializedValue = typeof value === 'string' ? value : JSON.stringify(value);
+
+            if (ttl && ttl > 0) {
+                await client.setEx(key, ttl, serializedValue);
+                return;
+            }
+
+            await client.set(key, serializedValue);
+        },
+        async del(key: string): Promise<void> {
+            const client = await getRedisClient();
+            await client.del(key);
+        },
+        async exists(key: string): Promise<boolean> {
+            const client = await getRedisClient();
+            return (await client.exists(key)) > 0;
+        },
+        async flush(): Promise<void> {
+            const client = await getRedisClient();
+            await client.flushDb();
+        },
+    };
+}
+
 /**
  * Initialize external services
  */
-async function initializeServices(): Promise<{ cacheService?: any }> {
+async function initializeServices(): Promise<{ cacheService?: ICacheService }> {
     const env = getEnv();
 
     // Initialize Database
@@ -32,10 +74,10 @@ async function initializeServices(): Promise<{ cacheService?: any }> {
     }
 
     // Initialize Redis (optional)
-    let cacheService;
+    let cacheService: ICacheService | undefined;
     try {
         await getRedisClient();
-        cacheService = await getBadgeCacheService();
+        cacheService = createRedisHealthCacheService();
         logger.info('Redis cache initialized');
     } catch (error) {
         logger.warn('Redis not available - using in-memory cache');
