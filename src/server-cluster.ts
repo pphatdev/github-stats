@@ -20,5 +20,5 @@ const workers = parseInt(process.env.WORKERS || '0') || undefined;
 startCluster(workerFile, {
     workers,
     respawnDelay: 1000,
-    maxRestarts: 5
+    maxRestarts: 1
 });

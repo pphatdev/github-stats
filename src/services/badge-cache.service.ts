@@ -5,7 +5,7 @@
  */
 
 import { createClient, RedisClientType } from 'redis';
-import { createLogger, Logger } from '../common/logger.js';
+import { createLogger, Logger } from '../shared/logs/logger.js';
 import { getConfig } from '../config/index.js';
 
 export interface CachedBadge {

@@ -5,7 +5,7 @@
 
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { createLogger } from '../common/logger.js';
+import { createLogger } from '../shared/logs/logger.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 

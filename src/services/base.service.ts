@@ -3,7 +3,7 @@
  * Provides abstractions for business logic separation
  */
 
-import { Logger, createLogger } from '../common/logger.js';
+import { Logger, createLogger } from '../shared/logs/logger.js';
 
 /**
  * Base service class providing common functionality
