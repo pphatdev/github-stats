@@ -148,13 +148,16 @@ export class GraphsService {
     /**
      * Get cache key
      * Includes all rendering-affecting params so different options produce distinct keys.
+     * Uses '|' as delimiter to avoid collisions with color values that may contain '-'.
      */
     private getCacheKey(params: GraphQueryParams, dateRange: GraphDateRange): string {
+        // Treat 'format' and 'as' as aliases; prefer 'as' when both are provided
+        const outputFormat = params.as || params.format || '';
         const renderingParams = [
             params.theme || 'default',
             params.animate || '',
             params.size || '',
-            params.format || params.as || '',
+            outputFormat,
             params.show_title || '',
             params.show_total_contribution || '',
             params.show_background || '',
@@ -162,8 +165,8 @@ export class GraphsService {
             params.borderColor || '',
             params.textColor || '',
             params.titleColor || '',
-        ].join('-');
-        return `graph-${params.username}-${dateRange.cacheKeyExtra}-${renderingParams}`;
+        ].join('|');
+        return `graph|${params.username}|${dateRange.cacheKeyExtra}|${renderingParams}`;
     }
 
     /**
