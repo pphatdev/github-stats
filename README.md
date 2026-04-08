@@ -4,10 +4,7 @@
 
 <div align="center" style="margin-top: 20px;">
 
-![Portfolio](https://stats.pphat.top/project/visitors?repo=pphatdev/github-readme-stats&theme=ocean)
-![Portfolio](https://stats.pphat.top/project/stars?repo=pphatdev/github-readme-stats&theme=ocean)
-![Portfolio](https://stats.pphat.top/project/forks?repo=pphatdev/github-readme-stats&theme=ocean)
-![Portfolio](https://stats.pphat.top/project/contributors?repo=pphatdev/github-readme-stats&theme=ocean)
+![](https://stats.pphat.top/badges?username=pphatdev&repo=github-stats&name=visitors,repositories,languages,followers,total-stars,total-contributors&theme=ocean,neon,inferno,matrix,solar,galaxy&padding=10)
 
 </div>
 
