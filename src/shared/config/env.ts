@@ -41,7 +41,13 @@ const envSchema = z.object({
     REDIS_COMMAND_TIMEOUT: z.coerce.number().default(3000),
 
     // Database Configuration
+    DATABASE_PROVIDER: z.enum(['cloudflare', 'sqlite']).default('cloudflare'),
     DATABASE_URL: z.string().default('./data/stats.db'),
+    CLOUDFLARE_ACCOUNT_ID: z.string().optional(),
+    CLOUDFLARE_D1_TOKEN: z.string().optional(),
+    CLOUDFLARE_D1_DATABASE_ID: z
+        .string()
+        .default('a2b03b75-e470-480a-acd4-89bad0b42794'),
 
     // Monitoring
     ENABLE_METRICS: z

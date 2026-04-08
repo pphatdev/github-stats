@@ -8,7 +8,7 @@ import cors from 'cors';
 import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getEnv } from './config/env.js';
+import { getEnv } from './shared/config/env.js';
 import { createLogger } from './shared/logs/logger.js';
 import { GitHubClient } from './shared/utils/github-client.js';
 

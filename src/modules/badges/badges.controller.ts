@@ -120,6 +120,8 @@ export class BadgesController {
                 })),
             );
 
+            const hasVisitorsBadge = names.includes('visitors');
+
             const svg = this.combineBadges(badges, { column, effect, size, padding: baseOptions.padding || 0 });
 
             const duration = Date.now() - startTime;
@@ -134,7 +136,15 @@ export class BadgesController {
             });
 
             res.setHeader('Content-Type', 'image/svg+xml');
-            res.setHeader('Cache-Control', this.badgesService.getCacheControl());
+            if (hasVisitorsBadge) {
+                // Visitors must not be cached at CDN/edge; every request should hit origin to increment the counter.
+                res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+                res.setHeader('Pragma', 'no-cache');
+                res.setHeader('Expires', '0');
+                res.setHeader('Surrogate-Control', 'no-store');
+            } else {
+                res.setHeader('Cache-Control', this.badgesService.getCacheControl());
+            }
             res.send(svg);
         } catch (error) {
             const duration = Date.now() - startTime;

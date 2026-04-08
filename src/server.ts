@@ -5,9 +5,9 @@
 
 import { type Express } from 'express';
 import { createApp, initializeRoutes, setupErrorHandlers } from './app.js';
-import { getEnv } from './config/env.js';
+import { getEnv } from './shared/config/env.js';
 import { createLogger } from './shared/logs/logger.js';
-import { initializeDatabase } from './config/db.js';
+import { initializeDatabase } from './shared/config/db.js';
 import { GitHubClient } from './shared/utils/github-client.js';
 import { getRedisClient } from './shared/utils/redis-client.js';
 import type { ICacheService } from './services/base.service.js';
@@ -68,9 +68,14 @@ async function initializeServices(): Promise<{ cacheService?: ICacheService }> {
     // Initialize Database
     try {
         initializeDatabase();
-        logger.info('Database initialized');
+        logger.info('Database initialized', {
+            provider: env.DATABASE_PROVIDER,
+        });
     } catch (error) {
-        logger.warn('Database initialization failed', error as any);
+        logger.error('Database initialization failed', error as Error, {
+            provider: env.DATABASE_PROVIDER,
+        });
+        throw error;
     }
 
     // Initialize Redis (optional)

@@ -1,39 +1,47 @@
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/d1';
 import * as schema from './schema.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
+import type { D1Database } from '@cloudflare/workers-types';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+type DrizzleD1 = ReturnType<typeof drizzle<typeof schema>>;
 
-// Ensure the data directory exists
-const dataDir = path.join(__dirname, '../../data');
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _instance: any = null;
+
+/**
+ * Initialize database with a Cloudflare D1 binding.
+ * Call this at the start of every Worker fetch handler before routing.
+ *
+ *   import { initializeD1 } from './db/index.js';
+ *   export default { async fetch(req, env) { initializeD1(env.DB); ... } }
+ */
+export function initializeD1(d1: D1Database): void {
+    _instance = drizzle(d1, { schema });
 }
 
-const dbPath = path.join(__dirname, '../../data/stats.db');
-const migrationsFolder = path.join(__dirname, '../../drizzle');
-
-const sqlite = new Database(dbPath);
-// Enable WAL mode for better concurrent access
-sqlite.pragma('journal_mode = WAL');
-sqlite.pragma('busy_timeout = 5000'); // Wait up to 5 seconds if database is locked
-export const db = drizzle(sqlite, { schema });
-
-// Run all pending Drizzle migrations on startup
-migrate(db, { migrationsFolder });
-
-// Migrate legacy visitors table into badges (no-op if already done or table absent)
-const legacyExists = sqlite
-    .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='visitors'`)
-    .get();
-if (legacyExists) {
-    sqlite.exec(`
-        INSERT OR IGNORE INTO badges (username, visitors)
-        SELECT username, count FROM visitors;
-    `);
+/**
+ * Inject an existing Drizzle instance from outside (Node.js / local-dev path).
+ * Called from src/config/db.ts after SQLite initialisation so the same
+ * `import { db }` proxy works for both deployment targets.
+ */
+export function setDb(instance: DrizzleD1): void {
+    _instance = instance;
 }
+
+/**
+ * Transparent proxy over the active Drizzle instance.
+ * All existing `import { db } from '../../db/index.js'` calls continue to work
+ * without any changes in the service or controller files.
+ */
+export const db = new Proxy({} as DrizzleD1, {
+    get(_, prop: string | symbol) {
+        if (!_instance) {
+            throw new Error(
+                'Database not initialized. ' +
+                'Call initializeD1(env.DB) in the Worker fetch handler, ' +
+                'or initializeDatabase() from src/shared/config/db.ts for the Node.js path.',
+            );
+        }
+        const val = (_instance as Record<string | symbol, unknown>)[prop];
+        return typeof val === 'function' ? (val as Function).bind(_instance) : val;
+    },
+});
