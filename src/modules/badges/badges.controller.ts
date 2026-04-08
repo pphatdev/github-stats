@@ -160,7 +160,7 @@ export class BadgesController {
         options: BadgeOptions,
     ): Promise<string> {
         if (this.isUserBadgeType(name)) {
-            return this.badgesService.generateUserBadge(username, name, options);
+            return this.badgesService.generateUserBadge(username, name, options, repo);
         }
 
         const projectTarget = this.resolveProjectTarget(username, repo!);

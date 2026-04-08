@@ -4,7 +4,7 @@
 
 <div align="center" style="margin-top: 20px;">
 
-![](https://stats.pphat.top/badges?username=pphatdev&repo=github-stats&name=visitors,repositories,languages,followers,total-stars,total-contributors&theme=ocean,neon,inferno,matrix,solar,galaxy&padding=10)
+![](https://stats.pphat.top/badges?username=pphatdev&repo=github-stats&name=visitors,forks,contributors,pull-requests,watchers,size&theme=ocean,neon,inferno,matrix,solar,galaxy&padding=10)
 
 </div>
 

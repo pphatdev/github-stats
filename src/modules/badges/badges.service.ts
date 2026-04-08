@@ -43,11 +43,12 @@ export class BadgesService {
     async generateUserBadge(
         username: string,
         type: UserBadgeType,
-        options: BadgeOptions = {}
+        options: BadgeOptions = {},
+        repo?: string
     ): Promise<string> {
         // Visitors always bypass cache because each request increments the counter.
         if (type === 'visitors') {
-            return this.generateNewUserBadge(username, type, options);
+            return this.generateNewUserBadge(username, type, options, repo);
         }
 
         const cacheKey = this.getCacheKey('user', username, type, options);
@@ -118,14 +119,15 @@ export class BadgesService {
     private async generateNewUserBadge(
         username: string,
         type: UserBadgeType,
-        options: BadgeOptions
+        options: BadgeOptions,
+        repo?: string
     ): Promise<string> {
         let value: number;
 
         switch (type) {
             case 'visitors':
-                // Get from database
-                value = await this.getVisitorCount(username);
+                // Get from database – scope to repo when provided
+                value = await this.getVisitorCount(username, repo);
                 break;
             case 'repositories':
             case 'followers':
@@ -351,18 +353,20 @@ export class BadgesService {
     /**
      * Get visitor count
      */
-    private async getVisitorCount(username: string): Promise<number> {
+    private async getVisitorCount(username: string, repo?: string): Promise<number> {
         const now = Date.now();
+        // When repo is provided, track visitors per username/repo combination
+        const key = repo ? `${username}/${repo}` : username;
         const existing = await db
             .select({ visitors: badges.visitors })
             .from(badges)
-            .where(eq(badges.username, username))
+            .where(eq(badges.username, key))
             .limit(1);
 
         if (existing.length === 0) {
             await db.insert(badges)
                 .values({
-                    username,
+                    username: key,
                     visitors: 1,
                     updated_at: now,
                 })
@@ -380,7 +384,7 @@ export class BadgesService {
         const nextValue = (existing[0].visitors || 0) + 1;
         await db.update(badges)
             .set({ visitors: nextValue, updated_at: now })
-            .where(eq(badges.username, username));
+            .where(eq(badges.username, key));
 
         return nextValue;
     }
