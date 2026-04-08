@@ -107,14 +107,16 @@ export class GraphsService {
      * Get date range for graph
      */
     private getDateRange(params: GraphQueryParams): GraphDateRange {
-        if (params.year) {
+        if (params.year && params.year !== 'last') {
             const y = parseInt(params.year, 10);
-            return {
-                from: `${y}-01-01T00:00:00Z`,
-                to: `${y}-12-31T23:59:59Z`,
-                cacheKeyExtra: y.toString(),
-                displayYear: y
-            };
+            if (!isNaN(y)) {
+                return {
+                    from: `${y}-01-01T00:00:00Z`,
+                    to: `${y}-12-31T23:59:59Z`,
+                    cacheKeyExtra: y.toString(),
+                    displayYear: y
+                };
+            }
         }
 
         const now = new Date();
