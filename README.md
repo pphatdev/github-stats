@@ -1,5 +1,5 @@
 <a href="https://github.com/pphatdev">
-<img align='middle' src="https://stats.sophat.top/stats?username=pphatdev&avatar_mode=radar&data_border_style=frame&data_border_frame=out&hide_title=false" style="width:100%"/>
+<img align='middle' src="https://stats.pphat.top/stats?username=pphatdev&avatar_mode=radar&data_border_style=frame&data_border_frame=out&hide_title=false" style="width:100%"/>
 </a>
 
 <div align="center" style="margin-top: 20px;">
@@ -211,121 +211,96 @@ for more detail checkout [Here](docs/example/graph.md)
 
 # 🏷️ Badge Examples
 
-for more detail checkout [Here](docs/example/badge-user.md)
+Generate customizable GitHub badges for users and repositories with real-time data, caching, and visual effects.
 
-### Popular Badge Types
+For more details: [User Badges](docs/example/badge-user.md) · [Badge Collections](docs/example/badge-collection.md) · [Project Badges](docs/example/project.md) · [Full Spec](docs/features/badges.md)
 
-```
-![badge-visitors](https://stats.pphat.top/badge/visitors?username=pphatdev)
-![badge-repositories](https://stats.pphat.top/badge/repositories?username=pphatdev)
-![badge-followers](https://stats.pphat.top/badge/followers?username=pphatdev)
-![badge-total-stars](https://stats.pphat.top/badge/total-stars?username=pphatdev)
-```
-
-![badge-visitors](https://stats.pphat.top/badge/visitors?username=pphatdev)
-![badge-repositories](https://stats.pphat.top/badge/repositories?username=pphatdev)
-![badge-followers](https://stats.pphat.top/badge/followers?username=pphatdev)
-![badge-total-stars](https://stats.pphat.top/badge/total-stars?username=pphatdev)
-
-### Theme + Custom Label
+### Route
 
 ```
-![badge-custom-label](https://stats.pphat.top/badge/repositories?username=pphatdev&theme=ocean&customLabel=Public%20Repos)
+/badges?username={username}&repo={repo}&name={badge1,badge2,...}&theme={theme}&effect={wave|glow}&column={1-50}&size={small|medium|large}&p={0-100}
 ```
 
-![badge-custom-label](https://stats.pphat.top/badge/repositories?username=pphatdev&theme=ocean&customLabel=Public%20Repos)
+### Parameters
 
-### Color and Layout Controls
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `username` | *(required)* | GitHub username |
+| `repo` | — | Repository name (e.g., `owner/repo`) |
+| `name` | — | Comma-separated badge names |
+| `theme` | `default` | Comma-separated theme(s) (e.g., `ocean`, `galaxy`, `aurora`) |
+| `effect` | — | Animation effect: `wave` or `glow` |
+| `column` | `50` | Number of columns (1–50) |
+| `size` | `small` | Badge size: `small`, `medium`, or `large` |
+| `p` | `0` | Container padding in pixels (0–100) |
+| `realtime` | `false` | Bypass cache for fresh data (30s cooldown) |
 
-```
-![badge-colors](https://stats.pphat.top/badge/total-issues?username=pphatdev&labelBackground=0d1117&labelColor=ffffff&valueBackground=1f2937&valueColor=22c55e)
-![badge-minimal](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev&theme=tokyonight&hideFrame=true&hideIcon=true)
-```
+### Supported Badge Types
 
-![badge-colors](https://stats.pphat.top/badge/total-issues?username=pphatdev&labelBackground=0d1117&labelColor=ffffff&valueBackground=1f2937&valueColor=22c55e)
-![badge-minimal](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev&theme=tokyonight&hideFrame=true&hideIcon=true)
+**User Badges:** `visitors` · `repositories` · `followers` · `organization` · `languages` · `total-stars` · `total-contributors` · `total-commits` · `total-code-reviews` · `total-issues` · `total-pull-requests` · `total-joined-years`
 
+**Repository Badges** (requires `repo`): `stars` · `forks` · `contributors` · `issues` · `pull-requests` · `watchers` · `size`
 
-# 🧩 Badge Collection Examples
-
-for more detail checkout [Here](docs/example/badge-collection.md)
-
-### Default Collection
-
-```
-![badge-collection-default](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories)
-```
-
-![badge-collection-default](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories)
-
-### Layout Controls (columns + gap + padding)
+### Single User Badge
 
 ```
-![badge-collection-layout](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&columns=2&gap=8&padding=12)
+![badge-visitors](https://stats.pphat.top/badges?username=pphatdev&name=visitors)
 ```
 
-![badge-collection-layout](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&columns=2&gap=8&padding=12)
+![badge-visitors](https://stats.pphat.top/badges?username=pphatdev&name=visitors)
+![badge-repositories](https://stats.pphat.top/badges?username=pphatdev&name=repositories)
+![badge-followers](https://stats.pphat.top/badges?username=pphatdev&name=followers)
+![badge-total-stars](https://stats.pphat.top/badges?username=pphatdev&name=total-stars)
+
+### Multiple Badges with Theme
+
+```
+![badge-collection](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,followers&theme=ocean&column=3&size=medium)
+```
+
+![badge-collection](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,followers&theme=ocean&column=3&size=medium)
 
 ### Multiple Themes (cycled per badge)
 
 ```
-![badge-collection-multi-theme](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
+![badge-multi-theme](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
 ```
 
-![badge-collection-multi-theme](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
+![badge-multi-theme](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
+
+### Repository Badges
+
+```
+![repo-badges](https://stats.pphat.top/badges?username=pphatdev&repo=github-stats&name=stars,forks,contributors&theme=galaxy&effect=wave)
+```
+
+![repo-badges](https://stats.pphat.top/badges?username=pphatdev&repo=github-stats&name=stars,forks,contributors&theme=galaxy&effect=wave)
 
 ### Effects (`glow` | `wave`)
 
 ```
-![badge-collection-glow](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=glow)
-![badge-collection-wave](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=wave)
+![badge-glow](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues&effect=glow)
+![badge-wave](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues&effect=wave)
 ```
 
-![badge-collection-glow](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=glow)
-![badge-collection-wave](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=wave)
+![badge-glow](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues&effect=glow)
+![badge-wave](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues&effect=wave)
 
-### Combined Example (layout + themes + effect)
-
-```
-![badge-collection-combined](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers,total-pull-requests&columns=3&gap=8&padding=12&theme=galaxy,aurora,ocean&effect=wave)
-```
-
-![badge-collection-combined](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers,total-pull-requests&columns=3&gap=8&padding=12&theme=galaxy,aurora,ocean&effect=wave)
-
-
-# 📁 Project Badge Examples
-
-for more detail checkout [Here](docs/example/project.md)
-
-### Popular Project Badge Types
+### Combined Example (layout + themes + effect + padding)
 
 ```
-![project-visitors](https://stats.pphat.top/project/visitors?repo=pphatdev/github-stats)
-![project-stars](https://stats.pphat.top/project/stars?repo=pphatdev/github-stats)
-![project-forks](https://stats.pphat.top/project/forks?repo=pphatdev/github-stats)
-![project-watchers](https://stats.pphat.top/project/watchers?repo=pphatdev/github-stats)
+![badge-combined](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues,followers,total-pull-requests&column=3&theme=galaxy,aurora,ocean&effect=wave&size=large&p=15)
 ```
 
-![project-visitors](https://stats.pphat.top/project/visitors?repo=pphatdev/github-stats)
-![project-stars](https://stats.pphat.top/project/stars?repo=pphatdev/github-stats)
-![project-forks](https://stats.pphat.top/project/forks?repo=pphatdev/github-stats)
-![project-watchers](https://stats.pphat.top/project/watchers?repo=pphatdev/github-stats)
+![badge-combined](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues,followers,total-pull-requests&column=3&theme=galaxy,aurora,ocean&effect=wave&size=large&p=15)
 
-### Theme + Custom Label
+### Fresh Data with Realtime
 
 ```
-![project-custom](https://stats.pphat.top/project/contributors?repo=pphatdev/github-stats&theme=ocean&customLabel=Contributors)
+![badge-realtime](https://stats.pphat.top/badges?username=pphatdev&name=total-stars&realtime=true)
 ```
 
-![project-custom](https://stats.pphat.top/project/contributors?repo=pphatdev/github-stats&theme=ocean&customLabel=Contributors)
-
-### Visitors Rule (Same IP)
-
-Project visitors increment once per same IP every 5 minutes.
-
-```
-![project-visitors](https://stats.pphat.top/project/visitors?repo=pphatdev/github-stats)
-```
+![badge-realtime](https://stats.pphat.top/badges?username=pphatdev&name=total-stars&realtime=true)
 
 
 ## Development
@@ -349,7 +324,7 @@ Project visitors increment once per same IP every 5 minutes.
 - Without a GitHub token, API rate limits are very low (~60 requests/hour)
 - Set `GITHUB_TOKEN` to get 5,000 requests/hour
 - Redis is optional but recommended for production (enables distributed caching)
-- User visitor badges (`/badge/visitors`) use IP hashing for privacy-preserving unique visitor counting
+- User visitor badges (`/badges?username=...&name=visitors`) use IP hashing for privacy-preserving unique visitor counting
 - Project visitor badges (`/project/visitors`) increment once per same IP every 5 minutes
 
 ## License

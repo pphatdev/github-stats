@@ -9,6 +9,8 @@ import { badges } from '../../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { createLogger } from '../../shared/logs/logger.js';
 import type { UserBadgeType, ProjectBadgeType, BadgeOptions, BadgeCache } from './badges.types.js';
+import { BadgeRenderer } from '../../shared/components/badge-renderer.js';
+import { BadgeType } from '../../shared/types/badge.types.js';
 
 const logger = createLogger({ service: 'BadgesService' });
 
@@ -16,7 +18,11 @@ export class BadgesService {
     private githubClient: GitHubClient;
     private cache: Map<string, BadgeCache>;
     private pendingRequests: Map<string, Promise<string>>;
+    private backgroundRefreshAt: Map<string, number>;
     private readonly cacheDuration: number;
+    private readonly realtimeMaxStaleMs = 15000;
+    private readonly minBackgroundRefreshIntervalMs = 120000;
+    private readonly minRealtimeIntervalMs = 30000;
     private readonly HTTP_CACHE_CONTROL = 'public, max-age=600, s-maxage=1800, stale-while-revalidate=86400';
 
     constructor(
@@ -27,6 +33,7 @@ export class BadgesService {
         this.githubClient = githubClient;
         this.cache = cache;
         this.pendingRequests = new Map();
+        this.backgroundRefreshAt = new Map();
         this.cacheDuration = cacheDuration;
     }
 
@@ -38,33 +45,36 @@ export class BadgesService {
         type: UserBadgeType,
         options: BadgeOptions = {}
     ): Promise<string> {
+        // Visitors always bypass cache because each request increments the counter.
+        if (type === 'visitors') {
+            return this.generateNewUserBadge(username, type, options);
+        }
+
         const cacheKey = this.getCacheKey('user', username, type, options);
+        const now = Date.now();
+        const cached = this.cache.get(cacheKey);
+
+        // Realtime mode still has a short cooldown to protect GitHub rate limits.
+        if (options.realtime) {
+            if (cached && now - cached.timestamp < this.minRealtimeIntervalMs) {
+                logger.debug('Realtime request served from short-term cache', { username, type });
+                return cached.data;
+            }
+
+            return this.fetchAndCacheBadge(cacheKey, () => this.generateNewUserBadge(username, type, options));
+        }
 
         // Check cache
-        const cached = this.cache.get(cacheKey);
-        if (cached && Date.now() - cached.timestamp < this.cacheDuration) {
+        if (cached && now - cached.timestamp < this.cacheDuration) {
+            const age = now - cached.timestamp;
+            if (age >= this.realtimeMaxStaleMs && this.canBackgroundRefresh(cacheKey, now)) {
+                this.refreshBadgeInBackground(cacheKey, () => this.generateNewUserBadge(username, type, options));
+            }
             logger.debug('Returning cached user badge', { username, type });
             return cached.data;
         }
 
-        // Check pending requests
-        const pending = this.pendingRequests.get(cacheKey);
-        if (pending) {
-            logger.debug('Waiting for pending badge request', { username, type });
-            return await pending;
-        }
-
-        // Generate new badge
-        const promise = this.generateNewUserBadge(username, type, options);
-        this.pendingRequests.set(cacheKey, promise);
-
-        try {
-            const badge = await promise;
-            this.cache.set(cacheKey, { data: badge, timestamp: Date.now() });
-            return badge;
-        } finally {
-            this.pendingRequests.delete(cacheKey);
-        }
+        return this.fetchAndCacheBadge(cacheKey, () => this.generateNewUserBadge(username, type, options));
     }
 
     /**
@@ -77,32 +87,29 @@ export class BadgesService {
         options: BadgeOptions = {}
     ): Promise<string> {
         const cacheKey = this.getCacheKey('project', `${owner}/${repo}`, type, options);
+        const now = Date.now();
+        const cached = this.cache.get(cacheKey);
+
+        if (options.realtime) {
+            if (cached && now - cached.timestamp < this.minRealtimeIntervalMs) {
+                logger.debug('Realtime project badge served from short-term cache', { owner, repo, type });
+                return cached.data;
+            }
+
+            return this.fetchAndCacheBadge(cacheKey, () => this.generateNewProjectBadge(owner, repo, type, options));
+        }
 
         // Check cache
-        const cached = this.cache.get(cacheKey);
-        if (cached && Date.now() - cached.timestamp < this.cacheDuration) {
+        if (cached && now - cached.timestamp < this.cacheDuration) {
+            const age = now - cached.timestamp;
+            if (age >= this.realtimeMaxStaleMs && this.canBackgroundRefresh(cacheKey, now)) {
+                this.refreshBadgeInBackground(cacheKey, () => this.generateNewProjectBadge(owner, repo, type, options));
+            }
             logger.debug('Returning cached project badge', { owner, repo, type });
             return cached.data;
         }
 
-        // Check pending requests
-        const pending = this.pendingRequests.get(cacheKey);
-        if (pending) {
-            logger.debug('Waiting for pending badge request', { owner, repo, type });
-            return await pending;
-        }
-
-        // Generate new badge
-        const promise = this.generateNewProjectBadge(owner, repo, type, options);
-        this.pendingRequests.set(cacheKey, promise);
-
-        try {
-            const badge = await promise;
-            this.cache.set(cacheKey, { data: badge, timestamp: Date.now() });
-            return badge;
-        } finally {
-            this.pendingRequests.delete(cacheKey);
-        }
+        return this.fetchAndCacheBadge(cacheKey, () => this.generateNewProjectBadge(owner, repo, type, options));
     }
 
     /**
@@ -131,8 +138,11 @@ export class BadgesService {
             case 'total-issues':
             case 'total-pull-requests':
             case 'total-joined-years':
-                // Get from database cache
-                value = await this.getUserBadgeValue(username, type);
+                // Use GitHub source for accurate values (client has internal request cache).
+                value = await this.githubClient.fetchBadgeValue(
+                    username,
+                    type as Exclude<UserBadgeType, 'visitors'>
+                );
                 break;
             default:
                 throw new Error(`Unknown user badge type: ${type}`);
@@ -175,15 +185,6 @@ export class BadgesService {
                 repoBadgeTypeMap[type] as any
             );
 
-            // Format size in MB
-            if (type === 'size') {
-                return this.generateSimpleBadge(
-                    options.customLabel || type,
-                    `${(value / 1024).toFixed(2)} MB`,
-                    options
-                );
-            }
-
             return this.generateSimpleBadge(
                 options.customLabel || type,
                 value.toString(),
@@ -213,12 +214,61 @@ export class BadgesService {
      * Generate a simple badge SVG
      */
     private generateSimpleBadge(label: string, value: string, options: BadgeOptions): string {
-        const theme = options.theme || 'default';
-        // Simple badge generation - this is a placeholder
-        // You may want to use a proper badge renderer or library
-        return `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="20">
-            <text x="10" y="15">${label}: ${value}</text>
-        </svg>`;
+        const numericValue = Number.parseFloat(value.replace(/[^0-9.]/g, ''));
+
+        return BadgeRenderer.generateBadge(Number.isFinite(numericValue) ? numericValue : 0, {
+            type: this.resolveRendererType(label, options),
+            theme: options.theme,
+            customLabel: options.customLabel,
+            labelColor: options.labelColor,
+            labelBackground: options.labelBackground,
+            iconColor: options.iconColor,
+            valueColor: options.valueColor,
+            valueBackground: options.valueBackground,
+            hideFrame: options.hideFrame,
+            hideIcon: true,
+        });
+    }
+
+    private resolveRendererType(label: string, options: BadgeOptions): BadgeType {
+        const customType = options.customType as BadgeType | undefined;
+        if (customType) {
+            return customType;
+        }
+
+        const normalizedLabel = label.toLowerCase();
+
+        const userTypes: BadgeType[] = [
+            'visitors',
+            'repositories',
+            'organization',
+            'languages',
+            'followers',
+            'total-stars',
+            'total-contributors',
+            'total-commits',
+            'total-code-reviews',
+            'total-issues',
+            'total-pull-requests',
+            'total-joined-years',
+        ];
+
+        const matchedUserType = userTypes.find((type) => type === normalizedLabel);
+        if (matchedUserType) {
+            return matchedUserType;
+        }
+
+        const projectTypeMap: Record<string, BadgeType> = {
+            'stars': 'repo-stars',
+            'forks': 'repo-forks',
+            'watchers': 'repo-watchers',
+            'issues': 'repo-issues',
+            'pull-requests': 'repo-prs',
+            'contributors': 'repo-contributors',
+            'size': 'repo-size',
+        };
+
+        return projectTypeMap[normalizedLabel] || 'visitors';
     }
 
     /**
@@ -264,12 +314,13 @@ export class BadgesService {
      */
     private async refreshUserBadgeData(username: string): Promise<void> {
         const userData = await this.githubClient.fetchUserStats(username, { avatarMode: 'none' });
+        const repositories = await this.githubClient.fetchBadgeValue(username, 'repositories');
         const now = Date.now();
 
         await db.insert(badges)
             .values({
                 username,
-                repositories: 0, // Not available in GitHubStats, needs separate fetch
+                repositories,
                 organization: 0, // Not available in GitHubStats
                 languages: 0, // Not available in GitHubStats
                 followers: 0, // Not available in GitHubStats
@@ -285,6 +336,7 @@ export class BadgesService {
             .onConflictDoUpdate({
                 target: badges.username,
                 set: {
+                    repositories,
                     total_stars: userData.totalStars || 0,
                     total_commits: userData.totalCommits || 0,
                     total_issues: userData.totalIssues || 0,
@@ -300,8 +352,37 @@ export class BadgesService {
      * Get visitor count
      */
     private async getVisitorCount(username: string): Promise<number> {
-        // Implement visitor counting logic
-        return 0;
+        const now = Date.now();
+        const existing = await db
+            .select({ visitors: badges.visitors })
+            .from(badges)
+            .where(eq(badges.username, username))
+            .limit(1);
+
+        if (existing.length === 0) {
+            await db.insert(badges)
+                .values({
+                    username,
+                    visitors: 1,
+                    updated_at: now,
+                })
+                .onConflictDoUpdate({
+                    target: badges.username,
+                    set: {
+                        visitors: 1,
+                        updated_at: now,
+                    },
+                });
+
+            return 1;
+        }
+
+        const nextValue = (existing[0].visitors || 0) + 1;
+        await db.update(badges)
+            .set({ visitors: nextValue, updated_at: now })
+            .where(eq(badges.username, username));
+
+        return nextValue;
     }
 
     /**
@@ -337,6 +418,55 @@ export class BadgesService {
      */
     clearCache(): void {
         this.cache.clear();
+        this.backgroundRefreshAt.clear();
         logger.info('Badges cache cleared');
+    }
+
+    private canBackgroundRefresh(cacheKey: string, now: number): boolean {
+        const lastRefreshAt = this.backgroundRefreshAt.get(cacheKey) || 0;
+        return now - lastRefreshAt >= this.minBackgroundRefreshIntervalMs;
+    }
+
+    private async fetchAndCacheBadge(cacheKey: string, producer: () => Promise<string>): Promise<string> {
+        const pending = this.pendingRequests.get(cacheKey);
+        if (pending) {
+            return await pending;
+        }
+
+        const promise = producer();
+        this.pendingRequests.set(cacheKey, promise);
+
+        try {
+            const badge = await promise;
+            this.cache.set(cacheKey, { data: badge, timestamp: Date.now() });
+            return badge;
+        } finally {
+            this.pendingRequests.delete(cacheKey);
+        }
+    }
+
+    private refreshBadgeInBackground(cacheKey: string, producer: () => Promise<string>): void {
+        if (this.pendingRequests.has(cacheKey)) {
+            return;
+        }
+
+        this.backgroundRefreshAt.set(cacheKey, Date.now());
+
+        const promise = producer();
+        this.pendingRequests.set(cacheKey, promise);
+
+        promise
+            .then((badge) => {
+                this.cache.set(cacheKey, { data: badge, timestamp: Date.now() });
+            })
+            .catch((error) => {
+                logger.warn('Background badge refresh failed', {
+                    cacheKey,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            })
+            .finally(() => {
+                this.pendingRequests.delete(cacheKey);
+            });
     }
 }

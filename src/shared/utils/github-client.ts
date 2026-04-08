@@ -1,5 +1,7 @@
 import { Octokit } from '@octokit/rest';
-import { GitHubStats, LanguageCount, BadgeType } from '../../types.js';
+import { GitHubStats } from '../types/github.types.js';
+import { BadgeType } from '../types/badge.types.js';
+import { LanguageCount } from '../types/language.types.js';
 
 /** Project/Repository-specific badge types */
 export type RepoBadgeType = 'repo-stars' | 'repo-forks' | 'repo-watchers' | 'repo-issues' | 'repo-prs' | 'repo-contributors' | 'repo-size';

@@ -8,7 +8,7 @@ import cors from 'cors';
 import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getEnv } from './config/env.js';
+import { getEnv } from './shared/config/env.js';
 import { createLogger } from './shared/logs/logger.js';
 import { GitHubClient } from './shared/utils/github-client.js';
 
@@ -112,7 +112,7 @@ export function initializeRoutes(
                 stats: '/stats',
                 languages: '/languages',
                 graphs: '/graph',
-                badges: '/badge',
+                badges: '/badges',
                 icons: '/icons',
                 health: '/health'
             }
@@ -123,7 +123,7 @@ export function initializeRoutes(
     app.use('/stats', createStatsRouter(githubClient, cache, cacheDuration));
     app.use('/languages', createLanguagesRouter(githubClient, cache, cacheDuration));
     app.use('/graph', createGraphsRouter(githubClient, cache, cacheDuration));
-    app.use('/badge', createBadgesRouter(githubClient, cache, cacheDuration));
+    app.use('/badges', createBadgesRouter(githubClient, cache, cacheDuration));
     app.use('/icons', createIconsRouter());
     app.use('/health', createHealthRouter(cacheService));
 

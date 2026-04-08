@@ -1,4 +1,4 @@
-import { Theme } from "../../../types.js";
+import { Theme } from "../../types/themes.type.js";
 
 /**
  * Classic / general-purpose themes.

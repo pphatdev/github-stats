@@ -8,7 +8,7 @@ import { LanguageCardRenderer } from '../../shared/components/language-card.js';
 import { LanguagePieChartRenderer } from '../../shared/components/language-pie-chart.js';
 import { createLogger } from '../../shared/logs/logger.js';
 import type { LanguageQueryParams, LanguageCache } from './languages.types.js';
-import type { LanguageCount } from '../../types.js';
+import type { LanguageCount } from '../../shared/types/language.types.js';
 
 const logger = createLogger({ service: 'LanguagesService' });
 

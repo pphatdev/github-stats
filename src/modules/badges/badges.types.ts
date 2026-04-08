@@ -30,6 +30,12 @@ export type ProjectBadgeType =
     | 'license'
     | 'size';
 
+export type BadgeEffect = 'wave' | 'glow';
+
+export type BadgeSize = 'small' | 'medium' | 'large';
+
+export type BadgeName = UserBadgeType | ProjectBadgeType;
+
 export interface BadgeOptions {
     theme?: string;
     customLabel?: string;
@@ -39,14 +45,19 @@ export interface BadgeOptions {
     valueColor?: string;
     valueBackground?: string;
     hideFrame?: boolean;
-    hideIcon?: boolean;
+    customType?: string;
+    realtime?: boolean;
+    padding?: number;
 }
 
 export interface BadgeQueryParams extends BadgeOptions {
     username?: string;
-    owner?: string;
     repo?: string;
-    collection?: string;
+    name?: string;
+    effect?: BadgeEffect;
+    column?: string;
+    size?: BadgeSize;
+    p?: string;
 }
 
 export interface BadgeCache {

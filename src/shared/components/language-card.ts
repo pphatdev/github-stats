@@ -1,4 +1,4 @@
-import { LanguagesCardOptions, LanguageCount } from '../../types.js';
+import { LanguageCount, LanguagesCardOptions } from "../types/language.types.js";
 import { getTheme } from '../utils/themes.js';
 
 export class LanguageCardRenderer {

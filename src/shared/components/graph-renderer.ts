@@ -1,4 +1,4 @@
-import { ContributionGraphData, GraphCardOptions } from '../../types.js';
+import { ContributionGraphData, GraphCardOptions } from "../types/github.types.js";
 import { getTheme } from '../utils/themes.js';
 
 export class GraphRenderer {

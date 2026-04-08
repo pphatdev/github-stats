@@ -1,7 +1,8 @@
-import { Theme, BadgeTheme } from '../../types.js';
+import { Theme } from '../types/themes.type.js';
 import { baseThemes } from './themes/base.js';
 import { graphThemes } from './themes/graph.js';
 import { badgeThemes } from './themes/badge.js';
+import { BadgeTheme } from '../types/badge.types.js';
 
 const defaultFontName = 'Orbitron';
 const defaultFontFamily = `'${defaultFontName}', 'Ubuntu', 'sans-serif'`;

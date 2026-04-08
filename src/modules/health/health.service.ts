@@ -6,17 +6,31 @@
 import { db } from '../../db/index.js';
 import { sql } from 'drizzle-orm';
 import { createLogger } from '../../shared/logs/logger.js';
+import type { ICacheService } from '../../services/base.service.js';
 import type { HealthStatus, CheckResult, MemoryUsage } from './health.types.js';
 
 const logger = createLogger({ service: 'HealthService' });
 
 export class HealthService {
     private startTime: number;
-    private cacheService: any;
+    private cacheService?: Pick<ICacheService, 'get' | 'set' | 'del'>;
 
-    constructor(cacheService?: any) {
+    constructor(cacheService?: unknown) {
         this.startTime = Date.now();
-        this.cacheService = cacheService;
+        this.cacheService = this.isCacheServiceCompatible(cacheService) ? cacheService : undefined;
+
+        if (cacheService && !this.cacheService) {
+            logger.warn('HealthService received incompatible cache service implementation');
+        }
+    }
+
+    private isCacheServiceCompatible(cacheService?: unknown): cacheService is Pick<ICacheService, 'get' | 'set' | 'del'> {
+        return Boolean(
+            cacheService
+            && typeof (cacheService as Pick<ICacheService, 'get' | 'set' | 'del'>).get === 'function'
+            && typeof (cacheService as Pick<ICacheService, 'get' | 'set' | 'del'>).set === 'function'
+            && typeof (cacheService as Pick<ICacheService, 'get' | 'set' | 'del'>).del === 'function'
+        );
     }
 
     /**
@@ -93,8 +107,9 @@ export class HealthService {
 
             await this.cacheService.set(testKey, testValue, 10);
             const retrieved = await this.cacheService.get(testKey);
+            const normalizedRetrieved = retrieved == null ? null : String(retrieved);
 
-            if (retrieved !== testValue) {
+            if (normalizedRetrieved !== testValue) {
                 throw new Error('Cache read/write mismatch');
             }
 

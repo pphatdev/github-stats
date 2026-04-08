@@ -1,4 +1,4 @@
-import { LanguagesPieChartOptions, LanguageCount } from '../../types.js';
+import { LanguageCount, LanguagesPieChartOptions } from "../types/language.types.js";
 import { getTheme } from '../utils/themes.js';
 
 export class LanguagePieChartRenderer {
