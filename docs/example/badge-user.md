@@ -1,21 +1,10 @@
-# GET /badge/:type
+# GET /badges
 
-Generate user metric badges.
+Generate one or more badges from a single query-style endpoint.
 
-## Route Types
+## Route
 
-- `/badge/visitors`
-- `/badge/repositories`
-- `/badge/organization`
-- `/badge/languages`
-- `/badge/followers`
-- `/badge/total-stars`
-- `/badge/total-contributors`
-- `/badge/total-commits`
-- `/badge/total-code-reviews`
-- `/badge/total-issues`
-- `/badge/total-pull-requests`
-- `/badge/total-joined-years`
+- `/badges?username=pphatdev&name=visitors`
 
 ## Required Params
 
@@ -25,7 +14,12 @@ Generate user metric badges.
 
 | Param | Description |
 |---|---|
-| `theme` | Badge theme |
+| `repo` | Repository name for repo-level badges such as `stars` or `forks` |
+| `name` | Comma-separated badge names |
+| `theme` | One theme or multiple comma-separated themes cycled across badges |
+| `effect` | `wave` or `glow` |
+| `column` | Grid columns for multi-badge output (`1-50`) |
+| `size` | `small`, `medium`, or `large` |
 | `customLabel` | Custom label text |
 | `labelColor` | Label text color |
 | `labelBackground` | Label background color |
@@ -35,37 +29,59 @@ Generate user metric badges.
 | `hideFrame` | Hide frame (`true`/`false`) |
 | `hideIcon` | Hide icon (`true`/`false`) |
 
-## Demo Each Route Type
+## Supported User Badge Names
 
-![visitors](https://stats.pphat.top/badge/visitors?username=pphatdev)
-![repositories](https://stats.pphat.top/badge/repositories?username=pphatdev)
-![organization](https://stats.pphat.top/badge/organization?username=pphatdev)
-![languages](https://stats.pphat.top/badge/languages?username=pphatdev)
-![followers](https://stats.pphat.top/badge/followers?username=pphatdev)
-![total-stars](https://stats.pphat.top/badge/total-stars?username=pphatdev)
-![total-contributors](https://stats.pphat.top/badge/total-contributors?username=pphatdev)
-![total-commits](https://stats.pphat.top/badge/total-commits?username=pphatdev)
-![total-code-reviews](https://stats.pphat.top/badge/total-code-reviews?username=pphatdev)
-![total-issues](https://stats.pphat.top/badge/total-issues?username=pphatdev)
-![total-pull-requests](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev)
-![total-joined-years](https://stats.pphat.top/badge/total-joined-years?username=pphatdev)
+- `visitors`
+- `repositories`
+- `organization`
+- `languages`
+- `followers`
+- `total-stars`
+- `total-contributors`
+- `total-commits`
+- `total-code-reviews`
+- `total-issues`
+- `total-pull-requests`
+- `total-joined-years`
 
-## Demo Each Optional Param
+## Supported Repo Badge Names
+
+- `stars`
+- `forks`
+- `contributors`
+- `issues`
+- `pull-requests`
+- `watchers`
+- `size`
+
+## Single Badge Examples
+
+![visitors](https://stats.pphat.top/badges?username=pphatdev&name=visitors)
+![repositories](https://stats.pphat.top/badges?username=pphatdev&name=repositories)
+![followers](https://stats.pphat.top/badges?username=pphatdev&name=followers)
+![total-stars](https://stats.pphat.top/badges?username=pphatdev&name=total-stars)
+
+## Repo Badge Examples
+
+![repo-stars](https://stats.pphat.top/badges?username=pphatdev&repo=github-stats&name=stars)
+![repo-forks](https://stats.pphat.top/badges?username=pphatdev&repo=github-stats&name=forks)
+
+## Style Examples
 
 | Param | Preview |
 |---|---|
-| `theme` | ![theme](https://stats.pphat.top/badge/visitors?username=pphatdev&theme=ocean) |
-| `customLabel` | ![customLabel](https://stats.pphat.top/badge/repositories?username=pphatdev&customLabel=Public%20Repos) |
-| `labelColor` | ![labelColor](https://stats.pphat.top/badge/followers?username=pphatdev&labelColor=ffffff) |
-| `labelBackground` | ![labelBackground](https://stats.pphat.top/badge/languages?username=pphatdev&labelBackground=0d1117) |
-| `iconColor` | ![iconColor](https://stats.pphat.top/badge/total-stars?username=pphatdev&iconColor=58a6ff) |
-| `valueColor` | ![valueColor](https://stats.pphat.top/badge/total-commits?username=pphatdev&valueColor=22c55e) |
-| `valueBackground` | ![valueBackground](https://stats.pphat.top/badge/total-issues?username=pphatdev&valueBackground=1f2937) |
-| `hideFrame` | ![hideFrame](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev&hideFrame=true) |
-| `hideIcon` | ![hideIcon](https://stats.pphat.top/badge/total-joined-years?username=pphatdev&hideIcon=true) |
+| `theme` | ![theme](https://stats.pphat.top/badges?username=pphatdev&name=visitors&theme=ocean) |
+| `customLabel` | ![customLabel](https://stats.pphat.top/badges?username=pphatdev&name=repositories&customLabel=Public%20Repos) |
+| `labelColor` | ![labelColor](https://stats.pphat.top/badges?username=pphatdev&name=followers&labelColor=ffffff) |
+| `labelBackground` | ![labelBackground](https://stats.pphat.top/badges?username=pphatdev&name=languages&labelBackground=0d1117) |
+| `iconColor` | ![iconColor](https://stats.pphat.top/badges?username=pphatdev&name=total-stars&iconColor=58a6ff) |
+| `valueColor` | ![valueColor](https://stats.pphat.top/badges?username=pphatdev&name=total-commits&valueColor=22c55e) |
+| `valueBackground` | ![valueBackground](https://stats.pphat.top/badges?username=pphatdev&name=total-issues&valueBackground=1f2937) |
+| `hideFrame` | ![hideFrame](https://stats.pphat.top/badges?username=pphatdev&name=total-pull-requests&hideFrame=true) |
+| `hideIcon` | ![hideIcon](https://stats.pphat.top/badges?username=pphatdev&name=total-joined-years&hideIcon=true) |
 
-## Combined Demos
+## Combined Examples
 
-![combined-stars](https://stats.pphat.top/badge/total-stars?username=pphatdev&theme=ocean&customLabel=Total%20Stars&hideFrame=true&hideIcon=true)
-![combined-followers](https://stats.pphat.top/badge/followers?username=pphatdev&theme=dracula&labelBackground=0d1117&labelColor=ffffff&iconColor=ff79c6&valueColor=f8f8f2)
-![combined-repositories](https://stats.pphat.top/badge/repositories?username=pphatdev&theme=tokyonight&customLabel=My%20Projects&valueBackground=111827)
+![combined-stars](https://stats.pphat.top/badges?username=pphatdev&name=total-stars&theme=ocean&customLabel=Total%20Stars&hideFrame=true&hideIcon=true)
+![combined-followers](https://stats.pphat.top/badges?username=pphatdev&name=followers&theme=dracula&labelBackground=0d1117&labelColor=ffffff&iconColor=ff79c6&valueColor=f8f8f2)
+![combined-repositories](https://stats.pphat.top/badges?username=pphatdev&name=repositories&theme=tokyonight&customLabel=My%20Projects&valueBackground=111827)

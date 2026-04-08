@@ -9,8 +9,8 @@ This folder contains one file per route, with demo examples for each available o
 - [GET /graph](./graph.md)
 - [GET /icons and /icons/:name](./icons.md)
 - [GET /icons (Collection Mode)](./icon-collection.md)
-- [GET /badge/:type](./badge-user.md)
-- [GET /badge/collection](./badge-collection.md)
+- [GET /badges](./badge-user.md)
+- [GET /badges (multi-badge layout)](./badge-collection.md)
 - [GET /project/:type](./project.md)
 
 ## Additional Guides

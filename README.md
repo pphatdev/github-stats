@@ -216,34 +216,34 @@ for more detail checkout [Here](docs/example/badge-user.md)
 ### Popular Badge Types
 
 ```
-![badge-visitors](https://stats.pphat.top/badge/visitors?username=pphatdev)
-![badge-repositories](https://stats.pphat.top/badge/repositories?username=pphatdev)
-![badge-followers](https://stats.pphat.top/badge/followers?username=pphatdev)
-![badge-total-stars](https://stats.pphat.top/badge/total-stars?username=pphatdev)
+![badge-visitors](https://stats.pphat.top/badges?username=pphatdev&name=visitors)
+![badge-repositories](https://stats.pphat.top/badges?username=pphatdev&name=repositories)
+![badge-followers](https://stats.pphat.top/badges?username=pphatdev&name=followers)
+![badge-total-stars](https://stats.pphat.top/badges?username=pphatdev&name=total-stars)
 ```
 
-![badge-visitors](https://stats.pphat.top/badge/visitors?username=pphatdev)
-![badge-repositories](https://stats.pphat.top/badge/repositories?username=pphatdev)
-![badge-followers](https://stats.pphat.top/badge/followers?username=pphatdev)
-![badge-total-stars](https://stats.pphat.top/badge/total-stars?username=pphatdev)
+![badge-visitors](https://stats.pphat.top/badges?username=pphatdev&name=visitors)
+![badge-repositories](https://stats.pphat.top/badges?username=pphatdev&name=repositories)
+![badge-followers](https://stats.pphat.top/badges?username=pphatdev&name=followers)
+![badge-total-stars](https://stats.pphat.top/badges?username=pphatdev&name=total-stars)
 
 ### Theme + Custom Label
 
 ```
-![badge-custom-label](https://stats.pphat.top/badge/repositories?username=pphatdev&theme=ocean&customLabel=Public%20Repos)
+![badge-custom-label](https://stats.pphat.top/badges?username=pphatdev&name=repositories&theme=ocean&customLabel=Public%20Repos)
 ```
 
-![badge-custom-label](https://stats.pphat.top/badge/repositories?username=pphatdev&theme=ocean&customLabel=Public%20Repos)
+![badge-custom-label](https://stats.pphat.top/badges?username=pphatdev&name=repositories&theme=ocean&customLabel=Public%20Repos)
 
 ### Color and Layout Controls
 
 ```
-![badge-colors](https://stats.pphat.top/badge/total-issues?username=pphatdev&labelBackground=0d1117&labelColor=ffffff&valueBackground=1f2937&valueColor=22c55e)
-![badge-minimal](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev&theme=tokyonight&hideFrame=true&hideIcon=true)
+![badge-colors](https://stats.pphat.top/badges?username=pphatdev&name=total-issues&labelBackground=0d1117&labelColor=ffffff&valueBackground=1f2937&valueColor=22c55e)
+![badge-minimal](https://stats.pphat.top/badges?username=pphatdev&name=total-pull-requests&theme=tokyonight&hideFrame=true&hideIcon=true)
 ```
 
-![badge-colors](https://stats.pphat.top/badge/total-issues?username=pphatdev&labelBackground=0d1117&labelColor=ffffff&valueBackground=1f2937&valueColor=22c55e)
-![badge-minimal](https://stats.pphat.top/badge/total-pull-requests?username=pphatdev&theme=tokyonight&hideFrame=true&hideIcon=true)
+![badge-colors](https://stats.pphat.top/badges?username=pphatdev&name=total-issues&labelBackground=0d1117&labelColor=ffffff&valueBackground=1f2937&valueColor=22c55e)
+![badge-minimal](https://stats.pphat.top/badges?username=pphatdev&name=total-pull-requests&theme=tokyonight&hideFrame=true&hideIcon=true)
 
 
 # 🧩 Badge Collection Examples
@@ -253,44 +253,44 @@ for more detail checkout [Here](docs/example/badge-collection.md)
 ### Default Collection
 
 ```
-![badge-collection-default](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories)
+![badge-collection-default](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories)
 ```
 
-![badge-collection-default](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories)
+![badge-collection-default](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories)
 
 ### Layout Controls (columns + gap + padding)
 
 ```
-![badge-collection-layout](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&columns=2&gap=8&padding=12)
+![badge-collection-layout](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues,followers&column=2&size=medium)
 ```
 
-![badge-collection-layout](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&columns=2&gap=8&padding=12)
+![badge-collection-layout](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues,followers&column=2&size=medium)
 
 ### Multiple Themes (cycled per badge)
 
 ```
-![badge-collection-multi-theme](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
+![badge-collection-multi-theme](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
 ```
 
-![badge-collection-multi-theme](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
+![badge-collection-multi-theme](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues,followers&theme=galaxy,aurora,ocean)
 
 ### Effects (`glow` | `wave`)
 
 ```
-![badge-collection-glow](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=glow)
-![badge-collection-wave](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=wave)
+![badge-collection-glow](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues&effect=glow)
+![badge-collection-wave](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues&effect=wave)
 ```
 
-![badge-collection-glow](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=glow)
-![badge-collection-wave](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues&effect=wave)
+![badge-collection-glow](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues&effect=glow)
+![badge-collection-wave](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues&effect=wave)
 
 ### Combined Example (layout + themes + effect)
 
 ```
-![badge-collection-combined](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers,total-pull-requests&columns=3&gap=8&padding=12&theme=galaxy,aurora,ocean&effect=wave)
+![badge-collection-combined](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues,followers,total-pull-requests&column=3&theme=galaxy,aurora,ocean&effect=wave&size=large)
 ```
 
-![badge-collection-combined](https://stats.pphat.top/badge/collection?username=pphatdev&type=visitors,total-stars,repositories,total-issues,followers,total-pull-requests&columns=3&gap=8&padding=12&theme=galaxy,aurora,ocean&effect=wave)
+![badge-collection-combined](https://stats.pphat.top/badges?username=pphatdev&name=visitors,total-stars,repositories,total-issues,followers,total-pull-requests&column=3&theme=galaxy,aurora,ocean&effect=wave&size=large)
 
 
 # 📁 Project Badge Examples
@@ -349,7 +349,7 @@ Project visitors increment once per same IP every 5 minutes.
 - Without a GitHub token, API rate limits are very low (~60 requests/hour)
 - Set `GITHUB_TOKEN` to get 5,000 requests/hour
 - Redis is optional but recommended for production (enables distributed caching)
-- User visitor badges (`/badge/visitors`) use IP hashing for privacy-preserving unique visitor counting
+- User visitor badges (`/badges?username=...&name=visitors`) use IP hashing for privacy-preserving unique visitor counting
 - Project visitor badges (`/project/visitors`) increment once per same IP every 5 minutes
 
 ## License

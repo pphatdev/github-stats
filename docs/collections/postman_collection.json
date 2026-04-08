@@ -66,10 +66,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/visitors?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=visitors",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "visitors"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "visitors" }]
         }
       }
     },
@@ -78,10 +78,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/repositories?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=repositories",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "repositories"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "repositories" }]
         }
       }
     },
@@ -90,10 +90,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/organization?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=organization",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "organization"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "organization" }]
         }
       }
     },
@@ -102,10 +102,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/languages?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=languages",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "languages"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "languages" }]
         }
       }
     },
@@ -114,10 +114,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/followers?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=followers",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "followers"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "followers" }]
         }
       }
     },
@@ -126,10 +126,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/total-stars?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=total-stars",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "total-stars"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "total-stars" }]
         }
       }
     },
@@ -138,10 +138,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/total-contributors?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=total-contributors",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "total-contributors"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "total-contributors" }]
         }
       }
     },
@@ -150,10 +150,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/total-commits?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=total-commits",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "total-commits"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "total-commits" }]
         }
       }
     },
@@ -162,10 +162,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/total-code-reviews?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=total-code-reviews",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "total-code-reviews"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "total-code-reviews" }]
         }
       }
     },
@@ -174,10 +174,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/total-issues?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=total-issues",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "total-issues"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "total-issues" }]
         }
       }
     },
@@ -186,10 +186,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/total-pull-requests?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=total-pull-requests",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "total-pull-requests"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "total-pull-requests" }]
         }
       }
     },
@@ -198,10 +198,10 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/badge/total-joined-years?username=pphatdev",
+          "raw": "{{baseUrl}}/badges?username=pphatdev&name=total-joined-years",
           "host": ["{{baseUrl}}"],
-          "path": ["badge", "total-joined-years"],
-          "query": [{ "key": "username", "value": "pphatdev" }]
+          "path": ["badges"],
+          "query": [{ "key": "username", "value": "pphatdev" }, { "key": "name", "value": "total-joined-years" }]
         }
       }
     },
