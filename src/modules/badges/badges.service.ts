@@ -10,7 +10,7 @@ import { eq } from 'drizzle-orm';
 import { createLogger } from '../../shared/logs/logger.js';
 import type { UserBadgeType, ProjectBadgeType, BadgeOptions, BadgeCache } from './badges.types.js';
 import { BadgeRenderer } from '../../shared/components/badge-renderer.js';
-import type { BadgeType } from '../../types.js';
+import { BadgeType } from '../../shared/types/badge.types.js';
 
 const logger = createLogger({ service: 'BadgesService' });
 

@@ -1,4 +1,5 @@
-import { GitHubStats, StatsCardOptions } from '../../types.js';
+import { StatsCardOptions } from "../../modules/stats/stats.types.js";
+import { GitHubStats } from "../types/github.types.js";
 import { getTheme } from '../utils/themes.js';
 
 export class CardRenderer {

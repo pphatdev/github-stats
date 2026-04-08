@@ -1,5 +1,5 @@
+import { BadgeOptions, BadgeType } from '../types/badge.types.js';
 import { getTheme, getBadgeTheme } from '../utils/themes.js';
-import type { BadgeType, BadgeOptions } from '../../types.js';
 
 interface BadgeConfig {
     label: string;
