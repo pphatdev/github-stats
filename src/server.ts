@@ -109,12 +109,23 @@ export async function startServer(): Promise<Express> {
 
     // Start listening
     const port = env.PORT;
-    app.listen(port, () => {
+    const host = env.HOST;
+    const server = app.listen(port, host, () => {
         logger.info(`Server started on port ${port}`, {
             port,
+            host,
             environment: env.APP_ENV,
             nodeEnv: process.env.NODE_ENV
         });
+    });
+
+    server.on('error', (error: NodeJS.ErrnoException) => {
+        logger.error('HTTP server failed to listen', error, {
+            port,
+            host,
+            code: error.code,
+        });
+        process.exit(1);
     });
 
     return app;

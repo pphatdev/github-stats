@@ -3,6 +3,12 @@ primary_region = "sin"
 
 [build]
 
+[env]
+  APP_ENV = "production"
+  NODE_ENV = "production"
+  HOST = "0.0.0.0"
+  PORT = "3000"
+
 [http_service]
   internal_port = 3000
   force_https = true
