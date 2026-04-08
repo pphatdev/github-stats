@@ -4,6 +4,10 @@ services:
     runtime: node
     buildCommand: npm install && npm run build
     startCommand: node dist/index.js
+    # To run with bun natively on Render, change the above to:
+    # runtime: bun
+    # buildCommand: bun install && bun run build
+    # startCommand: bun dist/index.js
     envVars:
       - key: NODE_ENV
         value: production

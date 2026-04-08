@@ -7,12 +7,18 @@
   "scripts": {
     "build": "tsc",
     "dev": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/index.ts",
+    "dev:bun": "bun --watch ./src/index.ts",
     "dev:modular": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/server.ts",
+    "dev:modular:bun": "bun --watch ./src/server.ts",
     "start": "node dist/index.js",
+    "start:bun": "bun dist/index.js",
     "start:cluster": "node dist/server-cluster.js",
+    "start:cluster:bun": "bun dist/server-cluster.js",
     "start:production": "NODE_ENV=production node dist/server-cluster.js",
     "test": "jest",
+    "test:bun": "bun test",
     "cache:clear": "tsx scripts/clear-redis-cache.ts",
+    "cache:clear:bun": "bun scripts/clear-redis-cache.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -69,9 +75,11 @@
     "drizzle-kit": "^0.31.9",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@types/bun": "latest"
   },
   "overrides": {
     "esbuild": ">=0.25.0"
-  }
+  },
+  "private": true
 }
