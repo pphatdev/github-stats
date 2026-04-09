@@ -1,0 +1,19 @@
+# Local data & secrets
+.env
+.env.*
+!.env.example
+data/
+
+# Build outputs (Vercel compiles TypeScript itself)
+dist/
+
+# Local dev tooling
+scripts/
+nginx/
+ecosystem.config.cjs
+ecosystem.bun.cjs
+wrangler.toml
+
+# Misc
+*.log
+*.sh
