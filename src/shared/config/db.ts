@@ -3,16 +3,14 @@
  * Centralized database connection and pool management
  */
 
-import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { drizzle as drizzleProxy } from 'drizzle-orm/sqlite-proxy';
-import Database from 'better-sqlite3';
 import * as schema from '../../db/schema.js';
 import { getEnv } from './env.js';
 import { setDb } from '../../db/index.js';
 
-let dbInstance: ReturnType<typeof drizzle> | null = null;
+let dbInstance: unknown | null = null;
 let cloudflareDbInstance: ReturnType<typeof drizzleProxy> | null = null;
-let sqliteInstance: Database.Database | null = null;
+let sqliteInstance: import('better-sqlite3').Database | null = null;
 
 function getRequiredCloudflareConfig() {
     const env = getEnv();
@@ -146,6 +144,32 @@ export function initializeDatabase() {
     }
     
     if (!sqliteInstance) {
+        throw new Error('SQLite initialization must use initializeDatabaseAsync()');
+    }
+    
+    return dbInstance;
+}
+
+export async function initializeDatabaseAsync() {
+    const env = getEnv();
+
+    if (env.DATABASE_PROVIDER === 'cloudflare') {
+        if (!cloudflareDbInstance) {
+            cloudflareDbInstance = createCloudflareD1Database();
+            setDb(cloudflareDbInstance as any);
+            console.log('✅ Database connected: Cloudflare D1');
+        }
+
+        return cloudflareDbInstance;
+    }
+
+    if (!sqliteInstance) {
+        const [{ drizzle }, sqliteModule] = await Promise.all([
+            import('drizzle-orm/better-sqlite3'),
+            import('better-sqlite3'),
+        ]);
+
+        const Database = sqliteModule.default;
         sqliteInstance = new Database(env.DATABASE_URL);
         
         // Enable WAL mode for better concurrent access
@@ -171,13 +195,13 @@ export function getDatabase() {
 
     if (env.DATABASE_PROVIDER === 'cloudflare') {
         if (!cloudflareDbInstance) {
-            return initializeDatabase();
+            return initializeDatabaseAsync();
         }
         return cloudflareDbInstance;
     }
 
     if (!dbInstance) {
-        return initializeDatabase();
+        return initializeDatabaseAsync();
     }
 
     return dbInstance;
