@@ -49,6 +49,31 @@ export class GitHubClient {
         this.pendingRequests.clear();
     }
 
+    // ── Shared endpoint helpers (single cache key per endpoint) ────────────
+
+    private async fetchUserProfile(username: string): Promise<any> {
+        return this.cachedRequest(`user-profile-${username}`, async () => {
+            const { data } = await this.octokit.users.getByUsername({ username });
+            return data;
+        });
+    }
+
+    private async fetchUserRepoList(username: string): Promise<any[]> {
+        return this.cachedRequest(`user-repos-${username}`, async () => {
+            const { data } = await this.octokit.repos.listForUser({
+                username, per_page: 100, type: 'owner',
+            });
+            return data;
+        });
+    }
+
+    private async fetchRepoData(owner: string, repo: string): Promise<any> {
+        return this.cachedRequest(`repo-data-${owner}-${repo}`, async () => {
+            const { data } = await this.octokit.repos.get({ owner, repo });
+            return data;
+        });
+    }
+
     // Return default stats for user not found
     private getDefaultStats(username: string): GitHubStats {
         return {
@@ -240,14 +265,10 @@ export class GitHubClient {
     async fetchUserLanguages(username: string): Promise<LanguageCount[]> {
         try {
             return await this.cachedRequest(`user-langs-${username}`, async () => {
-                const { data: repos } = await this.octokit.repos.listForUser({
-                    username,
-                    per_page: 100,
-                    type: 'owner',
-                });
+                const repos = await this.fetchUserRepoList(username);
 
                 const languageCounts = new Map<string, number>();
-                repos.forEach(repo => {
+                repos.forEach((repo: any) => {
                     if (!repo.language) return;
                     const current = languageCounts.get(repo.language) || 0;
                     languageCounts.set(repo.language, current + 1);
@@ -361,23 +382,15 @@ export class GitHubClient {
         switch (type) {
             // ── profile fields (single user request) ──────────────────────
             case 'repositories':
-                return this.cachedRequest(key, async () => {
-                    const { data } = await this.octokit.users.getByUsername({ username });
-                    return data.public_repos;
-                });
+                return (await this.fetchUserProfile(username)).public_repos;
 
             case 'followers':
-                return this.cachedRequest(key, async () => {
-                    const { data } = await this.octokit.users.getByUsername({ username });
-                    return data.followers;
-                });
+                return (await this.fetchUserProfile(username)).followers;
 
-            case 'total-joined-years':
-                return this.cachedRequest(key, async () => {
-                    const { data } = await this.octokit.users.getByUsername({ username });
-                    const joinedYear = new Date(data.created_at).getFullYear();
-                    return new Date().getFullYear() - joinedYear;
-                });
+            case 'total-joined-years': {
+                const joinedYear = new Date((await this.fetchUserProfile(username)).created_at).getFullYear();
+                return new Date().getFullYear() - joinedYear;
+            }
 
             // ── organization membership ────────────────────────────────────
             case 'organization':
@@ -392,29 +405,24 @@ export class GitHubClient {
                 return langs.length;
             }
 
-            case 'total-stars':
-                return this.cachedRequest(key, async () => {
-                    const { data: repos } = await this.octokit.repos.listForUser({
-                        username, per_page: 100, type: 'owner',
-                    });
-                    return repos.reduce((acc, r) => acc + (r.stargazers_count ?? 0), 0);
-                });
+            case 'total-stars': {
+                const repos = await this.fetchUserRepoList(username);
+                return repos.reduce((acc: number, r: any) => acc + (r.stargazers_count ?? 0), 0);
+            }
 
             case 'total-contributors':
                 return this.cachedRequest(key, async () => {
-                    // Fetch top-10 most-starred repos to keep API calls manageable
-                    const { data: repos } = await this.octokit.repos.listForUser({
-                        username, per_page: 10, type: 'owner', sort: 'pushed', direction: 'desc',
-                    });
+                    const allRepos = await this.fetchUserRepoList(username);
+                    const topRepos = allRepos.slice(0, 10);
                     const unique = new Set<string>();
-                    for (const repo of repos) {
+                    await Promise.all(topRepos.map(async (repo: any) => {
                         try {
                             const { data: contribs } = await this.octokit.repos.listContributors({
                                 owner: username, repo: repo.name, per_page: 100,
                             });
-                            contribs.forEach(c => c.login && unique.add(c.login));
+                            contribs.forEach((c: any) => c.login && unique.add(c.login));
                         } catch { /* non-critical – skip unavailable repos */ }
-                    }
+                    }));
                     return unique.size;
                 });
 
@@ -465,28 +473,16 @@ export class GitHubClient {
         try {
             switch (type) {
                 case 'repo-stars':
-                    return await this.cachedRequest(key, async () => {
-                        const { data } = await this.octokit.repos.get({ owner, repo });
-                        return data.stargazers_count;
-                    });
+                    return (await this.fetchRepoData(owner, repo)).stargazers_count;
 
                 case 'repo-forks':
-                    return await this.cachedRequest(key, async () => {
-                        const { data } = await this.octokit.repos.get({ owner, repo });
-                        return data.forks_count;
-                    });
+                    return (await this.fetchRepoData(owner, repo)).forks_count;
 
                 case 'repo-watchers':
-                    return await this.cachedRequest(key, async () => {
-                        const { data } = await this.octokit.repos.get({ owner, repo });
-                        return data.subscribers_count;
-                    });
+                    return (await this.fetchRepoData(owner, repo)).subscribers_count;
 
                 case 'repo-issues':
-                    return await this.cachedRequest(key, async () => {
-                        const { data } = await this.octokit.repos.get({ owner, repo });
-                        return data.open_issues_count;
-                    });
+                    return (await this.fetchRepoData(owner, repo)).open_issues_count;
 
                 case 'repo-prs':
                     return await this.cachedRequest(key, async () => {
@@ -499,12 +495,6 @@ export class GitHubClient {
 
                 case 'repo-contributors':
                     return await this.cachedRequest(key, async () => {
-                        await this.octokit.repos.listContributors({
-                            owner,
-                            repo,
-                            per_page: 1,
-                            anon: 'true',
-                        });
                         const response = await this.octokit.repos.listContributors({
                             owner,
                             repo,
@@ -514,10 +504,7 @@ export class GitHubClient {
                     });
 
                 case 'repo-size':
-                    return await this.cachedRequest(key, async () => {
-                        const { data } = await this.octokit.repos.get({ owner, repo });
-                        return data.size; // Size in KB
-                    });
+                    return (await this.fetchRepoData(owner, repo)).size;
 
                 default:
                     throw new Error(`Unknown repo badge type: ${type}`);

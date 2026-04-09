@@ -12,6 +12,12 @@
 
 Create beautiful GitHub stats cards, badges, icons, and contribution graphs that are easy to customize and perfect for your profile README or project docs.
 
+> **For Load balance**
+>- [https://stats.pphat.top](https://stats.pphat.top) by [@pphatdev](https://github.com/pphatdev)
+>- [https://stats.sophat.top](https://stats.sophat.top) by [@pphatdev](https://github.com/pphatdev)
+>- [https://github-stats-3hu8.onrender.com](https://github-stats-3hu8.onrender.com) by [@pphatdev](https://github.com/pphatdev)
+>- [https://githubstats.up.railway.app](https://githubstats.up.railway.app) by [@L-Sophat](https://github.com/L-Sophat)
+>
 
 # 🌟 Examples Icons Usage
 

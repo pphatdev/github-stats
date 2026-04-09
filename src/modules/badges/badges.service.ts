@@ -6,7 +6,7 @@
 import { GitHubClient } from '../../shared/utils/github-client.js';
 import { db } from '../../db/index.js';
 import { badges } from '../../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { createLogger } from '../../shared/logs/logger.js';
 import type { UserBadgeType, ProjectBadgeType, BadgeOptions, BadgeCache } from './badges.types.js';
 import { BadgeRenderer } from '../../shared/components/badge-renderer.js';
@@ -351,42 +351,28 @@ export class BadgesService {
     }
 
     /**
-     * Get visitor count
+     * Get visitor count – single atomic UPSERT increments and returns the new value
      */
     private async getVisitorCount(username: string, repo?: string): Promise<number> {
         const now = Date.now();
-        // When repo is provided, track visitors per username/repo combination
         const key = repo ? `${username}/${repo}` : username;
-        const existing = await db
-            .select({ visitors: badges.visitors })
-            .from(badges)
-            .where(eq(badges.username, key))
-            .limit(1);
 
-        if (existing.length === 0) {
-            await db.insert(badges)
-                .values({
-                    username: key,
-                    visitors: 1,
+        const [result] = await db.insert(badges)
+            .values({
+                username: key,
+                visitors: 1,
+                updated_at: now,
+            })
+            .onConflictDoUpdate({
+                target: badges.username,
+                set: {
+                    visitors: sql`${badges.visitors} + 1`,
                     updated_at: now,
-                })
-                .onConflictDoUpdate({
-                    target: badges.username,
-                    set: {
-                        visitors: 1,
-                        updated_at: now,
-                    },
-                });
+                },
+            })
+            .returning({ visitors: badges.visitors });
 
-            return 1;
-        }
-
-        const nextValue = (existing[0].visitors || 0) + 1;
-        await db.update(badges)
-            .set({ visitors: nextValue, updated_at: now })
-            .where(eq(badges.username, key));
-
-        return nextValue;
+        return result?.visitors ?? 1;
     }
 
     /**
