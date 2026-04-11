@@ -6,11 +6,27 @@
 import { GitHubClient } from '../../shared/utils/github-client.js';
 import { GraphRenderer } from '../../shared/components/graph-renderer.js';
 import { createLogger } from '../../shared/logs/logger.js';
-import sharp from 'sharp';
-import { Resvg } from '@resvg/resvg-js';
 import type { GraphQueryParams, GraphCache, GraphOptions, GraphDateRange } from './graphs.types.js';
 
 const logger = createLogger({ service: 'GraphsService' });
+let sharpLoader: Promise<any> | null = null;
+let resvgLoader: Promise<typeof import('@resvg/resvg-js').Resvg> | null = null;
+
+async function getSharp() {
+    if (!sharpLoader) {
+        sharpLoader = import('sharp').then((module) => module.default);
+    }
+
+    return sharpLoader;
+}
+
+async function getResvg() {
+    if (!resvgLoader) {
+        resvgLoader = import('@resvg/resvg-js').then((module) => module.Resvg);
+    }
+
+    return resvgLoader;
+}
 
 export class GraphsService {
     private githubClient: GitHubClient;
@@ -81,6 +97,7 @@ export class GraphsService {
      * Convert SVG to PNG
      */
     async convertToPng(svg: string): Promise<Buffer> {
+        const Resvg = await getResvg();
         const resvg = new Resvg(svg, {
             fitTo: {
                 mode: 'width',
@@ -97,6 +114,7 @@ export class GraphsService {
      */
     async convertToWebp(svg: string): Promise<Buffer> {
         const pngBuffer = await this.convertToPng(svg);
+        const sharp = await getSharp();
         const webpBuffer = await sharp(pngBuffer)
             .webp({ quality: 90 })
             .toBuffer();

@@ -5,13 +5,21 @@
 
 import { GitHubClient } from '../../shared/utils/github-client.js';
 import { CardRenderer } from '../../shared/components/card-renderer.js';
-import sharp from 'sharp';
 import { db } from '../../db/index.js';
 import { statsRequests } from '../../db/schema.js';
 import { createLogger } from '../../shared/logs/logger.js';
 import type { StatsQueryParams, StatsCache, PngCache } from './stats.types.js'; import type { StatsCardOptions } from './stats.types.js';
 
 const logger = createLogger({ service: 'StatsService' });
+let sharpLoader: Promise<any> | null = null;
+
+async function getSharp() {
+    if (!sharpLoader) {
+        sharpLoader = import('sharp').then((module) => module.default);
+    }
+
+    return sharpLoader;
+}
 
 export class StatsService {
     private githubClient: GitHubClient;
@@ -116,6 +124,7 @@ export class StatsService {
      * Convert SVG to PNG
      */
     async convertToPng(svg: string): Promise<Buffer> {
+        const sharp = await getSharp();
         const pngBuffer = await sharp(Buffer.from(svg))
             .png()
             .toBuffer();
@@ -155,6 +164,7 @@ export class StatsService {
      * Generate WebP from SVG
      */
     private async generateWebp(svg: string): Promise<Buffer> {
+        const sharp = await getSharp();
         const webpBuffer = await sharp(Buffer.from(svg))
             .webp({ quality: 90 })
             .toBuffer();

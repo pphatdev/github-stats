@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 import { IconsService } from './icons.service.js';
 import { createLogger } from '../../shared/logs/logger.js';
 import { generateIconsDemoHTML } from '../../views/icons-demo.view.js';
+import type { IconQueryParams } from './icons.types.js';
 
 const logger = createLogger({ controller: 'IconsController' });
 
@@ -65,7 +66,7 @@ export class IconsController {
     /**
      * Get icons list
      */
-    async getIconsList(req: Request, res: Response): Promise<void> {
+    async getIconsList(req: Request<unknown, unknown, unknown, IconQueryParams>, res: Response): Promise<void> {
         try {
             const icons = await this.iconsService.loadIconsList();
 
