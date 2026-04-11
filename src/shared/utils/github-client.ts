@@ -49,8 +49,9 @@ export class GitHubClient {
         this.pendingRequests.clear();
     }
 
-    // ── Shared endpoint helpers (single cache key per endpoint) ────────────
-
+    /**
+     * Shared endpoint helpers (single cache key per endpoint)
+     */
     private async fetchUserProfile(username: string): Promise<any> {
         return this.cachedRequest(`user-profile-${username}`, async () => {
             const { data } = await this.octokit.users.getByUsername({ username });
@@ -380,7 +381,9 @@ export class GitHubClient {
         const key = `badge-${type}-${username}`;
 
         switch (type) {
-            // ── profile fields (single user request) ──────────────────────
+            /**
+             * Profile fields (single user request)
+             */
             case 'repositories':
                 return (await this.fetchUserProfile(username)).public_repos;
 
@@ -392,14 +395,18 @@ export class GitHubClient {
                 return new Date().getFullYear() - joinedYear;
             }
 
-            // ── organization membership ────────────────────────────────────
+            /**
+             * Organization membership
+             */
             case 'organization':
                 return this.cachedRequest(key, async () => {
                     const { data } = await this.octokit.orgs.listForUser({ username, per_page: 100 });
                     return data.length;
                 });
 
-            // ── derived from repo list ─────────────────────────────────────
+            /**
+             * Derived from repo list
+             */
             case 'languages': {
                 const langs = await this.fetchUserLanguages(username);
                 return langs.length;
@@ -426,7 +433,9 @@ export class GitHubClient {
                     return unique.size;
                 });
 
-            // ── search API ────────────────────────────────────────────────
+            /**
+             * Search API
+             */
             case 'total-commits':
                 return this.cachedRequest(key, async () => {
                     const { data } = await this.octokit.search.commits({

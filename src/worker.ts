@@ -24,7 +24,9 @@ export interface Env {
 	DEBUG?: string;
 }
 
-// ── Response helpers ──────────────────────────────────────────────────────────
+/**
+ * Response helpers
+ */
 
 function json(body: unknown, status = 200): Response {
 	return new Response(JSON.stringify(body, null, 2), {
@@ -42,7 +44,9 @@ function svgResponse(body: string): Response {
 	});
 }
 
-// ── Worker entry ──────────────────────────────────────────────────────────────
+/**
+ * Worker entry
+ */
 
 export default {
 	async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
@@ -56,12 +60,16 @@ export default {
 		const cacheDuration = 7_200_000; // 2 h
 
 		try {
-			// ── /health ───────────────────────────────────────────────────────
+			/**
+			 * /health
+			 */
 			if (pathname === '/health' || pathname === '/health/') {
 				return json({ status: 'ok', environment: env.ENVIRONMENT ?? 'cloudflare' });
 			}
 
-			// ── /badge or /badges ──────────────────────────────────────────────
+			/**
+			 * /badge or /badges
+			 */
 			if (pathname.startsWith('/badge')) {
 				const { BadgesService } = await import('./modules/badges/badges.service.js');
 				const { GitHubClient } = await import('./shared/utils/github-client.js');
@@ -77,7 +85,9 @@ export default {
 				return svgResponse(result);
 			}
 
-			// ── /stats ────────────────────────────────────────────────────────
+			/**
+			 * /stats
+			 */
 			if (pathname.startsWith('/stats')) {
 				const { StatsService } = await import('./modules/stats/stats.service.js');
 				const { GitHubClient } = await import('./shared/utils/github-client.js');
@@ -90,7 +100,9 @@ export default {
 				return svgResponse(result);
 			}
 
-			// ── /graph ────────────────────────────────────────────────────────
+			/**
+			 * /graph
+			 */
 			if (pathname.startsWith('/graph')) {
 				const { GraphsService } = await import('./modules/graphs/graphs.service.js');
 				const { GitHubClient } = await import('./shared/utils/github-client.js');
@@ -103,7 +115,9 @@ export default {
 				return svgResponse(result);
 			}
 
-			// ── /languages ────────────────────────────────────────────────────
+			/**
+			 * /languages
+			 */
 			if (pathname.startsWith('/languages')) {
 				const { LanguagesService } = await import('./modules/languages/languages.service.js');
 				const { GitHubClient } = await import('./shared/utils/github-client.js');
@@ -116,13 +130,78 @@ export default {
 				return svgResponse(result);
 			}
 
-			// ── /icons ────────────────────────────────────────────────────────
+			/**
+			 * /icons
+			 */
 			if (pathname.startsWith('/icons')) {
 				const { IconsService } = await import('./modules/icons/icons.service.js');
+				const { IconsCollectionController } = await import('./modules/icons/icons-collection.controller.js');
 				const service = new IconsService();
-				const iconName = params.name ?? '';
-				const { content } = await service.getIcon(iconName, params.color);
-				return svgResponse(content);
+
+				const iconPath = pathname
+					.replace(/^\/icons\/?/, '')
+					.replace(/\.svg$/i, '')
+					.trim();
+
+				if (iconPath.length > 0 && iconPath !== 'demo') {
+					const { content } = await service.getIcon(iconPath, params.color);
+					return svgResponse(content);
+				}
+
+				const hasCollectionOptions = Boolean(params.color || params.size || params.effect || params.columns);
+
+				if (params.name) {
+					// Wrap worker request/response into Express-like objects for the controller
+					const expressLikeReq = {
+						query: params,
+						headers: { 'if-none-match': request.headers.get('if-none-match') ?? undefined },
+					} as any;
+
+					let responseContent = '';
+					let responseStatus = 200;
+					let responseHeaders: Record<string, string> = {};
+
+					const expressLikeRes = {
+						status: (code: number) => {
+							responseStatus = code;
+							return expressLikeRes;
+						},
+						json: (body: unknown) => {
+							responseContent = JSON.stringify(body, null, 2);
+							responseHeaders['content-type'] = 'application/json; charset=utf-8';
+						},
+						setHeader: (key: string, value: string) => {
+							responseHeaders[key.toLowerCase()] = value;
+						},
+						send: (body: string) => {
+							responseContent = body;
+						},
+						end: () => {
+							// No-op for worker
+						},
+					} as any;
+
+					await IconsCollectionController.getIconsCollection(expressLikeReq, expressLikeRes);
+
+					if (responseStatus === 304) {
+						return new Response(null, { status: 304, headers: responseHeaders });
+					}
+
+					return new Response(responseContent, {
+						status: responseStatus,
+						headers: responseHeaders,
+					});
+				}
+
+				if (hasCollectionOptions) {
+					return new Response(JSON.stringify({ error: 'name is required' }, null, 2), {
+						status: 400,
+						headers: { 'content-type': 'application/json; charset=utf-8' },
+					});
+				}
+
+				const icons = await service.loadIconsList();
+				return json({ icons, count: icons.length });
 			}
 
 			return json({ error: 'Not Found', path: pathname }, 404);

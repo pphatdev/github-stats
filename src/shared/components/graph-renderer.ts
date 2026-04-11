@@ -86,7 +86,9 @@ export class GraphRenderer {
 
         const scale = width / 1200;
 
-        // ── Pre-compute all scale-dependent constants (avoids repeated Math.round in loops) ──
+        /**
+         * Pre-compute all scale-dependent constants (avoids repeated Math.round in loops)
+         */
         const s = (n: number) => Math.round(n * scale);
         const sc5 = s(5);
         const sc9 = s(9);
@@ -168,7 +170,9 @@ export class GraphRenderer {
         // Stars only needed when background is visible; cache uses full canvas dims
         const stars = showBackground ? this.getStarfield(width, height, theme.textColor) : '';
 
-        // ── Pre-compute position format strings (avoid repeated toFixed in cell loop) ────────
+        /**
+         * Pre-compute position format strings (avoid repeated toFixed in cell loop)
+         */
         const xPosFmt: string[] = new Array(weeksLen);
         const xDelayFmt: string[] = new Array(weeksLen);
         const xDelayNum: number[] = new Array(weeksLen);
@@ -182,7 +186,9 @@ export class GraphRenderer {
             yPosFmt[j] = (startY + j * step).toFixed(1);
         }
 
-        // ── Cells ──────────────────────────────────────────────────────────────
+        /**
+         * Cells
+         */
         const animateMode = options.animate;
         const ANIM_CYCLE = 8; // seconds — covers all animation durations
         const isFrameExport = frameTime !== undefined;
@@ -229,7 +235,9 @@ export class GraphRenderer {
                     continue;
                 }
 
-                // ── Static frame snapshot (for raster export) ──────────────────
+                /**
+                 * Static frame snapshot (for raster export)
+                 */
                 if (isFrameExport) {
                     let op: number;
                     if (animateMode === 'wave') {
@@ -247,7 +255,9 @@ export class GraphRenderer {
                     continue;
                 }
 
-                // ── Live SVG animation ─────────────────────────────────────────
+                /**
+                 * Live SVG animation
+                 */
                 if (animateMode === 'wave') {
                     const d = (x * 0.05 + y * 0.02).toFixed(2);
                     cellParts.push(`<g>${pfx} opacity="0.4" filter="url(#glowSmall)" style="animation:graph-wave 3s ${d}s infinite"/>${pfx} opacity="0.85"/></g>`);
@@ -267,7 +277,9 @@ export class GraphRenderer {
 
         const cells = cellParts.join('');
 
-        // ── Month labels ───────────────────────────────────────────────────────
+        /**
+         * Month labels
+         */
         const MONTHS = GraphRenderer.MONTHS;
         const monthY = (startY - 10).toFixed(1);
         const monthParts: string[] = [];
@@ -283,7 +295,9 @@ export class GraphRenderer {
             }
         }
 
-        // ── Pre-computed sections ──────────────────────────────────────────────
+        /**
+         * Pre-computed sections
+         */
         const buildCornerPaths = (x1: number, y1: number, x2: number, y2: number, arm: number) => {
             const xa1 = (x1 + arm).toFixed(1); const xa2 = (x2 - arm).toFixed(1);
             const ya1 = (y1 + arm).toFixed(1); const ya2 = (y2 - arm).toFixed(1);
