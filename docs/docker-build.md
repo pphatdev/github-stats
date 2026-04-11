@@ -80,6 +80,55 @@ Check image size:
 docker images github-stats
 ```
 
+## Releasing a New Image
+
+### 1. Bump the version
+
+Update the `version` field in `package.json` before tagging a release (current: `2.1.1`).
+
+### 2. Build and tag
+
+**Node.js image (`Dockerfile`):**
+
+```bash
+docker build -t pphatdev/github-stats:2.1.1 -t pphatdev/github-stats:latest .
+```
+
+**Bun image (`Dockerfile.bun`):**
+
+```bash
+docker build -f Dockerfile.bun -t pphatdev/github-stats:2.1.1-bun -t pphatdev/github-stats:latest-bun .
+```
+
+> **Cross-platform tip:** Add `--platform linux/amd64` when building on Apple Silicon for Linux server compatibility:
+> ```bash
+> docker build --platform linux/amd64 -t pphatdev/github-stats:latest .
+> ```
+
+### 3. Push to registry
+
+```bash
+docker push pphatdev/github-stats:2.1.1
+docker push pphatdev/github-stats:latest
+```
+
+### 4. Deploy on a remote server
+
+Pull and restart the container:
+
+```bash
+docker pull pphatdev/github-stats:latest
+docker stop github-stats && docker rm github-stats
+docker run -d --name github-stats -p 3000:3000 --env-file .env pphatdev/github-stats:latest
+```
+
+Or with Docker Compose:
+
+```bash
+docker compose pull
+docker compose up -d --force-recreate
+```
+
 ## Notes
 
 - `.dockerignore` excludes common local artifacts (`node_modules`, `dist`, `.git`, `.env`, and more) to keep build context small.
