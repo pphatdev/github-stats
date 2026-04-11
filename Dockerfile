@@ -6,7 +6,7 @@ RUN npm ci
 FROM deps AS build
 WORKDIR /app
 COPY . .
-RUN npm run build && npm prune --omit=dev
+RUN npm ci && npm run build && npm prune --omit=dev
 
 FROM node:20-bookworm-slim AS runtime
 ENV NODE_ENV=production

@@ -12,6 +12,8 @@
 
 Create beautiful GitHub stats cards, badges, icons, and contribution graphs that are easy to customize and perfect for your profile README or project docs.
 
+Docker build guide: [docs/docker-build.md](docs/docker-build.md)
+
 > **For Load balance**
 >- [https://stats.pphat.top](https://stats.pphat.top) by [@pphatdev](https://github.com/pphatdev)
 >- [https://stats.sophat.top](https://stats.sophat.top) by [@pphatdev](https://github.com/pphatdev)
