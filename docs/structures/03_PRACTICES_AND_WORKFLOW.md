@@ -25,7 +25,7 @@
 3. Database: run npm run db:migrate
 4. Testing: run npm test
 5. Build: run npm run build
-6. Deploy: run npm run start:cluster
+6. Deploy: run npm start (clustered by default) or set WORKERS to pin the worker count
 
 ## Related Documentation
 

@@ -14,11 +14,11 @@ import path from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const workerFile = pathToFileURL(path.join(__dirname, 'index.js')).href;
+const workerFile = pathToFileURL(path.join(__dirname, 'server.js')).href;
 const workers = parseInt(process.env.WORKERS || '0') || undefined;
 
 startCluster(workerFile, {
     workers,
     respawnDelay: 1000,
-    maxRestarts: 1
+    maxRestarts: 5
 });

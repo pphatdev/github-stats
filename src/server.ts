@@ -3,16 +3,20 @@
  * Handles server initialization with modular structure
  */
 
+import { type Server as HttpServer } from 'http';
 import { type Express } from 'express';
 import { createApp, initializeRoutes, setupErrorHandlers } from './app.js';
 import { getEnv } from './shared/config/env.js';
 import { createLogger } from './shared/logs/logger.js';
 import { initializeDatabaseAsync } from './shared/config/db.js';
 import { GitHubClient } from './shared/utils/github-client.js';
-import { getRedisClient } from './shared/utils/redis-client.js';
+import { closeRedisClient, getRedisClient } from './shared/utils/redis-client.js';
 import type { ICacheService } from './services/base.service.js';
 
 const logger = createLogger({ module: 'server' });
+let activeApp: Express | null = null;
+let activeServer: HttpServer | null = null;
+let shutdownPromise: Promise<void> | null = null;
 
 // Shared cache for API responses
 const cache = new Map<string, { data: string; timestamp: number }>();
@@ -95,6 +99,10 @@ async function initializeServices(): Promise<{ cacheService?: ICacheService }> {
  * Start the server
  */
 export async function startServer(): Promise<Express> {
+    if (activeApp && activeServer?.listening) {
+        return activeApp;
+    }
+
     const env = getEnv();
 
     // Initialize services
@@ -124,6 +132,9 @@ export async function startServer(): Promise<Express> {
         });
     });
 
+    activeApp = app;
+    activeServer = server;
+
     server.on('error', (error: NodeJS.ErrnoException) => {
         logger.error('HTTP server failed to listen', error, {
             port,
@@ -134,6 +145,46 @@ export async function startServer(): Promise<Express> {
     });
 
     return app;
+}
+
+export async function stopServer(): Promise<void> {
+    if (shutdownPromise) {
+        return shutdownPromise;
+    }
+
+    shutdownPromise = (async () => {
+        if (activeServer) {
+            await new Promise<void>((resolve, reject) => {
+                activeServer?.close((error) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+
+                    resolve();
+                });
+            });
+
+            logger.info('HTTP server stopped');
+        }
+
+        try {
+            await closeRedisClient();
+        } catch (error) {
+            logger.warn('Failed to close Redis client cleanly', {
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
+
+        activeServer = null;
+        activeApp = null;
+    })();
+
+    try {
+        await shutdownPromise;
+    } finally {
+        shutdownPromise = null;
+    }
 }
 
 // Start server if this file is run directly

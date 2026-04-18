@@ -320,7 +320,7 @@ For more details: [User Badges](docs/example/badge-user.md) · [Badge Collection
 - **API**: GitHub REST + GraphQL APIs with intelligent batching
 - **Caching**: Multi-tier (Memory → Redis → Source) with 2-hour default TTL
 - **Database**: SQLite with Drizzle ORM for badge counters and visitor logs
-- **Server**: Express.js with optional cluster mode for multi-core scaling
+- **Server**: Express.js with round-robin cluster load balancing in production
 - **Rendering**: Server-side SVG generation with optional WebP/PNG/GIF export
 
 ## Notes
@@ -329,6 +329,7 @@ For more details: [User Badges](docs/example/badge-user.md) · [Badge Collection
 - Without a GitHub token, API rate limits are very low (~60 requests/hour)
 - Set `GITHUB_TOKEN` to get 5,000 requests/hour
 - Redis is optional but recommended for production (enables distributed caching)
+- Docker and `npm start` now boot the clustered entrypoint; set `WORKERS` to cap worker count, or leave it at `0` to use all available CPU cores
 - User visitor badges (`/badges?username=...&name=visitors`) use IP hashing for privacy-preserving unique visitor counting
 - Project visitor badges (`/project/visitors`) increment once per same IP every 5 minutes
 
