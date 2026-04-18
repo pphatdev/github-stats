@@ -12,6 +12,48 @@ let dbInstance: unknown | null = null;
 let cloudflareDbInstance: ReturnType<typeof drizzleProxy> | null = null;
 let sqliteInstance: import('better-sqlite3').Database | null = null;
 
+function ensureSqliteSchema(db: import('better-sqlite3').Database): void {
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS stats_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            url TEXT NOT NULL,
+            created_at INTEGER
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_stats_request_url
+        ON stats_requests (url);
+
+        CREATE TABLE IF NOT EXISTS visitor_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            ip_hash TEXT NOT NULL,
+            visit_date TEXT NOT NULL,
+            created_at INTEGER
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_visitor_log
+        ON visitor_logs (username, ip_hash, visit_date);
+
+        CREATE TABLE IF NOT EXISTS badges (
+            username TEXT PRIMARY KEY,
+            visitors INTEGER NOT NULL DEFAULT 0,
+            repositories INTEGER,
+            organization INTEGER,
+            languages INTEGER,
+            followers INTEGER,
+            total_stars INTEGER,
+            total_contributors INTEGER,
+            total_commits INTEGER,
+            total_code_reviews INTEGER,
+            total_issues INTEGER,
+            total_pull_requests INTEGER,
+            total_joined_years INTEGER,
+            updated_at INTEGER
+        );
+    `);
+}
+
 function getRequiredCloudflareConfig() {
     const env = getEnv();
     const accountId = env.CLOUDFLARE_ACCOUNT_ID;
@@ -142,11 +184,11 @@ export function initializeDatabase() {
 
         return cloudflareDbInstance;
     }
-    
+
     if (!sqliteInstance) {
         throw new Error('SQLite initialization must use initializeDatabaseAsync()');
     }
-    
+
     return dbInstance;
 }
 
@@ -171,19 +213,20 @@ export async function initializeDatabaseAsync() {
 
         const Database = sqliteModule.default;
         sqliteInstance = new Database(env.DATABASE_URL);
-        
+
         // Enable WAL mode for better concurrent access
         sqliteInstance.pragma('journal_mode = WAL');
-        
+        ensureSqliteSchema(sqliteInstance);
+
         // Initialize Drizzle ORM
         dbInstance = drizzle(sqliteInstance, { schema });
 
         // Populate the shared db proxy so service imports work on the Node.js path
         setDb(dbInstance as any);
-        
+
         console.log(`✅ Database connected: ${env.DATABASE_URL}`);
     }
-    
+
     return dbInstance;
 }
 

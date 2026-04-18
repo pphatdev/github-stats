@@ -15,6 +15,12 @@ Build:
 docker build -f Dockerfile -t github-stats:node .
 ```
 
+Compose:
+
+```bash
+docker compose up --build
+```
+
 Run:
 
 ```bash
@@ -45,10 +51,22 @@ View logs:
 docker logs -f github-stats
 ```
 
+Compose logs:
+
+```bash
+docker compose logs -f
+```
+
 Stop and remove:
 
 ```bash
 docker rm -f github-stats
+```
+
+Compose stop:
+
+```bash
+docker compose down
 ```
 
 ## Important Environment Variables
@@ -128,6 +146,19 @@ Or with Docker Compose:
 docker compose pull
 docker compose up -d --force-recreate
 ```
+
+The repository includes a `compose.yaml` for local development and self-hosting. It starts:
+
+- `app`: the Node.js API built from the local `Dockerfile`
+- `redis`: a local Redis 7 instance for cache storage
+
+The compose setup also forces local-safe defaults that differ from the Cloudflare deployment path:
+
+- `DATABASE_PROVIDER=sqlite`
+- `DATABASE_URL=/app/data/stats.db`
+- `REDIS_HOST=redis`
+
+If you have a `.env` file with a `GITHUB_TOKEN`, Docker Compose will pass it through to the app container.
 
 ## Notes
 
