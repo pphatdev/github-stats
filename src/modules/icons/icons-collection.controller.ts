@@ -369,6 +369,9 @@ export class IconsCollectionController {
                 return;
             }
 
+            // Normalize icon names to lowercase for case-insensitive file lookup
+            const normalizedIconNames = iconNames.map((name) => name.toLowerCase());
+
             if (invalidColors.length > 0) {
                 res.status(400).json({
                     error: 'Invalid color parameter',
@@ -403,32 +406,30 @@ export class IconsCollectionController {
                 return;
             }
 
-            const missingIcons = (
+            const resolvedIconNames = (
                 await Promise.all(
-                    iconNames.map(async (iconName) => {
+                    normalizedIconNames.map(async (iconName) => {
                         try {
                             await fs.access(
                                 path.resolve(IconsCollectionController.iconsDir, `${iconName}.svg`),
                             );
-                            return null;
-                        } catch {
                             return iconName;
+                        } catch {
+                            return null;
                         }
                     }),
                 )
             ).filter((iconName): iconName is string => Boolean(iconName));
 
-            if (missingIcons.length > 0) {
-                res.status(404).json({
-                    error: 'Icon not found',
-                    missing_icons: missingIcons,
-                    available_icons: '/icons',
-                });
+            if (resolvedIconNames.length === 0) {
+                res.status(200).setHeader('Content-Type', 'image/svg+xml').send(
+                    '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="0" height="0"/>',
+                );
                 return;
             }
 
             const cacheKey = IconsCollectionController.generateCollectionCacheKey(
-                iconNames,
+                resolvedIconNames,
                 colors,
                 size,
                 effect,
@@ -448,7 +449,7 @@ export class IconsCollectionController {
             }
 
             const svgContent = await IconsCollectionController.buildIconsCollectionSvg(
-                iconNames,
+                resolvedIconNames,
                 colors,
                 size,
                 effect,
