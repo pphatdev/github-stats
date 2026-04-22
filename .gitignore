@@ -23,5 +23,4 @@ Thumbs.db
 
 # Bun
 .bun/
-.vercel
 .env*.local

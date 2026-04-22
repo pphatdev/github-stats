@@ -6,7 +6,6 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "vercel-build": "echo 'Vercel compiles TypeScript at runtime — no pre-build needed'",
     "dev": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/index.ts",
     "dev:modular": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/server.ts",
     "start": "node dist/server-cluster.js",
