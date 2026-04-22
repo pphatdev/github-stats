@@ -14,13 +14,16 @@ Create beautiful GitHub stats cards, badges, icons, and contribution graphs that
 
 Docker build guide: [docs/docker-build.md](docs/docker-build.md)
 
-> **For Load balance**
->- [https://stats.pphat.top](https://stats.pphat.top) by [@pphatdev](https://github.com/pphatdev)
->- [https://stats.sophat.top](https://stats.sophat.top) by [@pphatdev](https://github.com/pphatdev)
->- [https://stats1.pphat.top](https://stats1.pphat.top) by [@L-Sophat](https://github.com/L-Sophat) (Up time only: 08:00AM->14:00PM)
->- [https://github-stats-3hu8.onrender.com](https://github-stats-3hu8.onrender.com) by [@pphatdev](https://github.com/pphatdev)
->- [https://githubstats.up.railway.app](https://githubstats.up.railway.app) by [@L-Sophat](https://github.com/L-Sophat)
->
+## 🛜 For Load balance
+
+|Domain|Owner|Notes|
+|---|---|---|
+|https://stats.pphat.top|[@pphatdev](https://github.com/pphatdev)|Primary|
+|https://stats.sophat.top|[@pphatdev](https://github.com/pphatdev)|Secondary|
+|https://stats1.pphat.top|[@L-Sophat](https://github.com/L-Sophat)|Secondary Up time only: `08:00AM->14:00PM`​|
+|https://github-stats-3hu8.onrender.com|[@pphatdev](https://github.com/pphatdev)|Secondary|
+|https://githubstats.up.railway.app|[@L-Sophat](https://github.com/L-Sophat)|Secondary|
+
 
 # 🌟 Examples Icons Usage
 
