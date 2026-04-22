@@ -42,7 +42,7 @@
   "dependencies": {
     "@octokit/rest": "^20.0.2",
     "@resvg/resvg-js": "^2.6.2",
-    "@vercel/node": "^5.7.4",
+    "@vercel/node": "^6.0.0",
     "better-sqlite3": "^12.6.2",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
