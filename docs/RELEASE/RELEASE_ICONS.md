@@ -159,7 +159,6 @@ Create a professional technology stack section:
 ### DevOps
 ![Docker](https://stats.pphat.top/icons/docker?color=%232496ED&glow=true&glowColor=%232496ED)
 ![GitHub Actions](https://stats.pphat.top/icons/githubactions?color=%232088FF&glow=true&glowColor=%232088FF)
-![Vercel](https://stats.pphat.top/icons/vercel?color=white&glow=true&glowColor=white)
 ```
 
 ### Compact Icon Grid
