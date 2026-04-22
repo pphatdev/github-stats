@@ -20,7 +20,7 @@ Docker build guide: [docs/docker-build.md](docs/docker-build.md)
 |---|---|---|
 |https://stats.pphat.top|[@pphatdev](https://github.com/pphatdev)|Primary|
 |https://stats.sophat.top|[@pphatdev](https://github.com/pphatdev)|Secondary|
-|https://stats1.pphat.top|[@L-Sophat](https://github.com/L-Sophat)|Secondary Up time only: `08:00AM->14:00PM`​|
+|https://stats1.pphat.top|[@L-Sophat](https://github.com/L-Sophat)|Secondary Up time only: `08:00AM -> 05:00PM` Phnom Penh|
 |https://github-stats-3hu8.onrender.com|[@pphatdev](https://github.com/pphatdev)|Secondary|
 |https://githubstats.up.railway.app|[@L-Sophat](https://github.com/L-Sophat)|Secondary|
 
