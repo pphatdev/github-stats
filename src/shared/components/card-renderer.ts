@@ -8,12 +8,12 @@ export class CardRenderer {
 
     // Reusable static values
     // Reusable static values
-    static readonly DIMENSIONS = { WIDTH: 512, HEIGHT: 256 };
+    static readonly DIMENSIONS = { WIDTH: 800, HEIGHT: 400 };
     private static readonly SIZE_PRESETS: Record<string, { WIDTH: number; HEIGHT: number }> = {
         small: { WIDTH: 400, HEIGHT: 200 },
         medium: { WIDTH: 600, HEIGHT: 300 },
-        default: { WIDTH: 512, HEIGHT: 256 },
-        large: { WIDTH: 1000, HEIGHT: 500 },
+        default: { WIDTH: 800, HEIGHT: 400 },
+        large: { WIDTH: 1200, HEIGHT: 600 },
     };
     static readonly ORBIT_RADII = [120, 180, 240];
     static readonly STAT_ANGLES = [0, 72, 144, 216, 288];

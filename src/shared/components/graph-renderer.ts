@@ -5,14 +5,14 @@ export class GraphRenderer {
     private static readonly STARFIELD_CACHE = new Map<string, string>();
     private static readonly COLOR_CACHE = new Map<string, string>();
 
-    static readonly DIMENSIONS = { WIDTH: 512, HEIGHT: 256 };
+    static readonly DIMENSIONS = { WIDTH: 800, HEIGHT: 400 };
 
     // Allocated once — not re-created per generateGraphCard call
     private static readonly SIZE_PRESETS: Record<string, { WIDTH: number; HEIGHT: number }> = {
         small: { WIDTH: 400, HEIGHT: 200 },
         medium: { WIDTH: 600, HEIGHT: 300 },
-        default: { WIDTH: 512, HEIGHT: 256 },
-        large: { WIDTH: 1000, HEIGHT: 500 },
+        default: { WIDTH: 800, HEIGHT: 400 },
+        large: { WIDTH: 1200, HEIGHT: 600 },
     };
     private static readonly MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
 
