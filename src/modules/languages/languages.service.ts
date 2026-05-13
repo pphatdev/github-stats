@@ -67,6 +67,7 @@ export class LanguagesService {
             theme: params.theme || 'default',
             showInfo: params.show_info !== 'false',
             dataBorderStyle: params.info_outline === 'frame' ? 'frame' : 'solid',
+            size: params.size,
         });
     }
 
@@ -76,6 +77,7 @@ export class LanguagesService {
     private generatePieChart(languages: LanguageCount[], params: LanguageQueryParams): string {
         return LanguagePieChartRenderer.generatePieChart(languages, {
             theme: params.theme || 'default',
+            size: params.size,
         });
     }
 

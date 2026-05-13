@@ -98,12 +98,7 @@ export class GraphsService {
      */
     async convertToPng(svg: string): Promise<Buffer> {
         const Resvg = await getResvg();
-        const resvg = new Resvg(svg, {
-            fitTo: {
-                mode: 'width',
-                value: 1000,
-            },
-        });
+        const resvg = new Resvg(svg);
 
         const pngData = resvg.render();
         return pngData.asPng();

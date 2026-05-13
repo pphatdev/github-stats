@@ -7,7 +7,14 @@ export class CardRenderer {
     private static readonly STARFIELD_CACHE = new Map<string, string>();
 
     // Reusable static values
-    static readonly DIMENSIONS = { WIDTH: 1200, HEIGHT: 600 };
+    // Reusable static values
+    static readonly DIMENSIONS = { WIDTH: 512, HEIGHT: 256 };
+    private static readonly SIZE_PRESETS: Record<string, { WIDTH: number; HEIGHT: number }> = {
+        small: { WIDTH: 400, HEIGHT: 200 },
+        medium: { WIDTH: 600, HEIGHT: 300 },
+        default: { WIDTH: 512, HEIGHT: 256 },
+        large: { WIDTH: 1000, HEIGHT: 500 },
+    };
     static readonly ORBIT_RADII = [120, 180, 240];
     static readonly STAT_ANGLES = [0, 72, 144, 216, 288];
 
@@ -76,10 +83,15 @@ export class CardRenderer {
         const avatarMode = options.avatarMode || 'radar';
         const customTitle = options.customTitle || `${stats.name}'s GitHub Stats`;
 
-        const width = this.DIMENSIONS.WIDTH;
-        const height = this.DIMENSIONS.HEIGHT;
+        const { WIDTH: width, HEIGHT: height } =
+            CardRenderer.SIZE_PRESETS[options.size ?? 'default'] ?? CardRenderer.SIZE_PRESETS.default;
+
+        const scale = width / 1200;
         const centerX = width / 2;
         const centerY = height / 2;
+
+        const s = (n: number) => n * scale;
+        const si = (n: number) => Math.round(n * scale);
 
         // Use cached starfield
         const stars = this.getStarfield(width, height, theme.textColor);
@@ -90,7 +102,7 @@ export class CardRenderer {
         // Generate orbital rings
         const orbitRings = this.ORBIT_RADII.map((r, i) => {
             const opacity = (0.15 - i * 0.03).toFixed(2);
-            return `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="${theme.iconColor}" stroke-width="1" stroke-dasharray="10,8" opacity="${opacity}"/>`;
+            return `<circle cx="${centerX}" cy="${centerY}" r="${s(r).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(1).toFixed(1)}" stroke-dasharray="${s(10).toFixed(1)},${s(8).toFixed(1)}" opacity="${opacity}"/>`;
         }).join('');
 
         // Generate data beams radiating from center
@@ -107,17 +119,17 @@ export class CardRenderer {
         const dataBeams = statValues.map((stat, i) => {
             const angle = (stat.angle * Math.PI) / 180;
             const intensity = maxValue > 0 ? stat.value / maxValue : 0;
-            const beamLength = 100 + (intensity * 140);
+            const beamLength = s(100 + (intensity * 140));
             const endX = centerX + Math.cos(angle) * beamLength;
             const endY = centerY + Math.sin(angle) * beamLength;
-            const dotX = centerX + Math.cos(angle) * (beamLength + 20);
-            const dotY = centerY + Math.sin(angle) * (beamLength + 20);
-            const labelX = centerX + Math.cos(angle) * (beamLength + 60);
-            const labelY = centerY + Math.sin(angle) * (beamLength + 60);
-            const labelYTop = labelY - 12;
-            const labelYBottom = labelY + 6;
+            const dotX = centerX + Math.cos(angle) * (beamLength + s(20));
+            const dotY = centerY + Math.sin(angle) * (beamLength + s(20));
+            const labelX = centerX + Math.cos(angle) * (beamLength + s(60));
+            const labelY = centerY + Math.sin(angle) * (beamLength + s(60));
+            const labelYTop = labelY - s(12);
+            const labelYBottom = labelY + s(6);
 
-            return `<line x1="${centerX}" y1="${centerY}" x2="${endX.toFixed(1)}" y2="${endY.toFixed(1)}" stroke="url(#beamGradient${i})" stroke-width="2" opacity="0.6"/><circle cx="${dotX.toFixed(1)}" cy="${dotY.toFixed(1)}" r="6" fill="${theme.iconColor}" filter="url(#glow)"/><text x="${labelX.toFixed(1)}" y="${labelYTop.toFixed(1)}" text-anchor="middle" fill="${theme.iconColor}" font-size="11" font-weight="600">${stat.label}</text><text x="${labelX.toFixed(1)}" y="${labelYBottom.toFixed(1)}" text-anchor="middle" fill="${theme.textColor}" font-size="20" font-weight="700" class="number">${CardRenderer.formatNumber(stat.value)}</text>`;
+            return `<line x1="${centerX}" y1="${centerY}" x2="${endX.toFixed(1)}" y2="${endY.toFixed(1)}" stroke="url(#beamGradient${i})" stroke-width="${s(2).toFixed(1)}" opacity="0.6"/><circle cx="${dotX.toFixed(1)}" cy="${dotY.toFixed(1)}" r="${s(6).toFixed(1)}" fill="${theme.iconColor}" filter="url(#glow)"/><text x="${labelX.toFixed(1)}" y="${labelYTop.toFixed(1)}" text-anchor="middle" fill="${theme.iconColor}" font-size="${si(11)}" font-weight="600">${stat.label}</text><text x="${labelX.toFixed(1)}" y="${labelYBottom.toFixed(1)}" text-anchor="middle" fill="${theme.textColor}" font-size="${si(20)}" font-weight="700" class="number">${CardRenderer.formatNumber(stat.value)}</text>`;
         }).join('');
 
         // Corner info panels
@@ -199,7 +211,7 @@ export class CardRenderer {
 
                 <!-- Circular mask for avatar -->
                 <clipPath id="avatarClip">
-                    <circle cx="${centerX}" cy="${centerY}" r="65"/>
+                    <circle cx="${centerX}" cy="${centerY}" r="${s(65).toFixed(1)}"/>
                 </clipPath>
             </defs>
 
@@ -233,6 +245,7 @@ export class CardRenderer {
                 .fade-in {
                     animation: fadeIn 3s ease-out forwards;
                 }
+                .number { font-variant-numeric: tabular-nums; }
             </style>
 
             <!-- Space background -->
@@ -261,11 +274,11 @@ export class CardRenderer {
             <g opacity="0.1">
                 ${Array.from({ length: 12 }, (_, i) => {
             const x = ((i + 1) * (width / 12)) | 0;
-            return `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
+            return `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="${theme.iconColor}" stroke-width="${s(0.5).toFixed(2)}"/>`;
         }).join('')}
                 ${Array.from({ length: 6 }, (_, i) => {
             const y = ((i + 1) * (height / 6)) | 0;
-            return `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="${theme.iconColor}" stroke-width="0.5"/>`;
+            return `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="${theme.iconColor}" stroke-width="${s(0.5).toFixed(2)}"/>`;
         }).join('')}
             </g>
 
@@ -308,130 +321,130 @@ export class CardRenderer {
                 </defs>
                 
                 <!-- Radar background circle -->
-                <circle cx="${centerX}" cy="${centerY}" r="65" fill="url(#radarBg)" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.8" filter="url(#radarGlow)" />
+                <circle cx="${centerX}" cy="${centerY}" r="${s(65).toFixed(1)}" fill="url(#radarBg)" stroke="${theme.iconColor}" stroke-width="${s(1.5).toFixed(1)}" opacity="0.8" filter="url(#radarGlow)" />
                 
                 <!-- Radar grid - concentric circles -->
-                <circle cx="${centerX}" cy="${centerY}" r="52" fill="none" stroke="${theme.iconColor}" stroke-width="0.6" opacity="0.4" />
-                <circle cx="${centerX}" cy="${centerY}" r="39" fill="none" stroke="${theme.iconColor}" stroke-width="0.6" opacity="0.4" />
-                <circle cx="${centerX}" cy="${centerY}" r="26" fill="none" stroke="${theme.iconColor}" stroke-width="0.6" opacity="0.4" />
-                <circle cx="${centerX}" cy="${centerY}" r="13" fill="none" stroke="${theme.iconColor}" stroke-width="0.6" opacity="0.4" />
+                <circle cx="${centerX}" cy="${centerY}" r="${s(52).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(0.6).toFixed(1)}" opacity="0.4" />
+                <circle cx="${centerX}" cy="${centerY}" r="${s(39).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(0.6).toFixed(1)}" opacity="0.4" />
+                <circle cx="${centerX}" cy="${centerY}" r="${s(26).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(0.6).toFixed(1)}" opacity="0.4" />
+                <circle cx="${centerX}" cy="${centerY}" r="${s(13).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(0.6).toFixed(1)}" opacity="0.4" />
                 
                 <!-- Radar grid - radial lines -->
-                <line x1="${centerX}" y1="${centerY - 65}" x2="${centerX}" y2="${centerY + 65}" stroke="${theme.iconColor}" stroke-width="0.5" opacity="0.3" />
-                <line x1="${centerX - 65}" y1="${centerY}" x2="${centerX + 65}" y2="${centerY}" stroke="${theme.iconColor}" stroke-width="0.5" opacity="0.3" />
-                <line x1="${centerX - 46}" y1="${centerY - 46}" x2="${centerX + 46}" y2="${centerY + 46}" stroke="${theme.iconColor}" stroke-width="0.4" opacity="0.2" />
-                <line x1="${centerX + 46}" y1="${centerY - 46}" x2="${centerX - 46}" y2="${centerY + 46}" stroke="${theme.iconColor}" stroke-width="0.4" opacity="0.2" />
+                <line x1="${centerX}" y1="${centerY - s(65)}" x2="${centerX}" y2="${centerY + s(65)}" stroke="${theme.iconColor}" stroke-width="${s(0.5).toFixed(1)}" opacity="0.3" />
+                <line x1="${centerX - s(65)}" y1="${centerY}" x2="${centerX + s(65)}" y2="${centerY}" stroke="${theme.iconColor}" stroke-width="${s(0.5).toFixed(1)}" opacity="0.3" />
+                <line x1="${centerX - s(46)}" y1="${centerY - s(46)}" x2="${centerX + s(46)}" y2="${centerY + s(46)}" stroke="${theme.iconColor}" stroke-width="${s(0.4).toFixed(1)}" opacity="0.2" />
+                <line x1="${centerX + s(46)}" y1="${centerY - s(46)}" x2="${centerX - s(46)}" y2="${centerY + s(46)}" stroke="${theme.iconColor}" stroke-width="${s(0.4).toFixed(1)}" opacity="0.2" />
                 
                 <!-- Rotating radar sweep line -->
                 <g style="animation: rotate 4s linear infinite; transform-origin: ${centerX}px ${centerY}px;">
-                    <path d="M ${centerX} ${centerY} L ${centerX} ${centerY - 65}" stroke="${theme.iconColor}" stroke-width="1.5" opacity="0.8" filter="url(#radarGlow)" />
+                    <path d="M ${centerX} ${centerY} L ${centerX} ${centerY - s(65)}" stroke="${theme.iconColor}" stroke-width="${s(1.5).toFixed(1)}" opacity="0.8" filter="url(#radarGlow)" />
                     <!-- Sweep gradient tail -->
-                    <path d="M ${centerX} ${centerY} L ${centerX - 15} ${centerY - 62}" stroke="${theme.iconColor}" stroke-width="1" opacity="0.4" />
-                    <path d="M ${centerX} ${centerY} L ${centerX + 15} ${centerY - 62}" stroke="${theme.iconColor}" stroke-width="1" opacity="0.4" />
+                    <path d="M ${centerX} ${centerY} L ${centerX - s(15)} ${centerY - s(62)}" stroke="${theme.iconColor}" stroke-width="${s(1).toFixed(1)}" opacity="0.4" />
+                    <path d="M ${centerX} ${centerY} L ${centerX + s(15)} ${centerY - s(62)}" stroke="${theme.iconColor}" stroke-width="${s(1).toFixed(1)}" opacity="0.4" />
                 </g>
                 
                 <!-- Radar blips (data points) -->
                 <g fill="${theme.iconColor}" filter="url(#radarGlow)">
-                    <circle cx="${centerX - 20}" cy="${centerY - 30}" r="1.8" opacity="0.9" />
-                    <circle cx="${centerX + 25}" cy="${centerY - 15}" r="1.5" opacity="0.8" />
-                    <circle cx="${centerX + 15}" cy="${centerY + 35}" r="2" opacity="0.85" />
-                    <circle cx="${centerX - 35}" cy="${centerY + 10}" r="1.6" opacity="0.8" />
-                    <circle cx="${centerX - 10}" cy="${centerY - 50}" r="1.9" opacity="0.9" />
-                    <circle cx="${centerX + 35}" cy="${centerY + 20}" r="1.7" opacity="0.85" />
+                    <circle cx="${centerX - s(20)}" cy="${centerY - s(30)}" r="${s(1.8).toFixed(1)}" opacity="0.9" />
+                    <circle cx="${centerX + s(25)}" cy="${centerY - s(15)}" r="${s(1.5).toFixed(1)}" opacity="0.8" />
+                    <circle cx="${centerX + s(15)}" cy="${centerY + s(35)}" r="${s(2).toFixed(1)}" opacity="0.85" />
+                    <circle cx="${centerX - s(35)}" cy="${centerY + s(10)}" r="${s(1.6).toFixed(1)}" opacity="0.8" />
+                    <circle cx="${centerX - s(10)}" cy="${centerY - s(50)}" r="${s(1.9).toFixed(1)}" opacity="0.9" />
+                    <circle cx="${centerX + s(35)}" cy="${centerY + s(20)}" r="${s(1.7).toFixed(1)}" opacity="0.85" />
                 </g>
 
                 <!-- Pulsing center dot -->
-                <circle cx="${centerX}" cy="${centerY}" r="2.5" fill="${theme.iconColor}" filter="url(#radarGlow)">
-                    <animate attributeName="r" values="2.5;3.5;2.5" dur="1.5s" repeatCount="indefinite"/>
+                <circle cx="${centerX}" cy="${centerY}" r="${s(2.5).toFixed(1)}" fill="${theme.iconColor}" filter="url(#radarGlow)">
+                    <animate attributeName="r" values="${s(2.5).toFixed(1)};${s(3.5).toFixed(1)};${s(2.5).toFixed(1)}" dur="1.5s" repeatCount="indefinite"/>
                     <animate attributeName="opacity" values="1;0.6;1" dur="1.5s" repeatCount="indefinite"/>
                 </circle>
 
                 <!-- Atmospheric glow -->
-                <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="${theme.iconColor}" stroke-width="1" opacity="0.2" />
-                <circle cx="${centerX}" cy="${centerY}" r="75" fill="none" stroke="${theme.iconColor}" stroke-width="0.8" opacity="0.1" stroke-dasharray="3,3" />
+                <circle cx="${centerX}" cy="${centerY}" r="${s(70).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(1).toFixed(1)}" opacity="0.2" />
+                <circle cx="${centerX}" cy="${centerY}" r="${s(75).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(0.8).toFixed(1)}" opacity="0.1" stroke-dasharray="${s(3).toFixed(1)},${s(3).toFixed(1)}" />
 
                 <!-- Ping animation rings -->
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite" begin="1.67s"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite" begin="1.67s"/></circle>
-                <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite" begin="3.33s"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite" begin="3.33s"/></circle>
+                <circle cx="${centerX}" cy="${centerY}" r="${s(80).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(2).toFixed(1)}" opacity="0"><animate attributeName="r" values="${s(80).toFixed(1)};${s(150).toFixed(1)};${s(220).toFixed(1)}" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
+                <circle cx="${centerX}" cy="${centerY}" r="${s(80).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(2).toFixed(1)}" opacity="0"><animate attributeName="r" values="${s(80).toFixed(1)};${s(150).toFixed(1)};${s(220).toFixed(1)}" dur="5s" repeatCount="indefinite" begin="1.67s"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite" begin="1.67s"/></circle>
+                <circle cx="${centerX}" cy="${centerY}" r="${s(80).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(2).toFixed(1)}" opacity="0"><animate attributeName="r" values="${s(80).toFixed(1)};${s(150).toFixed(1)};${s(220).toFixed(1)}" dur="5s" repeatCount="indefinite" begin="3.33s"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite" begin="3.33s"/></circle>
                 ` : `
                 <!-- Solid sphere with background -->
-                    <circle cx="${centerX}" cy="${centerY}" r="65" fill="none" stroke="${theme.iconColor}" stroke-width="3" opacity="0.8" />
-                    <circle cx="${centerX}" cy="${centerY}" r="70" fill="none" stroke="${theme.iconColor}" stroke-width="1" opacity="0.5" stroke-dasharray="4,2" />
-                    <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0.3" />
-                    <circle cx="${centerX}" cy="${centerY}" r="60" fill="${theme.iconColor}" opacity="0.3" />
-                    <circle cx="${centerX}" cy="${centerY}" r="65" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0.1" />
+                    <circle cx="${centerX}" cy="${centerY}" r="${s(65).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(3).toFixed(1)}" opacity="0.8" />
+                    <circle cx="${centerX}" cy="${centerY}" r="${s(70).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(1).toFixed(1)}" opacity="0.5" stroke-dasharray="${s(4).toFixed(1)},${s(2).toFixed(1)}" />
+                    <circle cx="${centerX}" cy="${centerY}" r="${s(80).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(2).toFixed(1)}" opacity="0.3" />
+                    <circle cx="${centerX}" cy="${centerY}" r="${s(60).toFixed(1)}" fill="${theme.iconColor}" opacity="0.3" />
+                    <circle cx="${centerX}" cy="${centerY}" r="${s(65).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(2).toFixed(1)}" opacity="0.1" />
 
                     <!-- Ping animation rings -->
-                    <circle cx="${centerX}" cy="${centerY}" r="80" fill="none" stroke="${theme.iconColor}" stroke-width="2" opacity="0"><animate attributeName="r" values="80;150;220" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
+                    <circle cx="${centerX}" cy="${centerY}" r="${s(80).toFixed(1)}" fill="none" stroke="${theme.iconColor}" stroke-width="${s(2).toFixed(1)}" opacity="0"><animate attributeName="r" values="${s(80).toFixed(1)};${s(150).toFixed(1)};${s(220).toFixed(1)}" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.3;0" dur="5s" repeatCount="indefinite"/></circle>
                 `}
             </g>
 
             <!-- Top left panel - User info -->
             ${!options.hideTitle ? `
-            <g transform="translate(40, 40)">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8" />
-                ${showDataBorderFrame ? this.renderFrameCorners(280, 120, dataBorderFrameOffset, theme.iconColor) : ''}
-                <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
+            <g transform="translate(${s(40)}, ${s(40)})">
+                <rect width="${s(280)}" height="${s(120)}" rx="${s(8)}" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="${s(1).toFixed(1)}" opacity="0.8" />
+                ${showDataBorderFrame ? this.renderFrameCorners(s(280), s(120), s(dataBorderFrameOffset), theme.iconColor) : ''}
+                <line x1="0" y1="${s(35)}" x2="${s(280)}" y2="${s(35)}" stroke="${theme.iconColor}" stroke-width="${s(1).toFixed(1)}" opacity="0.3" />
 
-                <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">${customTitle}</text>
-                <text x="15" y="55" fill="${theme.borderColor}" font-size="11" font-weight="500">TOTAL CONTRIBUTIONS</text>
-                <text x="15" y="85" fill="${theme.textColor}" font-size="32" font-weight="700"  class="number" filter="url(#glow)">${CardRenderer.formatNumber(totalContributions)}</text>
-                <text x="15" y="108" fill="${theme.iconColor}" font-size="10" opacity="0.7">Last synchronized: ${syncTime}</text>
+                <text x="${s(15)}" y="${s(25)}" fill="${theme.titleColor}" font-size="${si(14)}" font-weight="600" letter-spacing="${s(1).toFixed(1)}">${customTitle}</text>
+                <text x="${s(15)}" y="${s(55)}" fill="${theme.borderColor}" font-size="${si(11)}" font-weight="500">TOTAL CONTRIBUTIONS</text>
+                <text x="${s(15)}" y="${s(85)}" fill="${theme.textColor}" font-size="${si(32)}" font-weight="700"  class="number" filter="url(#glow)">${CardRenderer.formatNumber(totalContributions)}</text>
+                <text x="${s(15)}" y="${s(108)}" fill="${theme.iconColor}" font-size="${si(10)}" opacity="0.7">Last synchronized: ${syncTime}</text>
             </g>
             ` : ''}
 
             <!-- Top right panel - Rank -->
             ${!options.hideRank && stats.rank ? `
-            <g transform="translate(${width - 320}, 40)">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8"/>
-                ${showDataBorderFrame ? this.renderFrameCorners(280, 120, dataBorderFrameOffset, theme.iconColor) : ''}
-                <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3"/>
+            <g transform="translate(${width - s(320)}, ${s(40)})">
+                <rect width="${s(280)}" height="${s(120)}" rx="${s(8)}" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="${s(1).toFixed(1)}" opacity="0.8"/>
+                ${showDataBorderFrame ? this.renderFrameCorners(s(280), s(120), s(dataBorderFrameOffset), theme.iconColor) : ''}
+                <line x1="0" y1="${s(35)}" x2="${s(280)}" y2="${s(35)}" stroke="${theme.iconColor}" stroke-width="${s(1).toFixed(1)}" opacity="0.3"/>
 
-                <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">DEVELOPER RANK</text>
+                <text x="${s(15)}" y="${s(25)}" fill="${theme.titleColor}" font-size="${si(14)}" font-weight="600" letter-spacing="${s(1).toFixed(1)}">DEVELOPER RANK</text>
 
-                <text x="15" y="85" fill="${theme.textColor}" font-size="48" font-weight="700" filter="url(#glow)" class="number">${stats.rank.level}</text>
-                <text x="85" y="60" fill="${theme.borderColor}" font-size="11" font-weight="500">SCORE</text>
-                <text x="85" y="85" fill="${theme.iconColor}" font-size="24" font-weight="600" class="number" opacity="0.8">${stats.rank.score.toFixed(1)}</text>
-                <text x="15" y="108" fill="${theme.borderColor}" font-size="10">Based on contribution metrics</text>
+                <text x="${s(15)}" y="${s(85)}" fill="${theme.textColor}" font-size="${si(48)}" font-weight="700" filter="url(#glow)" class="number">${stats.rank.level}</text>
+                <text x="${s(85)}" y="${s(60)}" fill="${theme.borderColor}" font-size="${si(11)}" font-weight="500">SCORE</text>
+                <text x="${s(85)}" y="${s(85)}" fill="${theme.iconColor}" font-size="${si(24)}" font-weight="600" class="number" opacity="0.8">${stats.rank.score.toFixed(1)}</text>
+                <text x="${s(15)}" y="${s(108)}" fill="${theme.borderColor}" font-size="${si(10)}">Based on contribution metrics</text>
             </g>
             ` : ''}
 
             <!-- Bottom left panel - Activity -->
-            <g transform="translate(40, ${height - 160})">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8" />
-                ${showDataBorderFrame ? this.renderFrameCorners(280, 120, dataBorderFrameOffset, theme.iconColor) : ''}
-                <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
+            <g transform="translate(${s(40)}, ${height - s(160)})">
+                <rect width="${s(280)}" height="${s(120)}" rx="${s(8)}" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="${s(1).toFixed(1)}" opacity="0.8" />
+                ${showDataBorderFrame ? this.renderFrameCorners(s(280), s(120), s(dataBorderFrameOffset), theme.iconColor) : ''}
+                <line x1="0" y1="${s(35)}" x2="${s(280)}" y2="${s(35)}" stroke="${theme.iconColor}" stroke-width="${s(1).toFixed(1)}" opacity="0.3" />
 
-                <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">REPOSITORY ACTIVITY</text>
+                <text x="${s(15)}" y="${s(25)}" fill="${theme.titleColor}" font-size="${si(14)}" font-weight="600" letter-spacing="${s(1).toFixed(1)}">REPOSITORY ACTIVITY</text>
 
-                <text x="15" y="60" fill="${theme.borderColor}" font-size="10">Pull Requests</text>
-                <text x="200" y="60" fill="${theme.textColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${CardRenderer.formatNumber(stats.totalPRs)}</text>
-                <text x="15" y="82" fill="${theme.borderColor}" font-size="10">Issues</text>
-                <text x="200" y="82" fill="${theme.textColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${CardRenderer.formatNumber(stats.totalIssues)}</text>
-                <text x="15" y="104" fill="${theme.borderColor}" font-size="10">Contributed To</text>
-                <text x="200" y="104" fill="${theme.iconColor}" font-size="16" font-weight="600" class="number" text-anchor="end">${CardRenderer.formatNumber(stats.contributedTo)}</text>
+                <text x="${s(15)}" y="${s(60)}" fill="${theme.borderColor}" font-size="${si(10)}">Pull Requests</text>
+                <text x="${s(200)}" y="${s(60)}" fill="${theme.textColor}" font-size="${si(16)}" font-weight="600" class="number" text-anchor="end">${CardRenderer.formatNumber(stats.totalPRs)}</text>
+                <text x="${s(15)}" y="${s(82)}" fill="${theme.borderColor}" font-size="${si(10)}">Issues</text>
+                <text x="${s(200)}" y="${s(82)}" fill="${theme.textColor}" font-size="${si(16)}" font-weight="600" class="number" text-anchor="end">${CardRenderer.formatNumber(stats.totalIssues)}</text>
+                <text x="${s(15)}" y="${s(104)}" fill="${theme.borderColor}" font-size="${si(10)}">Contributed To</text>
+                <text x="${s(200)}" y="${s(104)}" fill="${theme.iconColor}" font-size="${si(16)}" font-weight="600" class="number" text-anchor="end">${CardRenderer.formatNumber(stats.contributedTo)}</text>
             </g>
 
             <!-- Bottom right panel - Terminal style data stream -->
-            <g transform="translate(${width - 320}, ${height - 160})">
-                <rect width="280" height="120" rx="8" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="1" opacity="0.8" />
-                ${showDataBorderFrame ? this.renderFrameCorners(280, 120, dataBorderFrameOffset, theme.iconColor) : ''}
-                <line x1="0" y1="35" x2="280" y2="35" stroke="${theme.iconColor}" stroke-width="1" opacity="0.3" />
+            <g transform="translate(${width - s(320)}, ${height - s(160)})">
+                <rect width="${s(280)}" height="${s(120)}" rx="${s(8)}" fill="url(#panelGradient)" stroke="${showDataBorderStroke ? theme.iconColor : 'none'}" stroke-width="${s(1).toFixed(1)}" opacity="0.8" />
+                ${showDataBorderFrame ? this.renderFrameCorners(s(280), s(120), s(dataBorderFrameOffset), theme.iconColor) : ''}
+                <line x1="0" y1="${s(35)}" x2="${s(280)}" y2="${s(35)}" stroke="${theme.iconColor}" stroke-width="${s(1).toFixed(1)}" opacity="0.3" />
 
-                <text x="15" y="25" fill="${theme.titleColor}" font-size="14" font-weight="600" letter-spacing="1">DATA STREAM</text>
-                <text x="15" y="55" fill="${theme.iconColor}" font-size="9" opacity="0.8">> Analyzing contribution patterns...</text>
-                <text x="15" y="72" fill="${theme.iconColor}" font-size="9" opacity="0.7">> Processing ${stats.totalCommits} commits</text>
-                <text x="15" y="89" fill="${theme.iconColor}" font-size="9" opacity="0.6">> Stars collected: ${stats.totalStars}</text>
-                <text x="15" y="106" fill="${theme.titleColor}" font-size="9" opacity="0.5">> Status: ACTIVE_</text>
+                <text x="${s(15)}" y="${s(25)}" fill="${theme.titleColor}" font-size="${si(14)}" font-weight="600" letter-spacing="${s(1).toFixed(1)}">DATA STREAM</text>
+                <text x="${s(15)}" y="${s(55)}" fill="${theme.iconColor}" font-size="${si(9)}" opacity="0.8">> Analyzing contribution patterns...</text>
+                <text x="${s(15)}" y="${s(72)}" fill="${theme.iconColor}" font-size="${si(9)}" opacity="0.7">> Processing ${stats.totalCommits} commits</text>
+                <text x="${s(15)}" y="${s(89)}" fill="${theme.iconColor}" font-size="${si(9)}" opacity="0.6">> Stars collected: ${stats.totalStars}</text>
+                <text x="${s(15)}" y="${s(106)}" fill="${theme.titleColor}" font-size="${si(9)}" opacity="0.5">> Status: ACTIVE_</text>
             </g>
 
             <!-- Corner accents -->
-            <g stroke="${theme.iconColor}" stroke-width="2" fill="none" opacity="0.6">
-                <path d="M 20 20 L 20 50 M 20 20 L 50 20"/>
-                <path d="M ${width - 20} 20 L ${width - 20} 50 M ${width - 20} 20 L ${width - 50} 20"/>
-                <path d="M 20 ${height - 20} L 20 ${height - 50} M 20 ${height - 20} L 50 ${height - 20}"/>
-                <path d="M ${width - 20} ${height - 20} L ${width - 20} ${height - 50} M ${width - 20} ${height - 20} L ${width - 50} ${height - 20}"/>
+            <g stroke="${theme.iconColor}" stroke-width="${s(2).toFixed(1)}" fill="none" opacity="0.6">
+                <path d="M ${s(20)} ${s(20)} L ${s(20)} ${s(50)} M ${s(20)} ${s(20)} L ${s(50)} ${s(20)}"/>
+                <path d="M ${width - s(20)} ${s(20)} L ${width - s(20)} ${s(50)} M ${width - s(20)} ${s(20)} L ${width - s(50)} ${s(20)}"/>
+                <path d="M ${s(20)} ${height - s(20)} L ${s(20)} ${height - s(50)} M ${s(20)} ${height - s(20)} L ${s(50)} ${height - s(20)}"/>
+                <path d="M ${width - s(20)} ${height - s(20)} L ${width - s(20)} ${height - s(50)} M ${width - s(20)} ${height - s(20)} L ${width - s(50)} ${height - s(20)}"/>
             </g>
         </svg>
         `.trim();

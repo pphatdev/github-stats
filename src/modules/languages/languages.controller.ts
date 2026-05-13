@@ -19,7 +19,8 @@ export class LanguagesController {
             'type',
             'theme',
             'show_info',
-            'info_outline'
+            'info_outline',
+            'size'
         ],
         payload: null as null,
         example: '/languages?username=pphatdev&type=card&theme=default'
@@ -67,14 +68,15 @@ export class LanguagesController {
      * Parse query parameters
      */
     private parseQueryParams(req: Request): LanguageQueryParams {
-        const { username, type, theme, show_info, info_outline } = req.query;
+        const { username, type, theme, show_info, info_outline, size } = req.query;
 
         return {
             username: username as string,
             type: (type as any) || 'card',
             theme: (theme as string) || 'default',
             show_info: show_info as string,
-            info_outline: (info_outline as any) || 'solid'
+            info_outline: (info_outline as any) || 'solid',
+            size: size as any
         };
     }
 }

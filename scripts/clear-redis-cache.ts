@@ -3,6 +3,7 @@ import { getRedisClient, closeRedisClient, CACHE_KEYS } from '../src/shared/util
 import { db } from '../src/db/index.js';
 import { badges, visitorLogs } from '../src/db/schema.js';
 import { like, sql } from 'drizzle-orm';
+import { initializeDatabaseAsync } from '../src/shared/config/db.js';
 
 interface ClearOptions {
     pattern?: string;
@@ -70,9 +71,9 @@ async function clearDatabaseCache(options: ClearOptions): Promise<void> {
         // Get badges to update (preserve visitors count!)
         let badgeRecords: { username: string; visitors: number }[];
         if (isAllPattern) {
-            badgeRecords = db.select({ username: badges.username, visitors: badges.visitors }).from(badges).all();
+            badgeRecords = await db.select({ username: badges.username, visitors: badges.visitors }).from(badges).all();
         } else {
-            badgeRecords = db.select({ username: badges.username, visitors: badges.visitors }).from(badges)
+            badgeRecords = await db.select({ username: badges.username, visitors: badges.visitors }).from(badges)
                 .where(like(badges.username, sqlPattern)).all();
         }
 
@@ -112,10 +113,10 @@ async function clearDatabaseCache(options: ClearOptions): Promise<void> {
         if (includeLogs) {
             let logCount: number;
             if (isAllPattern) {
-                const countResult = db.select({ count: sql<number>`count(*)` }).from(visitorLogs).get();
+                const countResult = await db.select({ count: sql<number>`count(*)` }).from(visitorLogs).get();
                 logCount = countResult?.count ?? 0;
             } else {
-                const countResult = db.select({ count: sql<number>`count(*)` }).from(visitorLogs)
+                const countResult = await db.select({ count: sql<number>`count(*)` }).from(visitorLogs)
                     .where(like(visitorLogs.username, sqlPattern)).get();
                 logCount = countResult?.count ?? 0;
             }
@@ -144,6 +145,15 @@ async function clearDatabaseCache(options: ClearOptions): Promise<void> {
 
 async function clearCache(options: ClearOptions = {}): Promise<void> {
     const { redis = true, database = true, dryRun = false } = options;
+
+    if (database) {
+        try {
+            await initializeDatabaseAsync();
+        } catch (error) {
+            console.error('❌ Database Initialization Error:', error instanceof Error ? error.message : error);
+            process.exit(1);
+        }
+    }
 
     if (dryRun) {
         console.log('🔍 DRY RUN MODE - No data will be deleted\n');
@@ -273,4 +283,8 @@ if (options.help) {
 
 console.log('🧹 Cache Clear Script');
 console.log('═'.repeat(40));
-clearCache(options);
+
+clearCache(options).catch(err => {
+    console.error('Unhandled error:', err);
+    process.exit(1);
+});

@@ -111,10 +111,9 @@ export class StatsService {
             customTitle: params.custom_title,
             dataBorderStyle: params.data_border_style as 'solid' | 'frame' || 'solid',
             dataBorderFramePosition: params.data_border_frame as 'in' | 'out' || 'out',
-            bgColor: params.bgColor,
-            borderColor: params.borderColor,
             textColor: params.textColor,
-            titleColor: params.titleColor
+            titleColor: params.titleColor,
+            size: params.size
         };
 
         return CardRenderer.generateStatsCard(stats, options);

@@ -19,6 +19,7 @@ export interface StatsQueryParams {
     textColor?: string;
     titleColor?: string;
     format?: string;
+    size?: 'small' | 'medium' | 'large' | 'default';
 }
 
 export interface StatsCardOptions {
@@ -35,6 +36,7 @@ export interface StatsCardOptions {
     borderColor?: string;
     textColor?: string;
     titleColor?: string;
+    size?: 'small' | 'medium' | 'large' | 'default';
 }
 
 export interface StatsCache {

@@ -33,7 +33,7 @@ export interface GraphCardOptions extends ThemeOverrides {
     animate?: 'none' | 'glow' | 'wave' | 'pulse';
     /** Output format. Default: 'svg'. Use 'webp', 'png', or 'gif' for raster conversion. */
     as?: 'svg' | 'webp' | 'png' | 'gif';
-    /** Canvas size preset. 'default' = 1200×600, 'small' = 800×400, 'medium' = 1000×500, 'large' = 1400×700 */
+    /** Canvas size preset. All presets now default to 512×256. */
     size?: 'small' | 'medium' | 'large' | 'default';
     /** Show/hide the title (username + year). When false, content is centered. Default: true */
     show_title?: boolean;

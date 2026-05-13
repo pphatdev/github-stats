@@ -5,14 +5,14 @@ export class GraphRenderer {
     private static readonly STARFIELD_CACHE = new Map<string, string>();
     private static readonly COLOR_CACHE = new Map<string, string>();
 
-    static readonly DIMENSIONS = { WIDTH: 1200, HEIGHT: 600 };
+    static readonly DIMENSIONS = { WIDTH: 512, HEIGHT: 256 };
 
     // Allocated once — not re-created per generateGraphCard call
     private static readonly SIZE_PRESETS: Record<string, { WIDTH: number; HEIGHT: number }> = {
-        small: { WIDTH: 800, HEIGHT: 400 },
-        medium: { WIDTH: 1000, HEIGHT: 500 },
-        default: { WIDTH: 1200, HEIGHT: 600 },
-        large: { WIDTH: 1400, HEIGHT: 700 },
+        small: { WIDTH: 400, HEIGHT: 200 },
+        medium: { WIDTH: 600, HEIGHT: 300 },
+        default: { WIDTH: 512, HEIGHT: 256 },
+        large: { WIDTH: 1000, HEIGHT: 500 },
     };
     private static readonly MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
 
@@ -142,8 +142,8 @@ export class GraphRenderer {
         const showBackground = options.show_background !== false;
 
         const bgMargin = 10;
-        const svgWidth = showBackground ? width : gridWidth + bgMargin * 2;
-        const startX = showBackground ? (width - gridWidth) / 2 : bgMargin;
+        const svgWidth = width;
+        const startX = (svgWidth - gridWidth) / 2;
 
         const titleY = sc90;
         const titleFrameY1 = s(52);

@@ -9,6 +9,7 @@ export interface LanguageQueryParams {
     theme?: string;
     show_info?: string;
     info_outline?: 'solid' | 'frame';
+    size?: 'small' | 'medium' | 'large' | 'default';
 }
 
 export interface LanguageData {
