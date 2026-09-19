@@ -13,6 +13,7 @@ import { GitHubClient } from './shared/utils/github-client.js';
 import { closeRedisClient, getRedisClient } from './shared/utils/redis-client.js';
 import { createResponseCache } from './shared/utils/response-cache.js';
 import { scheduleStatsCleanup } from './shared/utils/stats-cleanup.js';
+import { getBadgeCacheService, getBadgeCacheServiceSync } from './services/badge-cache.service.js';
 import type { ICacheService } from './services/base.service.js';
 
 const logger = createLogger({ module: 'server' });
@@ -94,6 +95,20 @@ async function initializeServices(): Promise<{ cacheService?: ICacheService }> {
         logger.info('Redis cache initialized');
     } catch (error) {
         logger.warn('Redis not available - using in-memory cache');
+    }
+
+    // Initialize badge cache singleton so per-request writers (setUserBadgeSVG /
+    // setProjectBadgeSVG) actually reach Redis. Without this call the sync
+    // accessor stays null and every badge lookup falls through to the DB.
+    try {
+        const badgeCache = await getBadgeCacheService();
+        if (badgeCache.isReady()) {
+            logger.info('Badge cache initialized');
+        }
+    } catch (error) {
+        logger.warn('Badge cache not available', {
+            error: error instanceof Error ? error.message : String(error),
+        });
     }
 
     return { cacheService };
@@ -184,6 +199,14 @@ export async function stopServer(): Promise<void> {
             });
 
             logger.info('HTTP server stopped');
+        }
+
+        try {
+            await getBadgeCacheServiceSync()?.disconnect();
+        } catch (error) {
+            logger.warn('Failed to close badge cache cleanly', {
+                error: error instanceof Error ? error.message : String(error),
+            });
         }
 
         try {
