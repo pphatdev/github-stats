@@ -85,6 +85,7 @@ export class GitHubClient {
             totalPRs: 0,
             totalIssues: 0,
             contributedTo: 0,
+            totalContributions: 0,
             rank: {
                 level: 'F',
                 score: 0,
@@ -264,7 +265,10 @@ export class GitHubClient {
                 const totalPRs = userData.pullRequests.totalCount;
                 const totalIssues = userData.issues.totalCount;
 
-                const totalCommits = await this.fetchTotalCommitContributions(username, userData.createdAt);
+                const [totalCommits, totalContributions] = await Promise.all([
+                    this.fetchTotalCommitContributions(username, userData.createdAt),
+                    this.fetchTotalContributionsSinceCreated(username),
+                ]);
 
                 // Calculate rank
                 const rank = this.calculateRank(totalStars, totalCommits, totalPRs, totalIssues);
@@ -277,6 +281,7 @@ export class GitHubClient {
                     totalPRs,
                     totalIssues,
                     contributedTo,
+                    totalContributions,
                     rank,
                 };
             });

@@ -8,6 +8,10 @@ export interface GitHubStats {
     totalPRs: number;
     totalIssues: number;
     contributedTo: number;
+    /** All-time contribution count from GitHub's contribution calendar
+     * (commits + PRs + issues + PR reviews, public + anonymized-private).
+     * Matches the number shown on github.com/<user> profile heatmap. */
+    totalContributions: number;
     rank?: {
         level: string;
         score: number;

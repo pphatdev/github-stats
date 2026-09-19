@@ -134,7 +134,7 @@ export class CardRenderer {
         }).join('');
 
         // Corner info panels
-        const totalContributions = stats.totalStars + stats.totalCommits + stats.totalPRs + stats.totalIssues;
+        const totalContributions = stats.totalContributions;
 
         // Timestamp for sync info
         const syncTime = new Date().toLocaleTimeString();
