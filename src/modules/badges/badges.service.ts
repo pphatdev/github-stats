@@ -5,18 +5,21 @@
 
 import { GitHubClient } from '../../shared/utils/github-client.js';
 import { db } from '../../db/index.js';
-import { badges } from '../../db/schema.js';
+import { badges, visitorLogs } from '../../db/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import { createLogger } from '../../shared/logs/logger.js';
 import type { UserBadgeType, ProjectBadgeType, BadgeOptions, BadgeCache } from './badges.types.js';
 import { BadgeRenderer } from '../../shared/components/badge-renderer.js';
 import { BadgeType } from '../../shared/types/badge.types.js';
+import type { ResponseCache } from '../../shared/utils/response-cache.js';
+import { currentVisitDateUtc } from '../../shared/utils/visitor.js';
+import { GITHUB_USERNAME_RE } from '../../shared/utils/username.js';
 
 const logger = createLogger({ service: 'BadgesService' });
 
 export class BadgesService {
     private githubClient: GitHubClient;
-    private cache: Map<string, BadgeCache>;
+    private cache: ResponseCache<BadgeCache>;
     private pendingRequests: Map<string, Promise<string>>;
     private backgroundRefreshAt: Map<string, number>;
     private readonly cacheDuration: number;
@@ -27,7 +30,7 @@ export class BadgesService {
 
     constructor(
         githubClient: GitHubClient,
-        cache: Map<string, BadgeCache>,
+        cache: ResponseCache<BadgeCache>,
         cacheDuration: number
     ) {
         this.githubClient = githubClient;
@@ -44,11 +47,12 @@ export class BadgesService {
         username: string,
         type: UserBadgeType,
         options: BadgeOptions = {},
-        repo?: string
+        repo?: string,
+        ipHash?: string
     ): Promise<string> {
-        // Visitors always bypass cache because each request increments the counter.
+        // Visitors always bypass cache because each request may increment the counter.
         if (type === 'visitors') {
-            return this.generateNewUserBadge(username, type, options, repo);
+            return this.generateNewUserBadge(username, type, options, repo, ipHash);
         }
 
         const cacheKey = this.getCacheKey('user', username, type, options);
@@ -120,14 +124,15 @@ export class BadgesService {
         username: string,
         type: UserBadgeType,
         options: BadgeOptions,
-        repo?: string
+        repo?: string,
+        ipHash?: string
     ): Promise<string> {
         let value: number;
 
         switch (type) {
             case 'visitors':
                 // Get from database – scope to repo when provided
-                value = await this.getVisitorCount(username, repo);
+                value = await this.getVisitorCount(username, repo, ipHash);
                 break;
             case 'repositories':
             case 'followers':
@@ -351,12 +356,74 @@ export class BadgesService {
     }
 
     /**
-     * Get visitor count – single atomic UPSERT increments and returns the new value
+     * Record a visit and return the resulting visitor count.
+     *
+     * Dedup rules (H4): a given `(visit_date, key, ip_hash)` triple bumps
+     * the counter at most once per UTC day. The unique index on
+     * `visitor_logs` is the source of truth; we treat an INSERT that
+     * changed no rows as "already counted today" and skip the bump.
+     *
+     * When we can't identify the caller (no ipHash — should not happen once
+     * `trust proxy` is on; belt-and-braces here) or when the caller supplies
+     * a username that doesn't match GitHub's naming rules, we return the
+     * current count without incrementing. This is the anti-inflation stance.
      */
-    private async getVisitorCount(username: string, repo?: string): Promise<number> {
+    private async getVisitorCount(username: string, repo?: string, ipHash?: string): Promise<number> {
         const now = Date.now();
         const key = repo ? `${username}/${repo}` : username;
 
+        // Defense-in-depth: don't let a garbage username become a DB row even
+        // if some upstream path skipped Zod. Composite (`user/repo`) keys are
+        // allowed through because `key` is what lands in `badges.username`.
+        const usernameOk = GITHUB_USERNAME_RE.test(username);
+        if (!usernameOk) {
+            logger.warn('Visitor bump refused: invalid username shape', { username });
+            const [row] = await db.select({ visitors: badges.visitors })
+                .from(badges)
+                .where(eq(badges.username, key))
+                .limit(1);
+            return row?.visitors ?? 0;
+        }
+
+        // No IP → we can't dedup. Refuse to increment so anonymous scrapers
+        // can't inflate the counter. Report the last known total instead.
+        if (!ipHash) {
+            const [row] = await db.select({ visitors: badges.visitors })
+                .from(badges)
+                .where(eq(badges.username, key))
+                .limit(1);
+            return row?.visitors ?? 0;
+        }
+
+        const visitDate = currentVisitDateUtc();
+
+        // SQLite's `INSERT OR IGNORE` uses the unique (username, ip_hash,
+        // visit_date) constraint on `visitor_logs`; the returning() clause
+        // yields one row on a successful insert and an empty result on a
+        // conflict-suppressed insert.
+        const inserted = await db.insert(visitorLogs)
+            .values({
+                username: key,
+                ip_hash: ipHash,
+                visit_date: visitDate,
+                created_at: now,
+            })
+            .onConflictDoNothing({
+                target: [visitorLogs.username, visitorLogs.ip_hash, visitorLogs.visit_date],
+            })
+            .returning({ id: visitorLogs.id });
+
+        if (inserted.length === 0) {
+            // Same viewer already counted today. Return the current total
+            // without touching `badges.visitors`.
+            const [row] = await db.select({ visitors: badges.visitors })
+                .from(badges)
+                .where(eq(badges.username, key))
+                .limit(1);
+            return row?.visitors ?? 0;
+        }
+
+        // First unique visit today for this viewer → bump the counter.
         const [result] = await db.insert(badges)
             .values({
                 username: key,
@@ -384,7 +451,14 @@ export class BadgesService {
     }
 
     /**
-     * Get cache key
+     * Build a cache key from category + identifier + type + a normalized
+     * fingerprint of *render-affecting* options. Fields that don't influence
+     * the SVG output (notably `realtime`, which only tunes freshness policy)
+     * are excluded so equivalent requests share a cache entry.
+     *
+     * Bounded input surface here is doubly important because the values
+     * flow into an LRU cap of ~10k entries — attackers cycling non-render
+     * options would otherwise churn evictions.
      */
     private getCacheKey(
         category: 'user' | 'project',
@@ -392,8 +466,19 @@ export class BadgesService {
         type: string,
         options: BadgeOptions
     ): string {
-        const optionsStr = JSON.stringify(options);
-        return `badge-${category}-${identifier}-${type}-${optionsStr}`;
+        const fingerprint = JSON.stringify([
+            options.theme ?? '',
+            options.customLabel ?? '',
+            options.customType ?? '',
+            options.labelColor ?? '',
+            options.labelBackground ?? '',
+            options.iconColor ?? '',
+            options.valueColor ?? '',
+            options.valueBackground ?? '',
+            options.hideFrame === true ? 1 : 0,
+            options.padding ?? 0,
+        ]);
+        return `badge-${category}-${identifier}-${type}-${fingerprint}`;
     }
 
     /**

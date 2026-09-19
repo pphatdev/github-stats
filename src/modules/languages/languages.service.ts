@@ -9,17 +9,18 @@ import { LanguagePieChartRenderer } from '../../shared/components/language-pie-c
 import { createLogger } from '../../shared/logs/logger.js';
 import type { LanguageQueryParams, LanguageCache } from './languages.types.js';
 import type { LanguageCount } from '../../shared/types/language.types.js';
+import type { ResponseCache } from '../../shared/utils/response-cache.js';
 
 const logger = createLogger({ service: 'LanguagesService' });
 
 export class LanguagesService {
     private githubClient: GitHubClient;
-    private cache: Map<string, LanguageCache>;
+    private cache: ResponseCache<LanguageCache>;
     private readonly cacheDuration: number;
 
     constructor(
         githubClient: GitHubClient,
-        cache: Map<string, LanguageCache>,
+        cache: ResponseCache<LanguageCache>,
         cacheDuration: number
     ) {
         this.githubClient = githubClient;

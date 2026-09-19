@@ -34,11 +34,20 @@ export const compressionMiddleware = compression({
 });
 
 /**
- * Security headers with Helmet
+ * Security headers with Helmet.
+ *
+ * CSP is off because the app only serves API JSON and SVG/PNG/WebP media —
+ * there's no HTML surface to protect via `default-src`. If HTML routes are
+ * added, revisit and enable a strict CSP with an override for SVG endpoints.
+ *
+ * COEP is off and CORP is `cross-origin` because badges/cards are consumed
+ * embedded in third-party sites (GitHub README <img>, blog posts, etc.); the
+ * defaults would block those cross-origin loads at the browser.
  */
 export const securityMiddleware = helmet({
-    contentSecurityPolicy: false, // Allow inline SVGs
-    crossOriginEmbedderPolicy: false, // Allow embedding in other sites
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
 });
 
 /**

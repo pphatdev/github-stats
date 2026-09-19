@@ -6,11 +6,13 @@
 import { Request, Response } from 'express';
 import { BadgesService } from './badges.service.js';
 import { createLogger } from '../../shared/logs/logger.js';
+import type { BadgeQuery } from '../../shared/validations/validation.js';
+import { hashClientIp } from '../../shared/utils/visitor.js';
+import { normalizeBadgeThemeName } from '../../shared/utils/themes.js';
 import type {
     BadgeEffect,
     BadgeName,
     BadgeOptions,
-    BadgeQueryParams,
     BadgeSize,
     ProjectBadgeType,
     UserBadgeType,
@@ -65,20 +67,19 @@ const SUPPORTED_BADGE_NAMES: readonly BadgeName[] = [
 export class BadgesController {
     constructor(private readonly badgesService: BadgesService) {}
 
-    async getBadges(req: Request<unknown, unknown, unknown, BadgeQueryParams>, res: Response): Promise<void> {
+    async getBadges(req: Request, res: Response): Promise<void> {
         const startTime = Date.now();
 
         try {
-            const username = this.getTrimmedString(req.query.username);
-            if (!username) {
-                res.status(400).json({
-                    error: 'username is required',
-                    route: this.getRoutePattern(),
-                });
-                return;
-            }
+            // `validate(badgeQuerySchema, 'query')` already enforced username shape,
+            // enum values (effect/size), integer ranges (column/p), and hex colors
+            // (normalized to `#…`). CSV fields (`name`, `theme`) are still validated
+            // as strings — this controller splits and per-item validates them so
+            // that the discovery payload keeps its precise error messages.
+            const v = (req as Request & { validated?: BadgeQuery }).validated ?? ({} as BadgeQuery);
+            const username = v.username as string;
 
-            const rawNames = this.parseCsv(req.query.name);
+            const rawNames = this.parseCsv(v.name);
             if (rawNames.length === 0) {
                 res.json(this.getDiscoveryPayload());
                 return;
@@ -96,7 +97,7 @@ export class BadgesController {
 
             const names = rawNames as BadgeName[];
 
-            const repo = this.getTrimmedString(req.query.repo);
+            const repo = v.repo?.trim() || undefined;
             const projectNames = names.filter((name): name is ProjectBadgeType => this.isProjectBadgeType(name));
             if (projectNames.length > 0 && !repo) {
                 res.status(400).json({
@@ -106,18 +107,37 @@ export class BadgesController {
                 return;
             }
 
-            const themes = this.parseCsv(req.query.theme);
-            const effect = this.parseEffect(req.query.effect);
-            const size = this.parseSize(req.query.size);
-            const column = this.parseClampedNumber(req.query.column, 50, 1, 50);
-            const baseOptions = this.parseBaseOptions(req);
+            // Canonicalise each theme once at the boundary so aliased spellings
+            // (`Ocean` vs `ocean`) don't split the LRU into two entries per
+            // badge (M1). Zod refuses unknown names upstream, so every entry
+            // here is expected to normalise cleanly.
+            const themes = this.parseCsv(v.theme).map(normalizeBadgeThemeName);
+            const effect = v.effect;
+            const size: BadgeSize = v.size ?? 'small';
+            const column = v.column ?? 50;
+
+            const baseOptions: BadgeOptions = {
+                customLabel: v.customLabel,
+                labelColor: v.labelColor,
+                labelBackground: v.labelBackground,
+                iconColor: v.iconColor,
+                valueColor: v.valueColor,
+                valueBackground: v.valueBackground,
+                hideFrame: v.hideFrame === 'true',
+                realtime: v.realtime === 'true',
+                padding: v.p ?? 0,
+            };
+
+            // Compute the visitor IP hash once per request. Only relevant if
+            // the caller asked for a `visitors` badge; safe to always compute.
+            const ipHash = hashClientIp(req.ip);
 
             const badges = await Promise.all(
                 names.map((name, index) => this.generateBadge(name, username, repo, {
                     ...baseOptions,
                     theme: this.resolveTheme(themes, index),
                     customType: this.resolveRendererType(name),
-                })),
+                }, ipHash)),
             );
 
             const hasVisitorsBadge = names.includes('visitors');
@@ -158,9 +178,10 @@ export class BadgesController {
         username: string,
         repo: string | undefined,
         options: BadgeOptions,
+        ipHash: string,
     ): Promise<string> {
         if (this.isUserBadgeType(name)) {
-            return this.badgesService.generateUserBadge(username, name, options, repo);
+            return this.badgesService.generateUserBadge(username, name, options, repo, ipHash);
         }
 
         const projectTarget = this.resolveProjectTarget(username, repo!);
@@ -212,32 +233,6 @@ export class BadgesController {
         };
     }
 
-    private parseBaseOptions(req: Request<unknown, unknown, unknown, BadgeQueryParams>): BadgeOptions {
-        const {
-            customLabel,
-            labelColor,
-            labelBackground,
-            iconColor,
-            valueColor,
-            valueBackground,
-            hideFrame,
-            realtime,
-            p,
-        } = req.query;
-
-        return {
-            customLabel: this.getTrimmedString(customLabel),
-            labelColor: this.getTrimmedString(labelColor),
-            labelBackground: this.getTrimmedString(labelBackground),
-            iconColor: this.getTrimmedString(iconColor),
-            valueColor: this.getTrimmedString(valueColor),
-            valueBackground: this.getTrimmedString(valueBackground),
-            hideFrame: this.parseBooleanFlag(hideFrame),
-            realtime: this.parseBooleanFlag(realtime),
-            padding: this.parseClampedNumber(p, 0, 0, 100),
-        };
-    }
-
     private parseCsv(value: unknown): string[] {
         if (typeof value !== 'string') {
             return [];
@@ -249,46 +244,12 @@ export class BadgesController {
             .filter(Boolean);
     }
 
-    private getTrimmedString(value: unknown): string | undefined {
-        if (typeof value !== 'string') {
-            return undefined;
-        }
-
-        const trimmed = value.trim();
-        return trimmed.length > 0 ? trimmed : undefined;
-    }
-
     private resolveTheme(themes: string[], index: number): string | undefined {
         if (themes.length === 0) {
             return 'default';
         }
 
         return themes[index % themes.length];
-    }
-
-    private parseEffect(value: unknown): BadgeEffect | undefined {
-        return value === 'wave' || value === 'glow' ? value : undefined;
-    }
-
-    private parseSize(value: unknown): BadgeSize {
-        return value === 'medium' || value === 'large' ? value : 'small';
-    }
-
-    private parseClampedNumber(value: unknown, fallback: number, min: number, max: number): number {
-        if (typeof value !== 'string') {
-            return fallback;
-        }
-
-        const parsed = Number.parseInt(value, 10);
-        if (Number.isNaN(parsed)) {
-            return fallback;
-        }
-
-        return Math.min(max, Math.max(min, parsed));
-    }
-
-    private parseBooleanFlag(value: unknown): boolean {
-        return value === true || value === 'true';
     }
 
     private isUserBadgeType(value: string): value is UserBadgeType {

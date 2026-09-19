@@ -7,6 +7,7 @@ import { GitHubClient } from '../../shared/utils/github-client.js';
 import { CardRenderer } from '../../shared/components/card-renderer.js';
 import { createLogger } from '../../shared/logs/logger.js';
 import type { StatsQueryParams, StatsCache, PngCache } from './stats.types.js'; import type { StatsCardOptions } from './stats.types.js';
+import type { ResponseCache } from '../../shared/utils/response-cache.js';
 
 const logger = createLogger({ service: 'StatsService' });
 let sharpLoader: Promise<any> | null = null;
@@ -21,7 +22,7 @@ async function getSharp() {
 
 export class StatsService {
     private githubClient: GitHubClient;
-    private cache: Map<string, StatsCache>;
+    private cache: ResponseCache<StatsCache>;
     private pngCache: Map<string, PngCache>;
     private pendingRequests: Map<string, Promise<string>>;
     private pendingWebpRequests: Map<string, Promise<Buffer>>;
@@ -29,7 +30,7 @@ export class StatsService {
 
     constructor(
         githubClient: GitHubClient,
-        cache: Map<string, StatsCache>,
+        cache: ResponseCache<StatsCache>,
         cacheDuration: number
     ) {
         this.githubClient = githubClient;

@@ -8,6 +8,13 @@ import { AppError, getErrorStatusCode, getErrorCode, isOperationalError, ErrorCo
 import { Logger, createLogger } from '../logs/logger.js';
 import { ZodError } from 'zod';
 import { formatValidationErrors } from '../validations/validation.js';
+import { hashClientIp } from '../utils/visitor.js';
+import { getEnv } from '../config/env.js';
+
+/** True when we're running with production semantics (real users, real logs). */
+function isProd(): boolean {
+    return getEnv().APP_ENV === 'production';
+}
 
 /**
  * Error response format
@@ -40,14 +47,18 @@ export function errorHandler(logger?: Logger) {
         const statusCode = getErrorStatusCode(err);
         const errorCode = getErrorCode(err);
 
+        // L2: never write raw client IPs or raw query params to logs in prod.
+        // The salted IP hash is stable enough to correlate across log lines
+        // for one caller without recovering the address; the query params can
+        // contain user identifiers or tokens, so we omit them outside dev.
         log.error('Request error', err, {
             requestId,
             path: req.path,
             method: req.method,
             statusCode,
             errorCode,
-            query: req.query,
-            ip: req.ip,
+            ...(isProd() ? {} : { query: req.query }),
+            ipHash: hashClientIp(req.ip),
         });
 
         // Handle Zod validation errors
@@ -80,13 +91,14 @@ export function errorHandler(logger?: Logger) {
             return void res.status(err.statusCode).json(response);
         }
 
-        // Handle unexpected errors
+        // Handle unexpected errors. Never echo raw messages to the client —
+        // they may leak internal paths, secrets from token-auth errors, or
+        // DB internals. The full error is already logged above with the
+        // requestId so operators can correlate.
         const response: ErrorResponse = {
             error: {
                 code: ErrorCode.INTERNAL_ERROR,
-                message: process.env.NODE_ENV === 'production'
-                    ? 'An unexpected error occurred'
-                    : err.message,
+                message: 'An unexpected error occurred',
                 requestId,
             },
         };
@@ -130,13 +142,14 @@ export function requestLogger(logger?: Logger) {
         // Attach request ID to request
         (req as any).requestId = requestId;
 
-        // Log request start
+        // Log request start (debug-level; only mounted when the operator
+        // explicitly wants request tracing). L2: same PII rules as errorHandler.
         log.debug('Request started', {
             requestId,
             method: req.method,
             path: req.path,
-            query: req.query,
-            ip: req.ip,
+            ...(isProd() ? {} : { query: req.query }),
+            ipHash: hashClientIp(req.ip),
             userAgent: req.headers['user-agent'],
         });
 

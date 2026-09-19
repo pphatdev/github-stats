@@ -1,21 +1,68 @@
 /**
  * Request Validation Schemas
- * Provides runtime validation for API requests using Zod
+ * Provides runtime validation for API requests using Zod.
+ *
+ * These schemas define the contract at each route's boundary; when a request
+ * fails to parse, `validate()` middleware calls `next(error)` and the shared
+ * `errorHandler` maps ZodError → 400 with a formatted `details.fields` string.
  */
 
 import { z } from 'zod';
+import { isKnownTheme, isKnownBadgeTheme, normalizeThemeName } from '../utils/themes.js';
 
 /**
  * Common validations
  */
+
+// GitHub usernames: 1–39 chars, alphanumeric or hyphens (no leading/trailing/consecutive hyphens).
 const githubUsername = z.string().min(1).max(39).regex(/^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/, {
     message: 'Invalid GitHub username format'
 });
 
-const themeSchema = z.string().optional();
+// Accept #RGB / #RGBA / #RRGGBB / #RRGGBBAA (with or without leading '#') and
+// normalize to `#…` form. Mirrors src/shared/utils/svg-safe.ts:normalizeHexColor
+// so controllers and Zod agree on the same character set.
+const HEX_RE = /^#?[0-9a-fA-F]{3,8}$/;
+const colorHex = z.string()
+    .refine(
+        (v) => {
+            if (!HEX_RE.test(v)) return false;
+            const body = v.startsWith('#') ? v.slice(1) : v;
+            return body.length === 3 || body.length === 4 || body.length === 6 || body.length === 8;
+        },
+        { message: 'Invalid hex color; expected #RGB, #RGBA, #RRGGBB, or #RRGGBBAA (with or without #)' },
+    )
+    .transform((v) => (v.startsWith('#') ? v : `#${v}`))
+    .optional();
+
+// Tightened theme name — only accept a value that resolves against the theme
+// registry (case/underscore/space-insensitive, per resolveThemeName). The
+// `.transform` canonicalises aliases (`Ocean` → `ocean`) so downstream code
+// and cache keys never see two spellings of the same theme (M1).
+const themeSchema = z.string()
+    .refine(isKnownTheme, { message: 'Unknown theme' })
+    .transform(normalizeThemeName)
+    .optional();
+
+// Badge endpoint accepts a CSV of themes; validate each item independently.
+const badgeThemeCsvSchema = z.string()
+    .refine(
+        (v) => v.split(',').map((s) => s.trim()).filter(Boolean).every(isKnownBadgeTheme),
+        { message: 'Unknown theme (CSV; one or more entries not registered)' },
+    )
+    .optional();
+
 const booleanString = z.enum(['true', 'false']).optional();
-const colorHex = z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').optional();
 const formatSchema = z.enum(['svg', 'webp', 'png']).optional();
+const sizeSchema = z.enum(['small', 'medium', 'large', 'default']).optional();
+
+// Integer-string clamped to a range. Used for badge `column` and `p` (padding).
+const intStringRange = (min: number, max: number) =>
+    z.string()
+        .regex(/^\d+$/, 'Expected a non-negative integer')
+        .transform(Number)
+        .refine((n) => n >= min && n <= max, { message: `Expected an integer in [${min}, ${max}]` })
+        .optional();
 
 /**
  * Stats card request schema
@@ -37,6 +84,7 @@ export const statsQuerySchema = z.object({
     textColor: colorHex,
     titleColor: colorHex,
     format: formatSchema,
+    size: sizeSchema,
 });
 
 export type StatsQuery = z.infer<typeof statsQuerySchema>;
@@ -46,47 +94,61 @@ export type StatsQuery = z.infer<typeof statsQuerySchema>;
  */
 export const languagesQuerySchema = z.object({
     username: githubUsername,
+    type: z.enum(['card', 'pie']).optional(),
     theme: themeSchema,
     show_info: booleanString,
-    list_length: z.string().regex(/^\d+$/).transform(Number).pipe(z.number().min(1).max(20)).optional(),
-    variant: z.enum(['bubbles', 'pie']).optional(),
-    data_border_style: z.enum(['solid', 'frame']).optional(),
+    info_outline: z.enum(['solid', 'frame']).optional(),
+    size: sizeSchema,
+});
+
+export type LanguagesQuery = z.infer<typeof languagesQuerySchema>;
+
+/**
+ * Graph request schema — matches the controller's actual query surface
+ * (see graphs.controller.ts:parseQueryParams).
+ */
+export const graphQuerySchema = z.object({
+    username: githubUsername,
+    theme: themeSchema,
+    year: z.string().regex(/^\d{4}$/, 'Expected a 4-digit year').optional(),
+    animate: z.enum(['none', 'wave', 'pulse', 'glow']).optional(),
+    size: z.string().optional(),
+    as: formatSchema,
+    format: formatSchema,
+    show_title: booleanString,
+    show_total_contribution: booleanString,
+    show_background: booleanString,
     bgColor: colorHex,
     borderColor: colorHex,
     textColor: colorHex,
     titleColor: colorHex,
 });
 
-export type LanguagesQuery = z.infer<typeof languagesQuerySchema>;
-
-/**
- * Graph request schema
- */
-export const graphQuerySchema = z.object({
-    username: githubUsername,
-    theme: themeSchema,
-    variant: z.enum(['default', 'heatmap', 'bar']).optional(),
-    year: z.string().regex(/^\d{4}$/).transform(Number).pipe(z.number().min(2008).max(new Date().getFullYear())).optional(),
-    bgColor: colorHex,
-    borderColor: colorHex,
-    textColor: colorHex,
-    iconColor: colorHex,
-    hideTitle: booleanString,
-});
-
 export type GraphQuery = z.infer<typeof graphQuerySchema>;
 
 /**
- * Badge request schema
+ * Badge request schema — mirrors badges.controller.ts:BadgeQueryParams.
+ * CSV fields (`name`, `theme`) are validated as raw strings; the controller
+ * splits and per-item validates against its own enum lists so we preserve the
+ * discovery-payload behavior when `name` is absent.
  */
 export const badgeQuerySchema = z.object({
     username: githubUsername,
-    theme: themeSchema,
+    name: z.string().optional(),
+    repo: z.string().max(200).optional(),
+    theme: badgeThemeCsvSchema,
+    effect: z.enum(['wave', 'glow']).optional(),
+    column: intStringRange(1, 50),
+    size: z.enum(['small', 'medium', 'large']).optional(),
+    p: intStringRange(0, 100),
     customLabel: z.string().max(50).optional(),
     labelColor: colorHex,
     labelBackground: colorHex,
+    iconColor: colorHex,
     valueColor: colorHex,
     valueBackground: colorHex,
+    hideFrame: booleanString,
+    realtime: booleanString,
 });
 
 export type BadgeQuery = z.infer<typeof badgeQuerySchema>;
@@ -116,10 +178,13 @@ export function parseNumberInRange(value: string | undefined, min: number, max: 
 }
 
 /**
- * Validate hex color
+ * Validate hex color (kept for callers that need a boolean check outside a
+ * Zod pipeline; matches the schema above).
  */
 export function isValidHexColor(color: string): boolean {
-    return /^#[0-9A-Fa-f]{6}$/.test(color);
+    if (!HEX_RE.test(color)) return false;
+    const body = color.startsWith('#') ? color.slice(1) : color;
+    return body.length === 3 || body.length === 4 || body.length === 6 || body.length === 8;
 }
 
 /**

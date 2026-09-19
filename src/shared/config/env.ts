@@ -22,6 +22,17 @@ const envSchema = z.object({
     CACHE_DURATION: z.coerce.number().default(7200000), // 2 hours
     WARMUP_USERNAME: z.string().optional(),
 
+    // Per-instance secret used to salt client IPs before hashing for visitor
+    // dedup (see src/shared/utils/visitor.ts). Optional in dev; set to a
+    // long random string in production (`openssl rand -hex 32`).
+    SERVER_SALT: z.string().min(16, 'SERVER_SALT must be at least 16 chars').optional(),
+
+    // stats_requests retention & prune cadence (H7). Rows older than
+    // STATS_REQUESTS_RETENTION_DAYS are deleted every
+    // STATS_REQUESTS_CLEANUP_INTERVAL_HOURS.
+    STATS_REQUESTS_RETENTION_DAYS: z.coerce.number().int().positive().default(30),
+    STATS_REQUESTS_CLEANUP_INTERVAL_HOURS: z.coerce.number().positive().default(6),
+
     // Redis Configuration
     REDIS_ENABLED: z
         .union([z.boolean(), z.string()])
@@ -81,6 +92,9 @@ function validateEnv(): Env {
     // Log warnings for missing optional but recommended variables
     if (!result.data.GITHUB_TOKEN) {
         console.warn('⚠️  GITHUB_TOKEN is not set - API rate limits will be restricted');
+    }
+    if (!result.data.SERVER_SALT) {
+        console.warn('⚠️  SERVER_SALT is not set - visitor IP hashes will fall back to an insecure dev-only salt. Set SERVER_SALT to a 32+ char random string in production.');
     }
 
     return result.data;

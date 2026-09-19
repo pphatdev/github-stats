@@ -7,10 +7,13 @@ import { Router } from 'express';
 import { LanguagesController } from './languages.controller.js';
 import { LanguagesService } from './languages.service.js';
 import { GitHubClient } from '../../shared/utils/github-client.js';
+import { validate } from '../../shared/middlewares/error.middleware.js';
+import { languagesQuerySchema } from '../../shared/validations/validation.js';
+import type { ResponseCache } from '../../shared/utils/response-cache.js';
 
 export function createLanguagesRouter(
     githubClient: GitHubClient,
-    cache: Map<string, any>,
+    cache: ResponseCache<any>,
     cacheDuration: number
 ): Router {
     const router = Router();
@@ -28,7 +31,7 @@ export function createLanguagesRouter(
      * @query show_info - Show info panel (default: true)
      * @query info_outline - Info outline style: solid, frame (default: solid)
      */
-    router.get('/', async (req, res) => {
+    router.get('/', validate(languagesQuerySchema, 'query'), async (req, res) => {
         await languagesController.getSvg(req, res);
     });
 

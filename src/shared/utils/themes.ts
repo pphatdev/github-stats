@@ -48,6 +48,29 @@ function resolveBadgeThemeName(name: string): string {
     return resolved ?? 'default';
 }
 
+/** Does a user-supplied theme name resolve to a registered theme? Uses the
+ * same fuzzy matching rules as `resolveThemeName`. */
+export function isKnownTheme(name: string): boolean {
+    return themes[name] !== undefined || themeIndex.has(normalizeKey(name));
+}
+
+/** Does a user-supplied badge theme name resolve to a registered badge theme? */
+export function isKnownBadgeTheme(name: string): boolean {
+    return badgeThemes[name] !== undefined || badgeThemeIndex.has(normalizeKey(name));
+}
+
+/** Public wrapper for `resolveThemeName` — canonicalises aliases like
+ * `Ocean` / `tokyo_night` to their storage key. Falls back to `'default'`
+ * for unknown names so callers never end up with an untyped string. */
+export function normalizeThemeName(name: string): string {
+    return resolveThemeName(name);
+}
+
+/** Public wrapper for `resolveBadgeThemeName`. */
+export function normalizeBadgeThemeName(name: string): string {
+    return resolveBadgeThemeName(name);
+}
+
 export function getTheme(themeName: string = 'default', customColors?: {
     bgColor?: string;
     borderColor?: string;

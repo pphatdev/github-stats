@@ -7,10 +7,13 @@ import { Router } from 'express';
 import { GraphsController } from './graphs.controller.js';
 import { GraphsService } from './graphs.service.js';
 import { GitHubClient } from '../../shared/utils/github-client.js';
+import { validate } from '../../shared/middlewares/error.middleware.js';
+import { graphQuerySchema } from '../../shared/validations/validation.js';
+import type { ResponseCache } from '../../shared/utils/response-cache.js';
 
 export function createGraphsRouter(
     githubClient: GitHubClient,
-    cache: Map<string, any>,
+    cache: ResponseCache<any>,
     cacheDuration: number
 ): Router {
     const router = Router();
@@ -36,7 +39,7 @@ export function createGraphsRouter(
      * @query textColor - Text color
      * @query titleColor - Title color
      */
-    router.get('/', async (req, res) => {
+    router.get('/', validate(graphQuerySchema, 'query'), async (req, res) => {
         const format = (req.query.format as string) || (req.query.as as string) || 'svg';
 
         switch (format) {

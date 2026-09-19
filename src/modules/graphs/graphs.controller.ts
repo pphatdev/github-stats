@@ -6,6 +6,7 @@
 import { Request, Response } from 'express';
 import { GraphsService } from './graphs.service.js';
 import { createLogger } from '../../shared/logs/logger.js';
+import type { GraphQuery } from '../../shared/validations/validation.js';
 import type { GraphQueryParams } from './graphs.types.js';
 
 const logger = createLogger({ controller: 'GraphsController' });
@@ -45,12 +46,7 @@ export class GraphsController {
         const startTime = Date.now();
 
         try {
-            const params = this.parseQueryParams(req);
-            
-            if (!params.username) {
-                res.status(400).send('Username is required');
-                return;
-            }
+            const params = this.readValidated(req);
 
             // Generate graph
             const svg = await this.graphsService.generateGraph(params);
@@ -78,12 +74,7 @@ export class GraphsController {
         const startTime = Date.now();
 
         try {
-            const params = this.parseQueryParams(req);
-            
-            if (!params.username) {
-                res.status(400).send('Username is required');
-                return;
-            }
+            const params = this.readValidated(req);
 
             // Generate SVG first
             const svg = await this.graphsService.generateGraph(params);
@@ -114,12 +105,7 @@ export class GraphsController {
         const startTime = Date.now();
 
         try {
-            const params = this.parseQueryParams(req);
-            
-            if (!params.username) {
-                res.status(400).send('Username is required');
-                return;
-            }
+            const params = this.readValidated(req);
 
             // Generate SVG first
             const svg = await this.graphsService.generateGraph(params);
@@ -144,41 +130,27 @@ export class GraphsController {
     }
 
     /**
-     * Parse query parameters
+     * Read the Zod-validated query. `validate(graphQuerySchema, 'query')`
+     * attaches `req.validated`; colors are already normalized to `#…` form
+     * and enums (animate/size/as/format) are already narrowed.
      */
-    private parseQueryParams(req: Request): GraphQueryParams {
-        const {
-            username,
-            theme,
-            year,
-            animate,
-            size,
-            as: outputFormat,
-            format: formatParam,
-            show_title,
-            show_total_contribution,
-            show_background,
-            bgColor,
-            borderColor,
-            textColor,
-            titleColor
-        } = req.query;
-
+    private readValidated(req: Request): GraphQueryParams {
+        const v = (req as Request & { validated?: GraphQuery }).validated ?? ({} as GraphQuery);
         return {
-            username: username as string,
-            theme: (theme as string) || 'default',
-            year: year as string,
-            animate: animate as string,
-            size: size as string,
-            as: outputFormat as string,
-            format: formatParam as string,
-            show_title: (show_title as string) || 'false',
-            show_total_contribution: (show_total_contribution as string) || 'false',
-            show_background: (show_background as string) || 'false',
-            bgColor: bgColor as string,
-            borderColor: borderColor as string,
-            textColor: textColor as string,
-            titleColor: titleColor as string
+            username: v.username as string,
+            theme: v.theme ?? 'default',
+            year: v.year,
+            animate: v.animate,
+            size: v.size,
+            as: v.as,
+            format: v.format,
+            show_title: v.show_title ?? 'false',
+            show_total_contribution: v.show_total_contribution ?? 'false',
+            show_background: v.show_background ?? 'false',
+            bgColor: v.bgColor,
+            borderColor: v.borderColor,
+            textColor: v.textColor,
+            titleColor: v.titleColor,
         };
     }
 }

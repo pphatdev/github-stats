@@ -109,6 +109,51 @@ export class GitHubClient {
         return years;
     }
 
+    /**
+     * Sum `contributionCalendar.totalContributions` across every year from the
+     * account's creation date to today. Used by /graph to display an all-time
+     * total alongside the (still one-year-wide) heatmap.
+     */
+    async fetchTotalContributionsSinceCreated(username: string): Promise<number> {
+        const key = `user-total-contribs-since-created-${username}`;
+        return this.cachedRequest(key, async () => {
+            const profile = await this.fetchUserProfile(username);
+            if (!profile?.created_at) return 0;
+
+            const ranges = this.buildContributionYearRanges(new Date(profile.created_at));
+            if (ranges.length === 0) return 0;
+
+            const variableDefinitions = ranges
+                .map((_, index) => `$from${index}: DateTime!, $to${index}: DateTime!`)
+                .join(', ');
+            const contributionSelections = ranges
+                .map((_, index) => `year${index}: contributionsCollection(from: $from${index}, to: $to${index}) { contributionCalendar { totalContributions } }`)
+                .join('\n');
+
+            const query = `
+                query($username: String!, ${variableDefinitions}) {
+                    user(login: $username) {
+                        ${contributionSelections}
+                    }
+                }
+            `;
+
+            const variables: Record<string, string> = { username };
+            ranges.forEach((range, index) => {
+                variables[`from${index}`] = range.from;
+                variables[`to${index}`] = range.to;
+            });
+
+            const result: any = await this.octokit.graphql(query, variables);
+            const user = result.user;
+            if (!user) return 0;
+
+            return ranges.reduce((sum, _, index) => {
+                return sum + (user[`year${index}`]?.contributionCalendar?.totalContributions ?? 0);
+            }, 0);
+        });
+    }
+
     private async fetchTotalCommitContributions(username: string, createdAt: string): Promise<number> {
         const ranges = this.buildContributionYearRanges(new Date(createdAt));
 

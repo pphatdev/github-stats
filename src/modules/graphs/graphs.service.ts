@@ -7,6 +7,7 @@ import { GitHubClient } from '../../shared/utils/github-client.js';
 import { GraphRenderer } from '../../shared/components/graph-renderer.js';
 import { createLogger } from '../../shared/logs/logger.js';
 import type { GraphQueryParams, GraphCache, GraphOptions, GraphDateRange } from './graphs.types.js';
+import type { ResponseCache } from '../../shared/utils/response-cache.js';
 
 const logger = createLogger({ service: 'GraphsService' });
 let sharpLoader: Promise<any> | null = null;
@@ -30,12 +31,12 @@ async function getResvg() {
 
 export class GraphsService {
     private githubClient: GitHubClient;
-    private cache: Map<string, GraphCache>;
+    private cache: ResponseCache<GraphCache>;
     private readonly cacheDuration: number;
 
     constructor(
         githubClient: GitHubClient,
-        cache: Map<string, GraphCache>,
+        cache: ResponseCache<GraphCache>,
         cacheDuration: number
     ) {
         this.githubClient = githubClient;
@@ -65,6 +66,15 @@ export class GraphsService {
             `${dateRange.displayYear || 'current'}`
         );
 
+        // When no explicit year was requested, replace the year-scoped total with
+        // an all-time count summed from the user's account creation date. The
+        // heatmap (weeks) still shows the last year — GitHub's calendar API is
+        // limited to a single 52-week window.
+        // Shallow-copy so we don't mutate the client's cached response.
+        const renderData = (!params.year || params.year === 'last')
+            ? { ...contributions, totalContributions: await this.githubClient.fetchTotalContributionsSinceCreated(params.username) }
+            : contributions;
+
         // Generate graph
         const options = this.parseOptions(params);
         const graphCardOptions = {
@@ -78,7 +88,7 @@ export class GraphsService {
             size: (params.size as 'small' | 'medium' | 'large' | 'default' | undefined)
         };
         const svg = GraphRenderer.generateGraphCard(
-            contributions,
+            renderData,
             graphCardOptions
         );
 

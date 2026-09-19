@@ -6,6 +6,7 @@
 import { Request, Response } from 'express';
 import { LanguagesService } from './languages.service.js';
 import { createLogger } from '../../shared/logs/logger.js';
+import type { LanguagesQuery } from '../../shared/validations/validation.js';
 import type { LanguageQueryParams } from './languages.types.js';
 
 const logger = createLogger({ controller: 'LanguagesController' });
@@ -37,12 +38,7 @@ export class LanguagesController {
         const startTime = Date.now();
 
         try {
-            const params = this.parseQueryParams(req);
-
-            if (!params.username) {
-                res.status(400).send('Username is required');
-                return;
-            }
+            const params = this.readValidated(req);
 
             // Generate visualization
             const svg = await this.languagesService.generateLanguageVisualization(params);
@@ -60,23 +56,26 @@ export class LanguagesController {
         } catch (error) {
             const duration = Date.now() - startTime;
             logger.error('Failed to generate language visualization', error as Error, { duration });
-            res.status(500).send(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            // Never echo raw error messages to clients — they may leak internal
+            // paths, GitHub-token hints from rate-limit errors, or DB details.
+            res.status(500).send('Failed to generate language visualization');
         }
     }
 
     /**
-     * Parse query parameters
+     * Read the Zod-validated query. `validate(languagesQuerySchema, 'query')`
+     * attaches `req.validated`; controller-level defaults for backward
+     * compatibility are applied here.
      */
-    private parseQueryParams(req: Request): LanguageQueryParams {
-        const { username, type, theme, show_info, info_outline, size } = req.query;
-
+    private readValidated(req: Request): LanguageQueryParams {
+        const v = (req as Request & { validated?: LanguagesQuery }).validated ?? ({} as LanguagesQuery);
         return {
-            username: username as string,
-            type: (type as any) || 'card',
-            theme: (theme as string) || 'default',
-            show_info: show_info as string,
-            info_outline: (info_outline as any) || 'solid',
-            size: size as any
+            username: v.username as string,
+            type: v.type ?? 'card',
+            theme: v.theme ?? 'default',
+            show_info: v.show_info,
+            info_outline: v.info_outline ?? 'solid',
+            size: v.size,
         };
     }
 }

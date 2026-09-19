@@ -6,6 +6,7 @@
 import { Request, Response } from 'express';
 import { StatsService } from './stats.service.js';
 import { createLogger } from '../../shared/logs/logger.js';
+import type { StatsQuery } from '../../shared/validations/validation.js';
 import type { StatsQueryParams } from './stats.types.js';
 
 const logger = createLogger({ service: 'StatsController' });
@@ -19,15 +20,10 @@ export class StatsController {
 
     async getStats(req: Request, res: Response): Promise<void> {
         try {
-            const params = req.query as unknown as StatsQueryParams;
-
-            if (!params.username) {
-                res.status(400).send('Username is required');
-                return;
-            }
-
-            // Request tracking is handled by the shared `trackRequest` middleware
-            // in app.ts — see src/shared/middlewares/track-request.middleware.ts.
+            // Populated by `validate(statsQuerySchema, 'query')` at the route.
+            // Zod has already enforced username shape, enum values, and hex colors
+            // (normalized to `#…` form).
+            const params = (req as Request & { validated?: StatsQuery }).validated as StatsQueryParams;
 
             // Determine format based on user agent
             const userAgent = req.get('user-agent') || '';
