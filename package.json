@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "dev": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/index.ts",
-    "dev:modular": "node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm ./src/server.ts",
+    "dev": "tsx watch ./src/index.ts",
+    "dev:modular": "tsx watch ./src/server.ts",
     "start": "node dist/server-cluster.js",
     "start:single": "node dist/index.js",
     "start:cluster": "node dist/server-cluster.js",
