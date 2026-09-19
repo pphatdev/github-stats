@@ -79,7 +79,8 @@ export class StatsService {
      */
     private async generateNewSvg(params: StatsQueryParams): Promise<string> {
         const avatarMode = params.avatar_mode || 'none';
-        const stats = await this.githubClient.fetchUserStats(params.username, { avatarMode });
+        const year = this.parseYear(params.year);
+        const stats = await this.githubClient.fetchUserStats(params.username, { avatarMode, year });
 
         const options: StatsCardOptions = {
             theme: params.theme || 'default',
@@ -148,6 +149,20 @@ export class StatsService {
             .webp({ quality: 90 })
             .toBuffer();
         return webpBuffer;
+    }
+
+    /**
+     * Parse `?year=YYYY` into a valid year (2008+ = GitHub launch, ≤ current).
+     * Returns undefined for missing/invalid input so callers fall back to
+     * all-time behavior.
+     */
+    private parseYear(raw: string | undefined): number | undefined {
+        if (!raw) return undefined;
+        const y = parseInt(raw, 10);
+        if (Number.isNaN(y)) return undefined;
+        const currentYear = new Date().getUTCFullYear();
+        if (y < 2008 || y > currentYear) return undefined;
+        return y;
     }
 
     /**

@@ -20,6 +20,7 @@ export interface StatsQueryParams {
     titleColor?: string;
     format?: string;
     size?: 'small' | 'medium' | 'large' | 'default';
+    year?: string;
 }
 
 export interface StatsCardOptions {

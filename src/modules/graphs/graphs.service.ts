@@ -70,10 +70,18 @@ export class GraphsService {
         // an all-time count summed from the user's account creation date. The
         // heatmap (weeks) still shows the last year — GitHub's calendar API is
         // limited to a single 52-week window.
+        // Also merge in `year` (from displayYear) so the renderer's title text
+        // ("<user>'s Activity <year>") doesn't show "undefined" — the client's
+        // fetchUserContributions doesn't populate it.
         // Shallow-copy so we don't mutate the client's cached response.
-        const renderData = (!params.year || params.year === 'last')
-            ? { ...contributions, totalContributions: await this.githubClient.fetchTotalContributionsSinceCreated(params.username) }
-            : contributions;
+        const isDefaultRange = !params.year || params.year === 'last';
+        const renderData = {
+            ...contributions,
+            year: dateRange.displayYear,
+            ...(isDefaultRange && {
+                totalContributions: await this.githubClient.fetchTotalContributionsSinceCreated(params.username),
+            }),
+        };
 
         // Generate graph
         const options = this.parseOptions(params);
@@ -150,7 +158,7 @@ export class GraphsService {
             from: oneYearAgo.toISOString(),
             to: now.toISOString(),
             cacheKeyExtra: 'last-year',
-            displayYear: 'Last Year'
+            displayYear: 'All Time'
         };
     }
 

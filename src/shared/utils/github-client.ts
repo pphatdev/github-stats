@@ -155,6 +155,49 @@ export class GitHubClient {
         });
     }
 
+    /**
+     * Fetch commits / PRs / issues / calendar total scoped to a single calendar
+     * year. Used when `/stats` is requested with `?year=YYYY`. `restricted`
+     * (private-repo contribution count) is folded into `commits` to mirror
+     * `fetchTotalCommitContributions` behavior.
+     */
+    private async fetchYearContributions(username: string, year: number): Promise<{
+        commits: number;
+        prs: number;
+        issues: number;
+        total: number;
+    }> {
+        return this.cachedRequest(`user-year-contribs-${username}-${year}`, async () => {
+            const from = new Date(Date.UTC(year, 0, 1)).toISOString();
+            const to = new Date(Date.UTC(year, 11, 31, 23, 59, 59)).toISOString();
+
+            const query = `
+                query($username: String!, $from: DateTime!, $to: DateTime!) {
+                    user(login: $username) {
+                        contributionsCollection(from: $from, to: $to) {
+                            totalCommitContributions
+                            totalPullRequestContributions
+                            totalIssueContributions
+                            restrictedContributionsCount
+                            contributionCalendar { totalContributions }
+                        }
+                    }
+                }
+            `;
+
+            const result: any = await this.octokit.graphql(query, { username, from, to });
+            const cc = result?.user?.contributionsCollection;
+            if (!cc) return { commits: 0, prs: 0, issues: 0, total: 0 };
+
+            return {
+                commits: (cc.totalCommitContributions || 0) + (cc.restrictedContributionsCount || 0),
+                prs: cc.totalPullRequestContributions || 0,
+                issues: cc.totalIssueContributions || 0,
+                total: cc.contributionCalendar?.totalContributions || 0,
+            };
+        });
+    }
+
     private async fetchTotalCommitContributions(username: string, createdAt: string): Promise<number> {
         const ranges = this.buildContributionYearRanges(new Date(createdAt));
 
@@ -207,9 +250,10 @@ export class GitHubClient {
         };
     }
 
-    async fetchUserStats(username: string, options: { avatarMode: 'none' | 'avatar' | 'radar' }): Promise<GitHubStats> {
+    async fetchUserStats(username: string, options: { avatarMode: 'none' | 'avatar' | 'radar'; year?: number }): Promise<GitHubStats> {
+        const yearKey = options.year ? `-y${options.year}` : '';
         try {
-            const stats = await this.cachedRequest(`user-stats-${username}`, async () => {
+            const stats = await this.cachedRequest(`user-stats-${username}${yearKey}`, async () => {
                 // Use GraphQL to get all-time stats in a single request
                 const query = `
                     query($username: String!) {
@@ -261,14 +305,22 @@ export class GitHubClient {
                 // Count non-fork repositories
                 const contributedTo = userData.repositories.nodes.filter((repo: any) => !repo.isFork).length;
 
-                // Get real PR and issue counts
-                const totalPRs = userData.pullRequests.totalCount;
-                const totalIssues = userData.issues.totalCount;
+                // When `year` is set we scope commits/PRs/issues/contributions
+                // to that year via a single `contributionsCollection`. Stars
+                // remain all-time (GitHub can't cheaply time-slice stargazers).
+                const yearScoped = options.year
+                    ? await this.fetchYearContributions(username, options.year)
+                    : null;
 
-                const [totalCommits, totalContributions] = await Promise.all([
-                    this.fetchTotalCommitContributions(username, userData.createdAt),
-                    this.fetchTotalContributionsSinceCreated(username),
-                ]);
+                const totalPRs = yearScoped ? yearScoped.prs : userData.pullRequests.totalCount;
+                const totalIssues = yearScoped ? yearScoped.issues : userData.issues.totalCount;
+
+                const [totalCommits, totalContributions] = yearScoped
+                    ? [yearScoped.commits, yearScoped.total]
+                    : await Promise.all([
+                        this.fetchTotalCommitContributions(username, userData.createdAt),
+                        this.fetchTotalContributionsSinceCreated(username),
+                    ]);
 
                 // Calculate rank
                 const rank = this.calculateRank(totalStars, totalCommits, totalPRs, totalIssues);

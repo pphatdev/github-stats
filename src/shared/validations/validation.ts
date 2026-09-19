@@ -85,6 +85,7 @@ export const statsQuerySchema = z.object({
     titleColor: colorHex,
     format: formatSchema,
     size: sizeSchema,
+    year: z.string().regex(/^\d{4}$/, 'Expected a 4-digit year').optional(),
 });
 
 export type StatsQuery = z.infer<typeof statsQuerySchema>;
