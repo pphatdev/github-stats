@@ -1,5 +1,6 @@
 import { BadgeOptions, BadgeType } from '../types/badge.types.js';
 import { getTheme, getBadgeTheme } from '../utils/themes.js';
+import { svgEscape } from '../utils/svg-safe.js';
 
 interface BadgeConfig {
     label: string;
@@ -228,14 +229,15 @@ export class BadgeRenderer {
         const fontName = theme.fontName || 'Orbitron';
         const fontFamily = theme.fontFamily || `'${fontName}', 'Ubuntu', sans-serif`;
 
-        const labelText = (options.customLabel ?? config.label).toUpperCase();
+        const rawLabelText = (options.customLabel ?? config.label).toUpperCase();
+        const labelText = svgEscape(rawLabelText);
         const displayValue = config.formatValue ? config.formatValue(value) : value.toLocaleString();
 
 
-        // Dimensions
+        // Dimensions (measure raw glyphs, not escape sequences)
         const showIcon = !BadgeRenderer._isProjectBadgeType(type) && !options.hideIcon;
         const iconSpace = showIcon ? (ICON_PAD_L + ICON_SIZE + ICON_GAP) : LABEL_PAD_R;
-        const labelTextW = Math.ceil(labelText.length * LABEL_CHARW);
+        const labelTextW = Math.ceil(rawLabelText.length * LABEL_CHARW);
         const labelSecW = iconSpace + labelTextW + LABEL_PAD_R;
         const valueTextW = Math.ceil(displayValue.length * VALUE_CHARW);
         const valueSecW = VALUE_PAD_H + valueTextW + VALUE_PAD_H;

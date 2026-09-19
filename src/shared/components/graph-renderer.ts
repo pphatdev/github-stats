@@ -1,5 +1,6 @@
 import { ContributionGraphData, GraphCardOptions } from "../types/github.types.js";
 import { getTheme } from '../utils/themes.js';
+import { svgEscape } from '../utils/svg-safe.js';
 
 export class GraphRenderer {
     private static readonly STARFIELD_CACHE = new Map<string, string>();
@@ -310,8 +311,9 @@ export class GraphRenderer {
 
         const titleSection = (() => {
             if (!showTitle) return '';
-            const titleText = data.username + "'s Activity " + data.year;
-            const tfw = (titleText.length * sc24) / 2;
+            const rawTitleText = data.username + "'s Activity " + data.year;
+            const titleText = svgEscape(rawTitleText);
+            const tfw = (rawTitleText.length * sc24) / 2;
             return `<text x="50%" y="${titleY}" text-anchor="middle" fill="${theme.titleColor}" font-size="${titleFontSize}" font-family="${fontFamily}" font-weight="700" style="filter:drop-shadow(0 0 12px ${theme.titleColor}66)">${titleText}</text>\n            <g fill="none" stroke="${theme.titleColor}" stroke-width="1.5" opacity="0.25">${buildCornerPaths(cx - tfw - sc12, titleFrameY1, cx + tfw + sc12, titleFrameY2, sc16)}</g>`;
         })();
 

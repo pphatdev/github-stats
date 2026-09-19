@@ -1,6 +1,7 @@
 import { StatsCardOptions } from "../../modules/stats/stats.types.js";
 import { GitHubStats } from "../types/github.types.js";
 import { getTheme } from '../utils/themes.js';
+import { svgEscape } from '../utils/svg-safe.js';
 
 export class CardRenderer {
     // Cache static starfield to avoid regenerating
@@ -81,7 +82,7 @@ export class CardRenderer {
         const showDataBorderStroke = (options.dataBorderStyle || 'solid') === 'solid';
         const showDataBorderFrame = (options.dataBorderStyle || 'solid') === 'frame';
         const avatarMode = options.avatarMode || 'radar';
-        const customTitle = options.customTitle || `${stats.name}'s GitHub Stats`;
+        const customTitle = svgEscape(options.customTitle || `${stats.name}'s GitHub Stats`);
 
         const { WIDTH: width, HEIGHT: height } =
             CardRenderer.SIZE_PRESETS[options.size ?? 'default'] ?? CardRenderer.SIZE_PRESETS.default;
