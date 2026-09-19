@@ -13,10 +13,15 @@ ENV NODE_ENV=production
 ENV WORKERS=0
 WORKDIR /app
 
-COPY --from=build /app/package*.json ./
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/public ./public
+# Copy as root so we can chown to the non-root `node` user shipped with the
+# official Node image (uid 1000). Subsequent process runs as `node` so a
+# code-execution bug can't touch /usr, /etc, or write outside /app (L4).
+COPY --from=build --chown=node:node /app/package*.json ./
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --from=build --chown=node:node /app/public ./public
+
+USER node
 
 EXPOSE 3000
 CMD ["node", "dist/server-cluster.js"]

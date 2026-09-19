@@ -206,8 +206,9 @@ export default {
 
 			return json({ error: 'Not Found', path: pathname }, 404);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : String(err);
-			return json({ error: 'Internal Server Error', message }, 500);
+			// Log server-side; never surface raw messages to the client (M3).
+			console.error('Worker request failed', err);
+			return json({ error: 'Internal Server Error' }, 500);
 		}
 	},
 };

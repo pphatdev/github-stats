@@ -8,6 +8,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
+import { isValidCssColor } from '../../shared/utils/css-color.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,8 +19,6 @@ export class IconsCollectionController {
     private static readonly pendingLoads: Map<string, Promise<string>> = new Map();
     private static readonly MAX_CACHE_ITEMS = 2000;
     private static readonly HTTP_CACHE_CONTROL = 'public, max-age=31536000, immutable';
-    private static readonly COLOR_REGEX =
-        /^(#[0-9A-Fa-f]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|[a-zA-Z]+|currentColor)$/;
     private static readonly ICON_NAME_REGEX = /^[a-zA-Z0-9._-]+$/;
     private static readonly DEFAULT_ICON_COLUMNS = 3;
     private static readonly MAX_ICON_COLUMNS = 40;
@@ -70,7 +69,7 @@ export class IconsCollectionController {
     }
 
     private static isValidColor(color: string): boolean {
-        return IconsCollectionController.COLOR_REGEX.test(color);
+        return isValidCssColor(color);
     }
 
     private static parseQueryList(value: unknown): string[] {

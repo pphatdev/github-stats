@@ -112,8 +112,7 @@ export async function getRedisClient(): Promise<RedisClientType> {
                     url: redisUrl,
                     socket: {
                         tls: true,
-                        rejectUnauthorized: false, // Allow self-signed certs
-                        servername: host, // SNI support
+                        servername: host, // SNI so the CA validates the right cert
                     }
                 });
             } else {
@@ -125,7 +124,6 @@ export async function getRedisClient(): Promise<RedisClientType> {
 
                 if (tls) {
                     socketConfig.tls = {
-                        rejectUnauthorized: false, // Allow self-signed certificates
                         servername: host, // Server Name Indication (SNI)
                     };
                 }

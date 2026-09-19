@@ -55,11 +55,19 @@ export class IconsController {
             const duration = Date.now() - startTime;
             logger.error('Failed to serve icon', error as Error, { duration });
 
-            if ((error as Error).message.includes('Invalid')) {
-                res.status(400).send((error as Error).message);
-            } else {
-                res.status(404).send('Icon not found');
+            const err = error as NodeJS.ErrnoException;
+            if (err.message?.includes('Invalid')) {
+                res.status(400).send('Invalid icon name');
+                return;
             }
+            // Only ENOENT genuinely means "no such file" — anything else
+            // (EACCES, EMFILE, …) is a server-side problem and shouldn't
+            // masquerade as a 404 (L5).
+            if (err.code === 'ENOENT') {
+                res.status(404).send('Icon not found');
+                return;
+            }
+            res.status(500).send('Failed to serve icon');
         }
     }
 

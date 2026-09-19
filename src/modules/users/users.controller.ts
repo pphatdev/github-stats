@@ -6,13 +6,13 @@
 import type { Request, Response } from 'express';
 import { UsersService } from './users.service.js';
 import { createLogger } from '../../shared/logs/logger.js';
+import { isValidGithubUsername } from '../../shared/utils/username.js';
 import type { UserListQueryParams } from './users.types.js';
 
 const logger = createLogger({ controller: 'UsersController' });
 
 const DEFAULT_LIMIT = 30;
 const MAX_LIMIT = 500;
-const USERNAME_PATTERN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
 
 export class UsersController {
     private usersService: UsersService;
@@ -56,7 +56,7 @@ export class UsersController {
     async getUserBadge(req: Request, res: Response): Promise<void> {
         const username = (req.params.username ?? '').trim();
 
-        if (!username || !USERNAME_PATTERN.test(username)) {
+        if (!isValidGithubUsername(username)) {
             res.status(400).json({ error: 'Invalid username' });
             return;
         }

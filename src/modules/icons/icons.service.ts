@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createHash } from 'crypto';
 import { createLogger } from '../../shared/logs/logger.js';
+import { isValidCssColor } from '../../shared/utils/css-color.js';
 import type { IconCache, IconCollectionOptions, IconEffect, IconSize } from './icons.types.js';
 
 const logger = createLogger({ service: 'IconsService' });
@@ -22,7 +23,6 @@ export class IconsService {
     private pendingLoads: Map<string, Promise<string>>;
     private readonly MAX_CACHE_ITEMS = 2000;
     private readonly HTTP_CACHE_CONTROL = 'public, max-age=31536000, immutable';
-    private readonly COLOR_REGEX = /^(#[0-9A-Fa-f]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|[a-zA-Z]+|currentColor)$/;
     private readonly ICON_NAME_REGEX = /^[a-zA-Z0-9._-]+$/;
     private readonly COLLECTION_FALLBACK_COLORS = [
         '#0088CC',
@@ -375,10 +375,10 @@ export class IconsService {
     }
 
     /**
-     * Validate color parameter
+     * Validate color parameter (M2: structured parsers + named-color allowlist).
      */
     private isValidColor(color: string): boolean {
-        return this.COLOR_REGEX.test(color);
+        return isValidCssColor(color);
     }
 
     /**
