@@ -12,7 +12,6 @@ import { initializeDatabaseAsync } from './shared/config/db.js';
 import { GitHubClient } from './shared/utils/github-client.js';
 import { closeRedisClient, getRedisClient } from './shared/utils/redis-client.js';
 import { createResponseCache } from './shared/utils/response-cache.js';
-import { scheduleStatsCleanup } from './shared/utils/stats-cleanup.js';
 import { getBadgeCacheService, getBadgeCacheServiceSync } from './services/badge-cache.service.js';
 import type { ICacheService } from './services/base.service.js';
 
@@ -20,7 +19,6 @@ const logger = createLogger({ module: 'server' });
 let activeApp: Express | null = null;
 let activeServer: HttpServer | null = null;
 let shutdownPromise: Promise<void> | null = null;
-let stopStatsCleanup: (() => void) | null = null;
 
 // Shared bounded cache for API responses. Capacity + TTL configured in
 // `createResponseCache`; TTL matches env.CACHE_DURATION set below.
@@ -154,15 +152,6 @@ export async function startServer(): Promise<Express> {
     activeApp = app;
     activeServer = server;
 
-    // Schedule background prune of stats_requests. `.unref()` inside so we
-    // don't block shutdown; explicit stop on stopServer() keeps tests clean.
-    if (!stopStatsCleanup) {
-        stopStatsCleanup = scheduleStatsCleanup({
-            retentionDays: env.STATS_REQUESTS_RETENTION_DAYS,
-            intervalHours: env.STATS_REQUESTS_CLEANUP_INTERVAL_HOURS,
-        });
-    }
-
     server.on('error', (error: NodeJS.ErrnoException) => {
         logger.error('HTTP server failed to listen', error, {
             port,
@@ -181,11 +170,6 @@ export async function stopServer(): Promise<void> {
     }
 
     shutdownPromise = (async () => {
-        if (stopStatsCleanup) {
-            stopStatsCleanup();
-            stopStatsCleanup = null;
-        }
-
         if (activeServer) {
             await new Promise<void>((resolve, reject) => {
                 activeServer?.close((error) => {
