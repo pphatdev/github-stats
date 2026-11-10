@@ -165,3 +165,18 @@ If you have a `.env` file with a `GITHUB_TOKEN`, Docker Compose will pass it thr
 - `.dockerignore` excludes common local artifacts (`node_modules`, `dist`, `.git`, `.env`, and more) to keep build context small.
 - The multi-stage build uses three stages: `deps` (install), `build` (`npm ci` + `tsc` + `npm prune --omit=dev`), and `runtime` (lean final image).
 - `APP_ENV`, `NODE_ENV` must each be one of `development`, `production`, or `test` — any other value fails startup validation.
+## Deploying via Cloudflare Tunnel (GitHub Actions)
+
+`.github/workflows/deploy.yml` runs on every push to `latest` (or manually):
+
+1. Builds the image and pushes `ghcr.io/pphatdev/github-stats:latest` and `:sha-<commit>`.
+2. SSHes into the server, runs `git pull --ff-only`, then `docker compose pull app && docker compose up -d --no-build` with `APP_IMAGE` set to the new tag.
+3. Waits for the `app` healthcheck. `cloudflared` starts only after the app is healthy and serves it through the tunnel, so the server needs no open ports.
+
+One-time setup:
+
+- **Server:** clone this repo to `DEPLOY_PATH`, create `.env` from `.env.example` with `CLOUDFLARED_TUNNEL_TOKEN`, `GITHUB_TOKEN` and `SERVER_SALT` set. The SSH user needs to be able to run `docker`.
+- **Cloudflare Zero Trust → Networks → Tunnels:** set the public hostname (for example `stats.pphat.top`) to `http://localhost:<PORT>`. `cloudflared` shares the app container's network, so use the container `PORT` (default `3000`), not the host port `3102`.
+- **GitHub → Settings → Secrets and variables → Actions:** `SSH_HOST`, `SSH_USER`, `SSH_KEY`, `DEPLOY_PATH`, and optionally `SSH_PORT`. The deploy job uses the `production` environment, so you can add required reviewers there.
+
+The app port is bound to `127.0.0.1:3102` only, for the host nginx in `nginx/default.conf`. It is not exposed publicly.
