@@ -31,6 +31,8 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       SERVER_SALT: ${SERVER_SALT:-}
       WARMUP_USERNAME: ${WARMUP_USERNAME:-}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-1000}
+      RATE_LIMIT_STRICT_MAX: ${RATE_LIMIT_STRICT_MAX:-120}
     volumes:
       - app-data:/app/data
     depends_on:
@@ -47,6 +49,9 @@ services:
       retries: 5
       start_period: 20s
     stop_grace_period: 20s
+    # Runs as the unprivileged `node` user and needs no Linux capabilities.
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
 
   redis:
     image: redis:7-alpine
@@ -60,6 +65,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    # Entrypoint drops root via setuid, so capabilities stay; block escalation.
+    security_opt: ["no-new-privileges:true"]
 
   # Cloudflare Tunnel. Shares the app's network namespace, so the tunnel's
   # public hostname in the Cloudflare dashboard must point to
@@ -76,6 +83,8 @@ services:
       TUNNEL_TOKEN: ${CLOUDFLARED_TUNNEL_TOKEN:?Set CLOUDFLARED_TUNNEL_TOKEN in .env}
     # With a token, cloudflared ignores any tunnel-name argument.
     command: ["tunnel", "--no-autoupdate", "run"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
 
 volumes:
   app-data:

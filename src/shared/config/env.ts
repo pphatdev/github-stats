@@ -25,13 +25,21 @@ const envSchema = z.object({
     // Per-instance secret used to salt client IPs before hashing for visitor
     // dedup (see src/shared/utils/visitor.ts). Optional in dev; set to a
     // long random string in production (`openssl rand -hex 32`).
-    SERVER_SALT: z.string().min(16, 'SERVER_SALT must be at least 16 chars').optional(),
+    // Empty string (e.g. compose's `${SERVER_SALT:-}`) is treated as unset.
+    SERVER_SALT: z.preprocess(
+        (v) => (v === '' ? undefined : v),
+        z.string().min(16, 'SERVER_SALT must be at least 16 chars').optional(),
+    ),
 
     // stats_requests retention & prune cadence (H7). Rows older than
     // STATS_REQUESTS_RETENTION_DAYS are deleted every
     // STATS_REQUESTS_CLEANUP_INTERVAL_HOURS.
     STATS_REQUESTS_RETENTION_DAYS: z.coerce.number().int().positive().default(30),
     STATS_REQUESTS_CLEANUP_INTERVAL_HOURS: z.coerce.number().positive().default(6),
+
+    // Rate limits (per client IP, shared across cluster workers via Redis).
+    RATE_LIMIT_MAX: z.coerce.number().int().positive().default(1000),        // per 15 min, all routes
+    RATE_LIMIT_STRICT_MAX: z.coerce.number().int().positive().default(120),  // per minute, GitHub-backed routes
 
     // Redis Configuration
     REDIS_ENABLED: z
@@ -73,6 +81,16 @@ const envSchema = z.object({
     // Optional Environment Detection
     ENVIRONMENT: z.string().optional(),
     WORKERS: z.coerce.number().optional(),
+}).superRefine((env, ctx) => {
+    // The dev fallback salt is public (it's in the source), so hashed visitor
+    // IPs would be trivially reversible in production. Refuse to start.
+    if (env.APP_ENV === 'production' && !env.SERVER_SALT) {
+        ctx.addIssue({
+            code: 'custom',
+            path: ['SERVER_SALT'],
+            message: 'SERVER_SALT is required when APP_ENV=production (openssl rand -hex 32)',
+        });
+    }
 });
 
 export type Env = z.infer<typeof envSchema>;

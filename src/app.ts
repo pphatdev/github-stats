@@ -23,7 +23,7 @@ import { createUsersRouter } from './modules/users/index.js';
 
 // Shared middleware
 import { errorHandler, trackRequest } from './shared/middlewares/index.js';
-import { securityMiddleware, rateLimiter, strictRateLimiter } from './shared/middlewares/performance.middleware.js';
+import { securityMiddleware, svgCspMiddleware, rateLimiter, strictRateLimiter } from './shared/middlewares/performance.middleware.js';
 import type { ResponseCache } from './shared/utils/response-cache.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -53,6 +53,7 @@ export function createApp(): Express {
     // 🔒 SECURITY: Helmet-based headers (see performance.middleware for the
     // rationale on CSP/COEP/CORP tuning for cross-origin badge embedding).
     app.use(securityMiddleware);
+    app.use(svgCspMiddleware);
 
     // 🚦 RATE LIMIT: Global 1000 req / 15 min per IP. Endpoint-specific limits
     // for GitHub-hitting routes are applied in `initializeRoutes`.
@@ -144,12 +145,12 @@ export function initializeRoutes(
 
     // Mount module routes. `trackRequest` logs every card request (including
     // programmatic/bot user-agents) into `stats_requests` for the admin dashboard.
-    // `strictRateLimiter` is layered on /stats and /badges because both may
-    // fan out to the GitHub API on cache miss — the global rateLimiter alone
-    // would let a hot spot burn through the API quota.
+    // `strictRateLimiter` is layered on every route that may fan out to the
+    // GitHub API on cache miss — the global rateLimiter alone would let a hot
+    // spot burn through the API quota.
     app.use('/stats', strictRateLimiter, trackRequest, createStatsRouter(githubClient, cache, cacheDuration));
-    app.use('/languages', trackRequest, createLanguagesRouter(githubClient, cache, cacheDuration));
-    app.use('/graph', trackRequest, createGraphsRouter(githubClient, cache, cacheDuration));
+    app.use('/languages', strictRateLimiter, trackRequest, createLanguagesRouter(githubClient, cache, cacheDuration));
+    app.use('/graph', strictRateLimiter, trackRequest, createGraphsRouter(githubClient, cache, cacheDuration));
     app.use('/badges', strictRateLimiter, trackRequest, createBadgesRouter(githubClient, cache, cacheDuration));
     app.use('/icons', createIconsRouter());
     app.use('/health', createHealthRouter(cacheService));

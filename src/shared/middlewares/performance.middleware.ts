@@ -6,8 +6,10 @@
 import { Request, Response, NextFunction } from 'express';
 import compression from 'compression';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { MemoryStore, type Options, type Store, type IncrementResponse } from 'express-rate-limit';
 import { createLogger } from '../logs/logger.js';
+import { getRedisClient, isRedisConnected } from '../utils/redis-client.js';
+import { getEnv } from '../config/env.js';
 
 const logger = createLogger({ service: 'PerformanceMiddleware' });
 
@@ -51,11 +53,103 @@ export const securityMiddleware = helmet({
 });
 
 /**
+ * Locked-down CSP for SVG responses.
+ *
+ * Browsers ignore scripts in SVGs loaded via <img>, but an SVG opened directly
+ * (or via <object>/<iframe>) is a full document and runs inline script. Every
+ * user-controlled value is escaped by the renderers (svg-safe.ts); this header
+ * is defence in depth so a missed escape can't become stored/reflected XSS on
+ * our origin. Our SVGs only use inline styles and data: URIs.
+ *
+ * Applied at write time because the Content-Type isn't known until the
+ * controller sets it.
+ */
+const SVG_CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; sandbox";
+
+export const svgCspMiddleware = (_req: Request, res: Response, next: NextFunction) => {
+    const originalWriteHead = res.writeHead;
+    res.writeHead = function (this: Response, ...args: unknown[]) {
+        const contentType = String(this.getHeader('Content-Type') ?? '');
+        if (contentType.startsWith('image/svg+xml')) {
+            this.setHeader('Content-Security-Policy', SVG_CSP);
+        }
+        return (originalWriteHead as (...a: unknown[]) => Response).apply(this, args);
+    } as typeof res.writeHead;
+    next();
+};
+
+/**
+ * Rate-limit store shared across cluster workers via Redis.
+ *
+ * The default MemoryStore is per-process, so with N cluster workers (and
+ * round-robin scheduling) every limit was effectively N× looser. Counters live
+ * in Redis when it is connected; otherwise we fall back to the per-process
+ * MemoryStore so the app still enforces *some* limit without Redis.
+ */
+class SharedRateLimitStore implements Store {
+    localKeys = false;
+    private windowMs = 60_000;
+    private readonly memory = new MemoryStore();
+
+    constructor(public readonly prefix: string) {}
+
+    init(options: Options): void {
+        this.windowMs = options.windowMs;
+        this.memory.init(options);
+    }
+
+    private redisKey(key: string): string {
+        return `rl:${this.prefix}:${key}`;
+    }
+
+    async increment(key: string): Promise<IncrementResponse> {
+        if (isRedisConnected()) {
+            try {
+                const client = await getRedisClient();
+                const k = this.redisKey(key);
+                const [hits, ttl] = (await client.multi().incr(k).pTTL(k).exec()) as unknown as [number, number];
+                let ttlMs = Number(ttl);
+                if (ttlMs < 0) {
+                    await client.pExpire(k, this.windowMs);
+                    ttlMs = this.windowMs;
+                }
+                return { totalHits: Number(hits), resetTime: new Date(Date.now() + ttlMs) };
+            } catch (error) {
+                logger.warn('Rate-limit Redis store failed; using in-memory fallback', {
+                    error: (error as Error).message,
+                });
+            }
+        }
+        return this.memory.increment(key);
+    }
+
+    async decrement(key: string): Promise<void> {
+        if (isRedisConnected()) {
+            try {
+                await (await getRedisClient()).decr(this.redisKey(key));
+                return;
+            } catch { /* fall through */ }
+        }
+        this.memory.decrement(key);
+    }
+
+    async resetKey(key: string): Promise<void> {
+        if (isRedisConnected()) {
+            try {
+                await (await getRedisClient()).del(this.redisKey(key));
+            } catch { /* ignore */ }
+        }
+        this.memory.resetKey(key);
+    }
+}
+
+/**
  * Rate limiting to prevent abuse
  */
 export const rateLimiter = rateLimit({
+    store: new SharedRateLimitStore('global'),
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // Limit each IP to 1000 requests per windowMs
+    limit: () => getEnv().RATE_LIMIT_MAX, // per IP per window, across all workers
     standardHeaders: true, // Return rate limit info in headers
     legacyHeaders: false,
     message: 'Too many requests from this IP, please try again later.',
@@ -69,8 +163,12 @@ export const rateLimiter = rateLimit({
  * Aggressive rate limiter for expensive operations
  */
 export const strictRateLimiter = rateLimit({
+    store: new SharedRateLimitStore('strict'),
     windowMs: 60 * 1000, // 1 minute
-    max: 30, // Limit to 30 requests per minute
+    // Per IP across all GitHub-backed routes. Keep this generous: README
+    // images are fetched through GitHub's camo proxy, so many viewers share
+    // a few GitHub IPs.
+    limit: () => getEnv().RATE_LIMIT_STRICT_MAX,
     message: 'Rate limit exceeded for this endpoint.',
 });
 
