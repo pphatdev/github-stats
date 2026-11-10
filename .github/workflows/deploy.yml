@@ -9,6 +9,9 @@ name: Deploy (Docker + Cloudflare Tunnel)
 #   SSH_USER      user that can run `docker compose`
 #   SSH_KEY       private key (PEM/OpenSSH) for that user
 #   DEPLOY_PATH   absolute path of this repo's checkout on the server
+#   SSH_FINGERPRINT  SHA256 host key fingerprint of the server, e.g. from
+#                 `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`. Without it
+#                 the SSH host key is not verified (MITM can steal the GHCR token).
 # Optional:
 #   SSH_PORT      defaults to 22
 #
@@ -23,6 +26,9 @@ on:
       - "docs/**"
       - ".github/ISSUE_TEMPLATE/**"
   workflow_dispatch:
+
+# Least privilege by default; jobs opt in to what they need.
+permissions: {}
 
 concurrency:
   group: deploy-production
@@ -85,6 +91,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
           envs: APP_IMAGE,GHCR_USER,GHCR_TOKEN,DEPLOY_PATH
           script_stop: true
           script: |
