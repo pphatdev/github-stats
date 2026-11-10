@@ -44,8 +44,16 @@ const themeSchema = z.string()
     .transform(normalizeThemeName)
     .optional();
 
+// Upper bound on CSV list entries (badge names/themes). Each badge name is a
+// separate render (and possibly a GitHub/DB call), so an unbounded list is a
+// cheap amplification vector.
+export const MAX_CSV_ITEMS = 30;
+const csvItemCount = (v: string) => v.split(',').map((s) => s.trim()).filter(Boolean).length;
+
 // Badge endpoint accepts a CSV of themes; validate each item independently.
 const badgeThemeCsvSchema = z.string()
+    .max(1000)
+    .refine((v) => csvItemCount(v) <= MAX_CSV_ITEMS, { message: `At most ${MAX_CSV_ITEMS} themes` })
     .refine(
         (v) => v.split(',').map((s) => s.trim()).filter(Boolean).every(isKnownBadgeTheme),
         { message: 'Unknown theme (CSV; one or more entries not registered)' },
@@ -113,7 +121,7 @@ export const graphQuerySchema = z.object({
     theme: themeSchema,
     year: z.string().regex(/^\d{4}$/, 'Expected a 4-digit year').optional(),
     animate: z.enum(['none', 'wave', 'pulse', 'glow']).optional(),
-    size: z.string().optional(),
+    size: sizeSchema,
     as: formatSchema,
     format: formatSchema,
     show_title: booleanString,
@@ -135,7 +143,10 @@ export type GraphQuery = z.infer<typeof graphQuerySchema>;
  */
 export const badgeQuerySchema = z.object({
     username: githubUsername,
-    name: z.string().optional(),
+    name: z.string()
+        .max(1000)
+        .refine((v) => csvItemCount(v) <= MAX_CSV_ITEMS, { message: `At most ${MAX_CSV_ITEMS} badge names` })
+        .optional(),
     repo: z.string().max(200).optional(),
     theme: badgeThemeCsvSchema,
     effect: z.enum(['wave', 'glow']).optional(),
