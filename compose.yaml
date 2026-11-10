@@ -82,7 +82,10 @@ services:
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARED_TUNNEL_TOKEN:?Set CLOUDFLARED_TUNNEL_TOKEN in .env}
     # With a token, cloudflared ignores any tunnel-name argument.
-    command: ["tunnel", "--no-autoupdate", "run"]
+    # `--url` is the fallback origin when the tunnel has no Public Hostname
+    # routes in the dashboard (otherwise every request gets an empty 503).
+    # Dashboard routes, once added, take precedence.
+    command: ["tunnel", "--no-autoupdate", "run", "--url", "http://localhost:${PORT:-3000}"]
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
 

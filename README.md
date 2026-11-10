@@ -12,7 +12,7 @@
 
 Create beautiful GitHub stats cards, badges, icons, and contribution graphs that are easy to customize and perfect for your profile README or project docs.
 
-Docker build guide: [docs/docker-build.md](docs/docker-build.md)
+Deployment guide: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) · Docker build guide: [docs/docker-build.md](docs/docker-build.md)
 
 ## 🛜 For Load balance
 
