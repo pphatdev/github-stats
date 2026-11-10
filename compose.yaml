@@ -3,10 +3,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ${CLOUDFLARED_TUNNEL_NAME}-app
+    # Local: `docker compose up --build` builds and tags this.
+    # CI deploy: APP_IMAGE=ghcr.io/pphatdev/github-stats:sha-xxxxxxx is pulled.
+    image: ${APP_IMAGE:-github-stats:local}
+    container_name: ${CLOUDFLARED_TUNNEL_NAME:-github-stats}-app
     restart: unless-stopped
+    # Loopback only: public traffic arrives via the Cloudflare Tunnel (or the
+    # host nginx in nginx/default.conf, which proxies to 127.0.0.1:3102).
     ports:
-      - "3102:${PORT:-3000}"
+      - "127.0.0.1:3102:${PORT:-3000}"
     environment:
       NODE_ENV: production
       APP_ENV: production
@@ -14,14 +19,18 @@ services:
       PORT: ${PORT:-3000}
       WORKERS: ${WORKERS:-0}
       DATABASE_PROVIDER: ${DATABASE_PROVIDER:-sqlite}
-      DATABASE_URL: ${DATABASE_URL:-/app/data/stats.db}
+      # Must live inside the app-data volume, so it is not taken from .env.
+      DATABASE_URL: /app/data/stats.db
       CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
       CLOUDFLARE_D1_DATABASE_ID: ${CLOUDFLARE_D1_DATABASE_ID:-}
       CLOUDFLARE_D1_TOKEN: ${CLOUDFLARE_D1_TOKEN:-}
       REDIS_ENABLED: "true"
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_TLS: "false"
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      SERVER_SALT: ${SERVER_SALT:-}
+      WARMUP_USERNAME: ${WARMUP_USERNAME:-}
     volumes:
       - app-data:/app/data
     depends_on:
@@ -32,7 +41,7 @@ services:
         - CMD
         - node
         - -e
-        - fetch(`http://127.0.0.1:${PORT:-3000}/health`).then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))
+        - fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
       interval: 30s
       timeout: 10s
       retries: 5
@@ -41,7 +50,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: ${CLOUDFLARED_TUNNEL_NAME}-redis
+    container_name: ${CLOUDFLARED_TUNNEL_NAME:-github-stats}-redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
@@ -52,9 +61,12 @@ services:
       timeout: 5s
       retries: 5
 
+  # Cloudflare Tunnel. Shares the app's network namespace, so the tunnel's
+  # public hostname in the Cloudflare dashboard must point to
+  # http://localhost:${PORT} (the container port, not 3102).
   cloudflared:
     image: cloudflare/cloudflared:latest
-    container_name: ${CLOUDFLARED_TUNNEL_NAME}-cloudflared
+    container_name: ${CLOUDFLARED_TUNNEL_NAME:-github-stats}-cloudflared
     restart: unless-stopped
     network_mode: "service:app"
     depends_on:
@@ -62,11 +74,8 @@ services:
         condition: service_healthy
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARED_TUNNEL_TOKEN:?Set CLOUDFLARED_TUNNEL_TOKEN in .env}
-    command:
-      - tunnel
-      - --no-autoupdate
-      - run
-      - ${CLOUDFLARED_TUNNEL_NAME}
+    # With a token, cloudflared ignores any tunnel-name argument.
+    command: ["tunnel", "--no-autoupdate", "run"]
 
 volumes:
   app-data:
