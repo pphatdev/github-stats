@@ -22,6 +22,8 @@ export class IconsCollectionController {
     private static readonly ICON_NAME_REGEX = /^[a-zA-Z0-9._-]+$/;
     private static readonly DEFAULT_ICON_COLUMNS = 3;
     private static readonly MAX_ICON_COLUMNS = 40;
+    // Each name is a file read + SVG inline; bound the per-request fan-out.
+    private static readonly MAX_ICONS = 100;
     private static readonly MULTI_ICON_COLOR_PALETTE = [
         '#38BDF8',
         '#F97316',
@@ -393,6 +395,14 @@ export class IconsCollectionController {
                     error: 'Missing icon names',
                     message:
                         'Provide at least one icon name using the name query parameter, for example /icons?name=react,typescript',
+                });
+                return;
+            }
+
+            if (iconNames.length > IconsCollectionController.MAX_ICONS) {
+                res.status(400).json({
+                    error: 'Too many icons',
+                    message: `At most ${IconsCollectionController.MAX_ICONS} icons per request`,
                 });
                 return;
             }

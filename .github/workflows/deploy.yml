@@ -1,0 +1,121 @@
+name: Deploy (Docker + Cloudflare Tunnel)
+
+# Builds the Docker image, pushes it to GHCR, then SSHes into the server and
+# restarts the compose stack. Public traffic reaches the app through the
+# `cloudflared` service in compose.yaml (Cloudflare Tunnel) — no open ports.
+#
+# Repository secrets required:
+#   SSH_HOST      server hostname or IP
+#   SSH_USER      user that can run `docker compose`
+#   SSH_KEY       private key (PEM/OpenSSH) for that user
+#   DEPLOY_PATH   absolute path of this repo's checkout on the server
+#   SSH_FINGERPRINT  SHA256 host key fingerprint of the server, e.g. from
+#                 `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`. Without it
+#                 the SSH host key is not verified (MITM can steal the GHCR token).
+# Optional:
+#   SSH_PORT      defaults to 22
+#
+# The server's .env must contain CLOUDFLARED_TUNNEL_TOKEN (and GITHUB_TOKEN,
+# SERVER_SALT, ...). APP_IMAGE is passed in by this workflow.
+
+on:
+  push:
+    branches: [latest]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
+  workflow_dispatch:
+
+# Least privilege by default; jobs opt in to what they need.
+permissions: {}
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/pphatdev/github-stats
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ env.IMAGE_NAME }}:sha-${{ steps.short.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: short
+        run: echo "sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:sha-${{ steps.short.outputs.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          APP_IMAGE: ${{ needs.build.outputs.image }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          envs: APP_IMAGE,GHCR_USER,GHCR_TOKEN,DEPLOY_PATH
+          script_stop: true
+          script: |
+            set -eu
+            cd "$DEPLOY_PATH"
+            # compose.yaml lives in the repo; fails loudly if the server
+            # checkout has diverged instead of discarding local edits.
+            git pull --ff-only --quiet origin latest
+
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+            export APP_IMAGE
+            docker compose pull app
+            docker compose up -d --no-build --remove-orphans
+
+            # Wait for the app healthcheck (cloudflared only starts once healthy).
+            cid=$(docker compose ps -q app)
+            for i in $(seq 1 30); do
+              status=$(docker inspect -f '{{.State.Health.Status}}' "$cid")
+              [ "$status" = "healthy" ] && break
+              sleep 5
+            done
+            echo "app health: $status"
+            docker compose ps
+            docker logout ghcr.io
+            docker image prune -f
+            [ "$status" = "healthy" ]

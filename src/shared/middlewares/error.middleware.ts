@@ -41,7 +41,7 @@ export function errorHandler(logger?: Logger) {
         }
 
         // Generate request ID for tracking
-        const requestId = req.headers['x-request-id'] as string || generateRequestId();
+        const requestId = resolveRequestId(req.headers['x-request-id']);
 
         // Log the error
         const statusCode = getErrorStatusCode(err);
@@ -137,7 +137,7 @@ export function requestLogger(logger?: Logger) {
 
     return (req: Request, res: Response, next: NextFunction): void => {
         const startTime = Date.now();
-        const requestId = req.headers['x-request-id'] as string || generateRequestId();
+        const requestId = resolveRequestId(req.headers['x-request-id']);
 
         // Attach request ID to request
         (req as any).requestId = requestId;
@@ -184,6 +184,17 @@ export function validate<T>(schema: any, source: 'query' | 'body' | 'params' = '
             next(error);
         }
     };
+}
+
+/**
+ * Use the caller's `x-request-id` only if it is a short, plain token. It is
+ * echoed in responses and written to logs, so arbitrary values would allow
+ * log forging and response bloat.
+ */
+const REQUEST_ID_RE = /^[A-Za-z0-9._-]{1,64}$/;
+
+function resolveRequestId(header: string | string[] | undefined): string {
+    return typeof header === 'string' && REQUEST_ID_RE.test(header) ? header : generateRequestId();
 }
 
 /**
