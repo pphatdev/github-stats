@@ -4,7 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     # Local: `docker compose up --build` builds and tags this.
-    # CI deploy: APP_IMAGE=ghcr.io/pphatdev/github-stats:sha-xxxxxxx is pulled.
+    # Server: set APP_IMAGE=ghcr.io/pphatdev/github-stats:<version> and run
+    # `docker compose pull app && docker compose up -d --no-build`.
     image: ${APP_IMAGE:-github-stats:local}
     container_name: ${CLOUDFLARED_TUNNEL_NAME:-github-stats}-app
     restart: unless-stopped

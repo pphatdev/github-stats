@@ -1,14 +1,16 @@
 # syntax=docker/dockerfile:1
 
+# Node 24 (active LTS) on Alpine. Both stages must use the same image so
+# native modules built in `deps` match the runtime ABI and libc (musl).
+ARG NODE_IMAGE=node:24-alpine
+
 # ---- deps: install all dependencies (incl. dev) --------------------------
-FROM node:20-bookworm-slim AS deps
+FROM ${NODE_IMAGE} AS deps
 WORKDIR /app
 # Toolchain is only a fallback for native modules (better-sqlite3, sharp,
 # @resvg) when no prebuilt binary matches the target platform. It never
 # reaches the runtime image.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 make g++ ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 RUN npm ci
 
@@ -19,7 +21,7 @@ COPY . .
 RUN npm run build && npm prune --omit=dev
 
 # ---- runtime -------------------------------------------------------------
-FROM node:20-bookworm-slim AS runtime
+FROM ${NODE_IMAGE} AS runtime
 ENV NODE_ENV=production \
     APP_ENV=production \
     HOST=0.0.0.0 \
@@ -28,6 +30,23 @@ ENV NODE_ENV=production \
     DATABASE_PROVIDER=sqlite \
     DATABASE_URL=/app/data/stats.db
 WORKDIR /app
+
+# Pull in Alpine security fixes newer than the base image, then drop the
+# package managers: npm, npx, yarn and corepack (the app runs with plain
+# `node`) and apk itself. Node bundles its own OpenSSL, so the system
+# libssl/libcrypto go too once apk no longer needs them.
+#
+# musl comes from Alpine edge: same upstream release (1.2.6), newer Alpine
+# patch revision. Scanners (Docker Scout) treat CVE-2026-107891 as fixed only
+# in edge's 1.2.6-r6, although Alpine backported it to 3.24 as 1.2.6-r3.
+# Drop the `--repository` line once the stable branch's musl reaches r6.
+ARG ALPINE_EDGE_MAIN=https://dl-cdn.alpinelinux.org/alpine/edge/main
+RUN apk upgrade --no-cache \
+    && apk upgrade --no-cache --repository="${ALPINE_EDGE_MAIN}" musl musl-utils \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+              /opt/yarn-* /usr/local/bin/npm /usr/local/bin/npx \
+              /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/corepack \
+    && apk del --no-cache apk-tools libssl3 libcrypto3
 
 # Copy as root so we can chown to the non-root `node` user shipped with the
 # official Node image (uid 1000). Subsequent process runs as `node` so a

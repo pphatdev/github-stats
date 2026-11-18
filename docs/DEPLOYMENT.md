@@ -195,15 +195,35 @@ curl -sI https://stats.pphat.top/health | head -1     # HTTP/2 200
 
 Workflow: [`.github/workflows/docker-publish.yml`](../.github/workflows/docker-publish.yml)
 
-**Triggers:** every push to `latest`, except commits that only change `*.md`,
-`docs/**` or issue templates. You can also run it by hand from **Actions →
-Docker Publish → Run workflow**.
+**Triggers:**
 
-**What it does:** builds the image for `linux/amd64` and pushes three tags:
+- every push to `latest`, except commits that only change `*.md`, `docs/**`
+  or issue templates
+- publishing a GitHub release (e.g. `v2.2.0`)
+- by hand from **Actions → Docker Publish → Run workflow**
 
-- `ghcr.io/pphatdev/github-stats:latest`
-- `ghcr.io/pphatdev/github-stats:<version>` (from `package.json`, e.g. `2.2.0`)
-- `ghcr.io/pphatdev/github-stats:sha-<7-char-commit>`
+**What it does:** builds the image for `linux/amd64` and pushes it to
+`ghcr.io/pphatdev/github-stats` and, if configured, to Docker Hub as
+`<DOCKERHUB_USERNAME>/github-stats`, with these tags:
+
+| Trigger | Tags |
+|---|---|
+| Push to `latest` | `latest`, `<package.json version>`, `sha-<7-char-commit>` |
+| Release `vX.Y.Z` | `X.Y.Z`, `X.Y`, `latest`, `sha-<7-char-commit>` |
+| Pre-release `vX.Y.Z-rc.N` | `X.Y.Z-rc.N`, `sha-<7-char-commit>` (not `latest`) |
+
+A release fails if its tag (without the `v`) doesn't match the `version` in
+`package.json` at that commit.
+
+**Docker Hub (optional):** under **Settings → Secrets and variables →
+Actions**, add:
+
+| Name | Where | Value |
+|---|---|---|
+| `DOCKERHUB_USERNAME` | **Variables** tab | Docker Hub user or organization |
+| `DOCKERHUB_TOKEN` | **Secrets** tab | Docker Hub → Account settings → Personal access tokens → *Read, Write & Delete* (also lets the workflow sync the Overview from `docs/DOCKERHUB.md`) |
+
+Without both, the workflow pushes to GHCR only and shows a warning.
 
 It needs no secrets; it uses the workflow's built-in `GITHUB_TOKEN`. It does
 **not** touch the server.
@@ -221,7 +241,15 @@ git switch latest && git merge <your-branch>
 git push origin latest           # triggers the image build
 ```
 
-Follow the run under **Actions**.
+Then publish a release for that version. This builds from the tag and adds
+the `X.Y` tag:
+
+```bash
+gh release create vX.Y.Z --target latest --generate-notes
+```
+
+Or use **Releases → Draft a new release** on GitHub, create the tag `vX.Y.Z`
+on `latest`, and click **Publish release**. Follow the runs under **Actions**.
 
 ### 5.2 Deploying a new version
 
