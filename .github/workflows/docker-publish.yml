@@ -1,6 +1,6 @@
 name: Docker Publish
 
-# Builds the Docker image and pushes it to GHCR. Deploying to the server is
+# Builds the Docker image and pushes it to GHCR and Docker Hub. Deploying to the server is
 # manual: pull the new tag there and run `docker compose up -d` (see
 # docs/DEPLOYMENT.md, "Deploying a new version").
 #
@@ -8,6 +8,12 @@ name: Docker Publish
 #   push to `latest`       -> latest, <package.json version>, sha-<7-char commit>
 #   GitHub release vX.Y.Z  -> X.Y.Z, X.Y, sha-<7-char commit>, and latest
 #                             (unless the release is marked as a pre-release)
+#
+# Docker Hub (docker.io/<DOCKERHUB_USERNAME>/github-stats) is used only when
+# both of these are set under Settings -> Secrets and variables -> Actions:
+#   variable DOCKERHUB_USERNAME  Docker Hub user or organization
+#   secret   DOCKERHUB_TOKEN     access token with Read & Write scope
+# Without them the image goes to GHCR only and the run shows a warning.
 
 on:
   push:
@@ -55,10 +61,25 @@ jobs:
             exit 1
           fi
 
+      - id: hub
+        name: Check Docker Hub settings
+        env:
+          HUB_USER: ${{ vars.DOCKERHUB_USERNAME }}
+          HUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -n "$HUB_USER" ] && [ -n "$HUB_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::DOCKERHUB_USERNAME variable or DOCKERHUB_TOKEN secret not set; pushing to GHCR only."
+          fi
+
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: |
+            ${{ env.IMAGE_NAME }}
+            name=docker.io/${{ vars.DOCKERHUB_USERNAME }}/github-stats,enable=${{ steps.hub.outputs.enabled }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -73,6 +94,12 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/login-action@v3
+        if: steps.hub.outputs.enabled == 'true'
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - uses: docker/build-push-action@v6
         with:

@@ -203,7 +203,8 @@ Workflow: [`.github/workflows/docker-publish.yml`](../.github/workflows/docker-p
 - by hand from **Actions → Docker Publish → Run workflow**
 
 **What it does:** builds the image for `linux/amd64` and pushes it to
-`ghcr.io/pphatdev/github-stats` with these tags:
+`ghcr.io/pphatdev/github-stats` and, if configured, to Docker Hub as
+`<DOCKERHUB_USERNAME>/github-stats`, with these tags:
 
 | Trigger | Tags |
 |---|---|
@@ -213,6 +214,16 @@ Workflow: [`.github/workflows/docker-publish.yml`](../.github/workflows/docker-p
 
 A release fails if its tag (without the `v`) doesn't match the `version` in
 `package.json` at that commit.
+
+**Docker Hub (optional):** under **Settings → Secrets and variables →
+Actions**, add:
+
+| Name | Where | Value |
+|---|---|---|
+| `DOCKERHUB_USERNAME` | **Variables** tab | Docker Hub user or organization |
+| `DOCKERHUB_TOKEN` | **Secrets** tab | Docker Hub → Account settings → Personal access tokens → *Read & Write* |
+
+Without both, the workflow pushes to GHCR only and shows a warning.
 
 It needs no secrets; it uses the workflow's built-in `GITHUB_TOKEN`. It does
 **not** touch the server.

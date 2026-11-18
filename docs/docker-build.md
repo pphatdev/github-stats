@@ -111,7 +111,9 @@ docker run -d --name github-stats \
 changes to docs only), when a GitHub release is published, and when started
 manually. It builds the image and pushes `ghcr.io/pphatdev/github-stats:latest`,
 `:<version>` (from `package.json`) and `:sha-<commit>`. A release `vX.Y.Z`
-also pushes `:X.Y`, and must match the `package.json` version. It needs no secrets and does not touch
+also pushes `:X.Y`, and must match the `package.json` version. The same tags
+go to Docker Hub (`<DOCKERHUB_USERNAME>/github-stats`) when the
+`DOCKERHUB_USERNAME` variable and `DOCKERHUB_TOKEN` secret are set. It needs no secrets and does not touch
 the server; deploying is a manual `docker compose pull` + `up` on the server
 (see [DEPLOYMENT.md](DEPLOYMENT.md#52-deploying-a-new-version)).
 
