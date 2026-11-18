@@ -1,7 +1,7 @@
 # Deployment Guide
 
 How `stats.pphat.top` is deployed and operated: first-time server setup,
-Cloudflare Tunnel, automatic deploys from GitHub, everyday operations,
+Cloudflare Tunnel, image builds on GitHub, deploying, everyday operations,
 rollback and troubleshooting.
 
 For image internals and the full list of environment variables, see
@@ -13,7 +13,7 @@ For image internals and the full list of environment variables, see
 2. [Prerequisites](#2-prerequisites)
 3. [First-time server setup](#3-first-time-server-setup)
 4. [Cloudflare Tunnel setup](#4-cloudflare-tunnel-setup)
-5. [Automatic deploys (GitHub Actions)](#5-automatic-deploys-github-actions)
+5. [Building and deploying](#5-building-and-deploying)
 6. [Day-to-day operations](#6-day-to-day-operations)
 7. [Rollback](#7-rollback)
 8. [Secondary deployments](#8-secondary-deployments)
@@ -45,7 +45,7 @@ Visitor / GitHub camo │                                                       
 | **`app`** | The API (`node dist/server-cluster.js`, one worker per CPU). It listens on `PORT` inside the container. |
 | **`redis`** | Response cache and rate-limit counters shared by all workers. Not reachable from outside. |
 | **Database** | Either SQLite in the `app-data` volume or Cloudflare D1, set by `DATABASE_PROVIDER`. |
-| **GitHub Actions** | Builds the image, pushes it to GHCR and redeploys the server over SSH on every push to `latest`. |
+| **GitHub Actions** | Builds the image and pushes it to GHCR on every push to `latest`. The server is updated by hand. |
 
 There are two separate ports:
 
@@ -98,12 +98,11 @@ sudo mkdir -p /var/www && sudo chown "$USER" /var/www
 cd /var/www
 git clone https://github.com/pphatdev/github-stats.git
 cd github-stats
-git switch latest            # the branch the deploy workflow pulls
+git switch latest            # the branch production runs
 ```
 
-> The server must stay on `latest`. The deploy workflow runs
-> `git pull --ff-only origin latest`, which fails on any other branch or if
-> files were edited on the server.
+> Keep the server on `latest` and don't edit tracked files there, so
+> `git pull --ff-only origin latest` always works when you deploy.
 
 ### 3.3 Create `.env`
 
@@ -192,70 +191,51 @@ curl -sI https://stats.pphat.top/health | head -1     # HTTP/2 200
 
 ---
 
-## 5. Automatic deploys (GitHub Actions)
+## 5. Building and deploying
 
-Workflow: [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
+Workflow: [`.github/workflows/docker-publish.yml`](../.github/workflows/docker-publish.yml)
 
 **Triggers:** every push to `latest`, except commits that only change `*.md`,
 `docs/**` or issue templates. You can also run it by hand from **Actions →
-Deploy → Run workflow**.
+Docker Publish → Run workflow**.
 
-**What it does:**
+**What it does:** builds the image for `linux/amd64` and pushes three tags:
 
-1. **build:** builds the image for `linux/amd64` and pushes
-   `ghcr.io/pphatdev/github-stats:latest` and `:sha-<7-char-commit>`.
-2. **deploy** (GitHub environment `production`), over SSH:
-   ```bash
-   cd $DEPLOY_PATH
-   git pull --ff-only origin latest
-   docker login ghcr.io …
-   APP_IMAGE=ghcr.io/pphatdev/github-stats:sha-<commit> docker compose pull app
-   docker compose up -d --no-build --remove-orphans
-   # waits up to 150 s for the app healthcheck; the job fails if it isn't healthy
-   docker logout ghcr.io && docker image prune -f
-   ```
+- `ghcr.io/pphatdev/github-stats:latest`
+- `ghcr.io/pphatdev/github-stats:<version>` (from `package.json`, e.g. `2.2.0`)
+- `ghcr.io/pphatdev/github-stats:sha-<7-char-commit>`
 
-### 5.1 One-time GitHub setup
+It needs no secrets; it uses the workflow's built-in `GITHUB_TOKEN`. It does
+**not** touch the server.
 
-**Repository → Settings → Secrets and variables → Actions → New repository secret:**
+**Image visibility:** if the GHCR package `github-stats` is private, log in on
+the server first with a token that has `read:packages`:
+`docker login ghcr.io -u <github-user>`.
 
-| Secret | Required | Value |
-|---|---|---|
-| `SSH_HOST` | Yes | Server IP or hostname |
-| `SSH_USER` | Yes | Deploy user. Must be in the `docker` group. |
-| `SSH_KEY` | Yes | Private key, see below |
-| `DEPLOY_PATH` | Yes | `/var/www/github-stats` |
-| `SSH_FINGERPRINT` | Strongly recommended | Server host key fingerprint, see below. Without it the deploy can't detect a man-in-the-middle. |
-| `SSH_PORT` | No | Defaults to `22` |
-
-Create a dedicated deploy key, run **on the server** as the deploy user:
+### 5.1 Releasing a new version
 
 ```bash
-ssh-keygen -t ed25519 -f ~/.ssh/github_deploy -N "" -C "github-actions-deploy"
-cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys
-cat ~/.ssh/github_deploy                                   # → secret SSH_KEY (whole file)
-ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub           # → secret SSH_FINGERPRINT (the SHA256:… part)
-rm ~/.ssh/github_deploy                                    # the private key now lives only in GitHub
+npm version <patch|minor|major> --no-git-tag-version   # bump package.json
+git commit -am "chore(release): bump version to X.Y.Z"
+git switch latest && git merge <your-branch>
+git push origin latest           # triggers the image build
 ```
 
-**Optional:** under **Settings → Environments → New environment →
-`production`**, add *Required reviewers* so every deploy waits for your
-approval.
+Follow the run under **Actions**.
 
-**Image visibility:** if the GHCR package `github-stats` is private, the
-workflow's built-in `GITHUB_TOKEN` can still pull it during deploy. To pull it
-by hand, `docker login ghcr.io` with a token that has `read:packages`.
+### 5.2 Deploying a new version
 
-### 5.2 Deploying
+Once the build has finished, on the server:
 
 ```bash
-git switch latest
-git merge <your-branch>
-git push origin latest           # triggers the deploy
+cd /var/www/github-stats
+git pull --ff-only origin latest
+export APP_IMAGE=ghcr.io/pphatdev/github-stats:<version>   # or :latest / :sha-<commit>
+docker compose pull app
+docker compose up -d --no-build --remove-orphans
+docker compose ps                # wait until app shows "healthy"
+docker image prune -f
 ```
-
-Follow the run under **Actions**. If it fails, the job log shows the last
-`docker compose ps` output and the app's health status.
 
 ### 5.3 Deploying by hand (without CI)
 
@@ -323,8 +303,9 @@ docker compose pull app
 docker compose up -d --no-build
 ```
 
-That pin lasts only until the next deploy. To make the rollback permanent,
-revert the bad commit on `latest` and push, and CI redeploys automatically:
+Version tags (`:2.1.1`, `:2.2.0`, ...) work too. To make the rollback
+permanent, revert the bad commit on `latest`, push so CI builds a fixed image,
+then deploy it as in [5.2](#52-deploying-a-new-version):
 
 ```bash
 git revert <bad-commit> && git push origin latest
@@ -405,9 +386,9 @@ curl -sI https://stats.pphat.top/health | head -1   # 3. does it answer publicly
 | Public: **empty HTTP 503**; `cloudflared`: `No ingress rules were defined` | Tunnel connected but has no route, and `compose.yaml` lacks the `--url` fallback. | Update `compose.yaml` (`git pull`) and recreate `cloudflared`, or add the Public Hostname in the dashboard ([4.3](#43-route-statspphattop-to-the-tunnel)). |
 | Public: **HTTP 502** / Cloudflare "Bad gateway" | Tunnel reaches the container but nothing answers on the target port. | The dashboard route URL must be `localhost:<PORT>`, matching `.env`. Also check `app` is healthy. If `app` was recreated alone, recreate `cloudflared` too. |
 | Public: **HTTP 429** | Per-IP rate limit hit. GitHub's image proxy shares a few IPs across all README viewers. | Raise `RATE_LIMIT_STRICT_MAX` / `RATE_LIMIT_MAX` in `.env` and recreate `app`. |
-| Deploy job fails at `git pull --ff-only` | The server isn't on `latest`, or tracked files were edited there. | On the server: `git status`; `git checkout -- .` to drop local edits; `git switch latest`. |
-| Deploy job: `Host key verification failed` / fingerprint mismatch | `SSH_FINGERPRINT` is wrong, or the server was rebuilt. | Re-run `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` on the server and update the secret. |
-| Deploy job: app never healthy | The new version fails to start. | `docker compose logs app` on the server; [roll back](#7-rollback). |
+| `git pull --ff-only` fails on the server | The server isn't on `latest`, or tracked files were edited there. | On the server: `git status`; `git checkout -- .` to drop local edits; `git switch latest`. |
+| `docker compose pull app`: `denied` / `unauthorized` | The GHCR package is private and the server isn't logged in. | `docker login ghcr.io -u <github-user>` with a token that has `read:packages`. |
+| App never healthy after a deploy | The new version fails to start. | `docker compose logs app` on the server; [roll back](#7-rollback). |
 | `unable to open database file` | The `app-data` volume is owned by root, from an older image. | `docker compose down`, then `docker run --rm -v github-stats_app-data:/d alpine chown -R 1000:1000 /d`, then `docker compose up -d`. |
 | Badges/cards show stale numbers | Response cache. | Wait for the TTL or clear it: `docker compose exec redis redis-cli FLUSHDB`. |
 
@@ -422,9 +403,6 @@ curl -sI https://stats.pphat.top/health | head -1   # 3. does it answer publicly
       Ports 80/443 are only needed if you use the host nginx.
 - [ ] SSH: key-only login (`PasswordAuthentication no`), and the deploy user is
       not root.
-- [ ] `SSH_FINGERPRINT` secret set, so deploys verify the host key.
-- [ ] The `production` environment has required reviewers if more people can
-      push to `latest`.
 - [ ] `GITHUB_TOKEN` (the app's) has no scopes beyond what public data needs.
 - [ ] The Cloudflare tunnel token has only been shared with this server. If it
       leaks, rotate it in Zero Trust → Tunnels → Configure.
