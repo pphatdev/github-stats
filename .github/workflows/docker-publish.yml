@@ -14,6 +14,9 @@ name: Docker Publish
 #   variable DOCKERHUB_USERNAME  Docker Hub user or organization
 #   secret   DOCKERHUB_TOKEN     access token with Read & Write scope
 # Without them the image goes to GHCR only and the run shows a warning.
+# The Docker Hub Overview is synced from docs/DOCKERHUB.md (needs a token
+# with Read, Write & Delete scope; otherwise that step is skipped with an error
+# but the image is still published).
 
 on:
   push:
@@ -110,3 +113,17 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Keep the Docker Hub "Overview" tab in sync with docs/DOCKERHUB.md.
+      # Docker Hub requires a token with Read, Write & Delete scope for this;
+      # with a narrower token the image still publishes and only this step fails.
+      - name: Update Docker Hub description
+        if: steps.hub.outputs.enabled == 'true' && (github.event_name == 'release' || github.ref == 'refs/heads/latest')
+        continue-on-error: true
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ vars.DOCKERHUB_USERNAME }}/github-stats
+          readme-filepath: docs/DOCKERHUB.md
+          short-description: Self-hosted GitHub stats cards, language charts, graphs and badges as SVG.

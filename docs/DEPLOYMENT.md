@@ -221,7 +221,7 @@ Actions**, add:
 | Name | Where | Value |
 |---|---|---|
 | `DOCKERHUB_USERNAME` | **Variables** tab | Docker Hub user or organization |
-| `DOCKERHUB_TOKEN` | **Secrets** tab | Docker Hub → Account settings → Personal access tokens → *Read & Write* |
+| `DOCKERHUB_TOKEN` | **Secrets** tab | Docker Hub → Account settings → Personal access tokens → *Read, Write & Delete* (also lets the workflow sync the Overview from `docs/DOCKERHUB.md`) |
 
 Without both, the workflow pushes to GHCR only and shows a warning.
 
