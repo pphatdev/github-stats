@@ -2,7 +2,7 @@
 
 ## Version
 
-Current Version: **2.2.1**
+Current Version: **2.2.2**
 
 ## System Architecture Flow
 
