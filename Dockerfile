@@ -1,7 +1,11 @@
 # syntax=docker/dockerfile:1
 
+# Node 24 (active LTS) on Debian 13. Both stages must use the same Node major
+# so native modules built in `deps` match the runtime ABI.
+ARG NODE_IMAGE=node:24-trixie-slim
+
 # ---- deps: install all dependencies (incl. dev) --------------------------
-FROM node:20-bookworm-slim AS deps
+FROM ${NODE_IMAGE} AS deps
 WORKDIR /app
 # Toolchain is only a fallback for native modules (better-sqlite3, sharp,
 # @resvg) when no prebuilt binary matches the target platform. It never
@@ -19,7 +23,7 @@ COPY . .
 RUN npm run build && npm prune --omit=dev
 
 # ---- runtime -------------------------------------------------------------
-FROM node:20-bookworm-slim AS runtime
+FROM ${NODE_IMAGE} AS runtime
 ENV NODE_ENV=production \
     APP_ENV=production \
     HOST=0.0.0.0 \
@@ -28,6 +32,17 @@ ENV NODE_ENV=production \
     DATABASE_PROVIDER=sqlite \
     DATABASE_URL=/app/data/stats.db
 WORKDIR /app
+
+# Pull in Debian security fixes newer than the base image, and drop the
+# package managers bundled with the Node image (npm, npx, yarn, corepack).
+# The app runs with plain `node`, and their own dependencies are a large
+# share of the image's reported CVEs.
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+              /opt/yarn-* /usr/local/bin/npm /usr/local/bin/npx \
+              /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/corepack
 
 # Copy as root so we can chown to the non-root `node` user shipped with the
 # official Node image (uid 1000). Subsequent process runs as `node` so a
