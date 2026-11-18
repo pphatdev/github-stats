@@ -180,13 +180,13 @@ docker push ghcr.io/pphatdev/github-stats:latest
 
 ## How the image is built
 
-`Dockerfile` is a three-stage build on `node:24-trixie-slim` (Node 24 LTS, Debian 13):
+`Dockerfile` is a three-stage build on `node:24-alpine` (Node 24 LTS):
 
 | Stage     | Does |
 |-----------|------|
 | `deps`    | Installs build tools (only used if a native module has no prebuilt binary) and runs `npm ci`. |
 | `build`   | Compiles TypeScript (`npm run build`), then `npm prune --omit=dev`. |
-| `runtime` | Applies Debian security updates and removes npm, yarn and corepack. Copies `node_modules`, `dist` and `public` only. Runs `node dist/server-cluster.js` as the `node` user. |
+| `runtime` | Applies Alpine security updates, then removes npm, yarn, corepack, apk and the system OpenSSL (Node bundles its own). Copies `node_modules`, `dist` and `public` only. Runs `node dist/server-cluster.js` as the `node` user. |
 
 `.dockerignore` keeps `.env`, `.git`, `node_modules`, `data`, tests and docs
 out of the build context.

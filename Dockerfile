@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 
-# Node 24 (active LTS) on Debian 13. Both stages must use the same Node major
-# so native modules built in `deps` match the runtime ABI.
-ARG NODE_IMAGE=node:24-trixie-slim
+# Node 24 (active LTS) on Alpine. Both stages must use the same image so
+# native modules built in `deps` match the runtime ABI and libc (musl).
+ARG NODE_IMAGE=node:24-alpine
 
 # ---- deps: install all dependencies (incl. dev) --------------------------
 FROM ${NODE_IMAGE} AS deps
@@ -10,9 +10,7 @@ WORKDIR /app
 # Toolchain is only a fallback for native modules (better-sqlite3, sharp,
 # @resvg) when no prebuilt binary matches the target platform. It never
 # reaches the runtime image.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 make g++ ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 RUN npm ci
 
@@ -33,16 +31,15 @@ ENV NODE_ENV=production \
     DATABASE_URL=/app/data/stats.db
 WORKDIR /app
 
-# Pull in Debian security fixes newer than the base image, and drop the
-# package managers bundled with the Node image (npm, npx, yarn, corepack).
-# The app runs with plain `node`, and their own dependencies are a large
-# share of the image's reported CVEs.
-RUN apt-get update \
-    && apt-get upgrade -y --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
+# Pull in Alpine security fixes newer than the base image, then drop the
+# package managers: npm, npx, yarn and corepack (the app runs with plain
+# `node`) and apk itself. Node bundles its own OpenSSL, so the system
+# libssl/libcrypto go too once apk no longer needs them.
+RUN apk upgrade --no-cache \
     && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
               /opt/yarn-* /usr/local/bin/npm /usr/local/bin/npx \
-              /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/corepack
+              /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/corepack \
+    && apk del --no-cache apk-tools libssl3 libcrypto3 2>/dev/null || true
 
 # Copy as root so we can chown to the non-root `node` user shipped with the
 # official Node image (uid 1000). Subsequent process runs as `node` so a
