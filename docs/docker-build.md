@@ -108,9 +108,10 @@ docker run -d --name github-stats \
 > This section is a summary.
 
 `.github/workflows/docker-publish.yml` runs on every push to `latest` (except
-changes to docs only) and can also be started manually. It builds the image
-and pushes `ghcr.io/pphatdev/github-stats:latest`, `:<version>` (from
-`package.json`) and `:sha-<commit>`. It needs no secrets and does not touch
+changes to docs only), when a GitHub release is published, and when started
+manually. It builds the image and pushes `ghcr.io/pphatdev/github-stats:latest`,
+`:<version>` (from `package.json`) and `:sha-<commit>`. A release `vX.Y.Z`
+also pushes `:X.Y`, and must match the `package.json` version. It needs no secrets and does not touch
 the server; deploying is a manual `docker compose pull` + `up` on the server
 (see [DEPLOYMENT.md](DEPLOYMENT.md#52-deploying-a-new-version)).
 

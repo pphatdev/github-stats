@@ -4,7 +4,10 @@ name: Docker Publish
 # manual: pull the new tag there and run `docker compose up -d` (see
 # docs/DEPLOYMENT.md, "Deploying a new version").
 #
-# Tags pushed: latest, <package.json version>, sha-<7-char commit>.
+# Tags pushed:
+#   push to `latest`       -> latest, <package.json version>, sha-<7-char commit>
+#   GitHub release vX.Y.Z  -> X.Y.Z, X.Y, sha-<7-char commit>, and latest
+#                             (unless the release is marked as a pre-release)
 
 on:
   push:
@@ -13,13 +16,15 @@ on:
       - "**.md"
       - "docs/**"
       - ".github/ISSUE_TEMPLATE/**"
+  release:
+    types: [published]
   workflow_dispatch:
 
 # Least privilege by default; jobs opt in to what they need.
 permissions: {}
 
 concurrency:
-  group: docker-publish
+  group: docker-publish-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -35,10 +40,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - id: short
+      - id: pkg
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # A release must match package.json, so `2.2.0` never means two images.
+      - name: Check release tag matches package.json
+        if: github.event_name == 'release'
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          PKG: ${{ steps.pkg.outputs.version }}
         run: |
-          echo "sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+          if [ "${TAG#v}" != "$PKG" ]; then
+            echo "::error::Release tag $TAG does not match package.json version $PKG"
+            exit 1
+          fi
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=${{ steps.pkg.outputs.version }},enable=${{ github.event_name != 'release' }}
+            type=raw,value=latest,enable=${{ github.event_name != 'release' || !github.event.release.prerelease }}
+            type=sha,prefix=sha-,format=short
 
       - uses: docker/setup-buildx-action@v3
 
@@ -53,9 +79,7 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:${{ steps.short.outputs.version }}
-            ${{ env.IMAGE_NAME }}:sha-${{ steps.short.outputs.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
