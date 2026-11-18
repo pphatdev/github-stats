@@ -1,0 +1,61 @@
+name: Docker Publish
+
+# Builds the Docker image and pushes it to GHCR. Deploying to the server is
+# manual: pull the new tag there and run `docker compose up -d` (see
+# docs/DEPLOYMENT.md, "Deploying a new version").
+#
+# Tags pushed: latest, <package.json version>, sha-<7-char commit>.
+
+on:
+  push:
+    branches: [latest]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
+  workflow_dispatch:
+
+# Least privilege by default; jobs opt in to what they need.
+permissions: {}
+
+concurrency:
+  group: docker-publish
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/pphatdev/github-stats
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: short
+        run: |
+          echo "sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ steps.short.outputs.version }}
+            ${{ env.IMAGE_NAME }}:sha-${{ steps.short.outputs.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

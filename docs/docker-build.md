@@ -101,23 +101,18 @@ docker run -d --name github-stats \
   are reachable from inside the container. `localhost` there means the
   container itself, not your machine.
 
-## Production deployment (GitHub Actions + Cloudflare Tunnel)
+## Production deployment (GHCR + Cloudflare Tunnel)
 
-> The complete step-by-step guide (server setup, tunnel, CI secrets,
+> The complete step-by-step guide (server setup, tunnel, image builds,
 > operations, rollback, troubleshooting) is in **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 > This section is a summary.
 
-`.github/workflows/deploy.yml` runs on every push to `latest` (except changes
-to docs only) and can also be started manually:
-
-1. **Build:** builds the image and pushes
-   `ghcr.io/pphatdev/github-stats:latest` and `:sha-<commit>`.
-2. **Deploy:** connects to the server over SSH (checking its host key) and runs
-   `git pull --ff-only`. It then runs `docker compose pull app` and
-   `docker compose up -d --no-build` with `APP_IMAGE` set to the new
-   `sha-` tag.
-3. **Verify:** waits up to 2.5 minutes for the `app` healthcheck and fails
-   the job if the app never becomes healthy.
+`.github/workflows/docker-publish.yml` runs on every push to `latest` (except
+changes to docs only) and can also be started manually. It builds the image
+and pushes `ghcr.io/pphatdev/github-stats:latest`, `:<version>` (from
+`package.json`) and `:sha-<commit>`. It needs no secrets and does not touch
+the server; deploying is a manual `docker compose pull` + `up` on the server
+(see [DEPLOYMENT.md](DEPLOYMENT.md#52-deploying-a-new-version)).
 
 Traffic path: `Cloudflare edge → cloudflared → app`. The server needs no open
 inbound ports.
@@ -127,7 +122,7 @@ inbound ports.
 **Server**
 
 1. Install Docker and give the deploy user permission to run it.
-2. Clone this repository to the path you will use as `DEPLOY_PATH`.
+2. Clone this repository on the server (e.g. `/var/www/github-stats`).
 3. Create `.env` from `.env.example` and set `SERVER_SALT`, `GITHUB_TOKEN`
    and `CLOUDFLARED_TUNNEL_TOKEN`.
 4. Don't edit tracked files on the server. `git pull --ff-only` fails if the
@@ -142,32 +137,19 @@ the tunnel so Cloudflare creates the DNS record. If you set a URL there, use
 if `PORT` is unset. `cloudflared` shares the app container's network, so this
 is the container port, not the host mapping.
 
-**GitHub → Settings → Secrets and variables → Actions**
-
-| Secret            | Required | Value |
-|-------------------|----------|-------|
-| `SSH_HOST`        | Yes      | Server hostname or IP |
-| `SSH_USER`        | Yes      | User that can run `docker compose` |
-| `SSH_KEY`         | Yes      | Private key for that user |
-| `DEPLOY_PATH`     | Yes      | Absolute path of the repo checkout on the server |
-| `SSH_FINGERPRINT` | Strongly recommended | Output of `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`, run on the server (the `SHA256:...` part). Without it the deploy doesn't verify the host key, so a man-in-the-middle could capture the registry token. |
-| `SSH_PORT`        | No       | Defaults to `22` |
-
-The deploy job uses the `production` environment, so you can require a
-reviewer before each deploy under **Settings → Environments**.
-
 ### Rolling back
 
 Pin a previous image on the server:
 
 ```bash
-cd "$DEPLOY_PATH"
+cd /var/www/github-stats
 export APP_IMAGE=ghcr.io/pphatdev/github-stats:sha-<old-commit>
 docker compose pull app
 docker compose up -d --no-build app
 ```
 
-Or revert the commit on `latest`, and the workflow redeploys automatically.
+Or revert the commit on `latest`, let the workflow build a new image, and
+deploy that.
 
 ### Optional: host nginx
 
