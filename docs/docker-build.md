@@ -299,6 +299,7 @@ Where findings usually come from, and the fix:
 | Source | Fix |
 |---|---|
 | Alpine packages | Rebuild; the `runtime` stage runs `apk upgrade`. Release a new version so the fixed image gets a new tag. |
+| Alpine package fixed only in edge (scanner's fix version is an edge revision) | Check Alpine's secdb (`https://secdb.alpinelinux.org/v3.24/main.json`): if stable already lists the CVE as fixed it is a scanner mismatch. To clear it anyway, upgrade just that package from edge, as the `Dockerfile` does for `musl`, and remove that once stable catches up. |
 | Node itself | Bump the Node base (stay on a supported LTS line). |
 | npm dependencies | `npm audit fix` or upgrade the package; check `npm ls <pkg> --omit=dev` to see what pulls it in. |
 
